@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <exclude domain="external" path="music"/>
+    <exclude domain="database" path="uta_library.db"/>
+    <exclude domain="sharedpref" path="uta_credentials.xml"/>
+</full-backup-content>

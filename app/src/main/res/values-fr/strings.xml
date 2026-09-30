@@ -1,0 +1,554 @@
+<resources>
+    <!-- Application -->
+    <string name="app_name">Uta</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Accueil</string>
+    <string name="nav_search">Rechercher</string>
+    <string name="nav_downloads">Téléchargements</string>
+    <string name="nav_library">Bibliothèque</string>
+    <string name="nav_settings">Paramètres</string>
+    <string name="nav_back">Retour</string>
+
+    <!-- Library Tabs -->
+    <string name="tab_albums">Albums</string>
+    <string name="tab_artists">Artistes</string>
+    <string name="tab_playlists">Playlists</string>
+
+    <!-- Common Actions -->
+    <string name="action_play">Lire</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_shuffle">Aléatoire</string>
+    <string name="action_play_all">Tout lire</string>
+    <string name="action_play_next">Lire ensuite</string>
+    <string name="action_add_to_queue">Ajouter à la file</string>
+    <string name="action_add_to_playlist">Ajouter à la playlist</string>
+    <string name="action_remove_from_playlist">Retirer de la playlist</string>
+    <string name="action_add_to_favorites">Ajouter aux favoris</string>
+    <string name="action_remove_from_favorites">Retirer des favoris</string>
+    <string name="action_star">Favori</string>
+    <string name="action_unstar">Retirer le favori</string>
+    <string name="action_star_artist">Ajouter l\'artiste aux favoris</string>
+    <string name="action_unstar_artist">Ne plus suivre l\'artiste</string>
+    <string name="action_download">Télécharger</string>
+    <string name="action_remove_download">Supprimer le téléchargement</string>
+    <string name="action_remove_from_downloads">Supprimer des téléchargements</string>
+    <string name="action_delete_playlist">Supprimer la playlist</string>
+    <string name="action_tracks_count_format">%1$d morceaux</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_confirm">Confirmer</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_clear">Effacer</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_retry">Réessayer</string>
+    <string name="action_close">Fermer</string>
+    <string name="action_back">Retour</string>
+    <string name="action_search">Rechercher</string>
+    <string name="action_sync">Synchroniser</string>
+    <string name="action_logout">Déconnexion</string>
+    <string name="action_undo">Annuler</string>
+    <string name="action_remove">Retirer</string>
+    <string name="action_share">Partager</string>
+    <string name="action_info">Infos</string>
+    <string name="action_rate">Noter</string>
+    <string name="action_go_to_artist">Aller à l\'artiste</string>
+    <string name="action_go_to_album">Aller à l\'album</string>
+    <string name="action_clear_queue">Vider la file</string>
+    <string name="action_add_queue_to_playlist">Ajouter la file à une playlist</string>
+    <string name="action_create_and_add">Créer et ajouter</string>
+    <string name="action_remove_from_queue">Retirer de la file</string>
+    <string name="action_scroll_up">Défiler vers le haut</string>
+    <string name="action_scroll_down">Défiler vers le bas</string>
+    <string name="action_repeat">Répéter</string>
+    <string name="action_open_lastfm">Ouvrir dans Last.fm</string>
+    <string name="action_open_musicbrainz">Ouvrir dans MusicBrainz</string>
+    <string name="action_show_less">Afficher moins</string>
+    <string name="action_read_more">Lire la suite</string>
+    <string name="action_see_more">Voir plus</string>
+    <string name="action_see_all">Tout voir</string>
+    <string name="action_more_options">Plus d\'options</string>
+    <string name="action_done">Terminé</string>
+    <string name="dialog_ok">OK</string>
+
+    <string name="playlist_songs_count">%1$d morceaux</string>
+    <string name="status_offline_badge">Hors-ligne</string>
+    <string name="status_offline_mode">Mode hors-ligne</string>
+    <string name="status_no_internet">Aucune connexion Internet</string>
+    <string name="status_server_unreachable">Impossible de joindre le serveur</string>
+
+    <!-- Common Values -->
+
+    <!-- Greetings -->
+    <string name="greeting_morning">Bonjour</string>
+    <string name="greeting_afternoon">Bon après-midi</string>
+    <string name="greeting_evening">Bonsoir</string>
+    <string name="greeting_night">Bonne nuit</string>
+
+    <!-- Home Screen -->
+    <string name="home_quick_picks">Suggestions rapides</string>
+    <string name="home_recently_added">Récemment ajoutés</string>
+    <string name="home_random_albums">Albums aléatoires</string>
+    <string name="home_empty_title">Votre bibliothèque est vide</string>
+    <string name="home_empty_subtitle">Synchronisez votre serveur Subsonic pour commencer l\'écoute.</string>
+    <string name="home_syncing">Synchronisation de votre bibliothèque…</string>
+    <string name="featured_artist_more_from">PLUS DE</string>
+
+    <!-- Search Screen -->
+    <string name="search_placeholder">Titres, albums, artistes…</string>
+    <string name="search_tracks">Titres</string>
+    <string name="search_albums">Albums</string>
+    <string name="search_artists">Artistes</string>
+    <string name="search_browse_genres">Parcourir les genres</string>
+    <string name="search_no_results">Aucun résultat trouvé</string>
+    <string name="search_no_results_for">Aucun résultat trouvé pour « %1$s »</string>
+    <string name="search_empty_prompt">Recherchez dans votre bibliothèque</string>
+
+    <!-- Library Screen & Tabs -->
+    <string name="library_title">Bibliothèque</string>
+    <string name="library_sort_by">Trier par</string>
+    <string name="library_new_playlist">Nouvelle playlist</string>
+    <string name="library_create_playlist">Créer</string>
+    <string name="library_playlist_name">Nom de la playlist</string>
+    <string name="library_empty_albums">Aucun album dans la bibliothèque</string>
+    <string name="library_empty_artists">Aucun artiste dans la bibliothèque</string>
+    <string name="library_empty_playlists">Aucune playlist dans la bibliothèque</string>
+    <string name="sort_alphabetical">Alphabétique</string>
+    <string name="sort_artist">Artiste</string>
+    <string name="sort_album">Album</string>
+    <string name="sort_title">Titre</string>
+    <string name="sort_id">ID</string>
+    <string name="sort_duration">Durée</string>
+    <string name="sort_favourites">Favoris</string>
+    <string name="sort_rating">Note</string>
+    <string name="sort_recently_added">Récemment ajoutés</string>
+    <string name="sort_recently_played">Récemment écoutés</string>
+    <string name="sort_most_played">Les plus écoutés</string>
+    <string name="sort_year">Année</string>
+    <string name="sort_item_count">Nombre d\'éléments</string>
+    <string name="sort_date_modified">Date de modification</string>
+    <string name="sort_date_created">Date de création</string>
+    <string name="sort_ascending">Croissant</string>
+    <string name="sort_descending">Décroissant</string>
+    <string name="view_options">Options d\'affichage</string>
+    <string name="view_list">Liste</string>
+    <string name="view_text_only">Texte uniquement</string>
+    <string name="view_columns_format">%1$d colonnes</string>
+
+    <!-- Downloads Screen -->
+    <string name="downloads_title">Téléchargements</string>
+    <string name="downloads_search_placeholder">Rechercher dans les téléchargements</string>
+    <string name="downloads_empty_title">Aucune musique téléchargée</string>
+    <string name="downloads_empty_subtitle">Téléchargez vos chansons, albums ou playlists préférés pour les écouter hors-ligne</string>
+    <string name="downloads_no_matching_title">Aucun morceau correspondant</string>
+    <string name="downloads_no_matching_subtitle">Essayez de rechercher un autre titre, artiste ou album.</string>
+    <string name="downloads_tracks_count">%1$d morceaux</string>
+    <string name="downloads_downloading_count"> (%1$d en cours)</string>
+    <string name="downloads_delete_confirm_msg">Supprimer « %1$s » du stockage hors-ligne ?</string>
+    <string name="download_status_downloading">Téléchargement %1$d%%</string>
+    <string name="download_status_queued">En file d\'attente</string>
+    <string name="download_status_failed">Échec du téléchargement</string>
+    <string name="download_status_completed">Terminé</string>
+    <string name="download_status_waiting">En attente…</string>
+    <string name="downloads_clear_all">Tout effacer</string>
+    <string name="downloads_clear_confirm_title">Supprimer tous les téléchargements</string>
+    <string name="downloads_clear_confirm_message">Voulez-vous vraiment supprimer tous les morceaux et médias téléchargés de ce serveur ?</string>
+
+    <!-- History Screen -->
+    <string name="history_title">Historique</string>
+    <string name="history_clear_all">Effacer l\'historique</string>
+    <string name="history_clear_confirm_title">Effacer l\'historique</string>
+    <string name="history_clear_confirm_message">Voulez-vous vraiment effacer tout l\'historique d\'écoute ?</string>
+    <string name="history_empty_title">Aucun historique d\'écoute pour le moment</string>
+    <string name="history_empty_subtitle">Les morceaux que vous écoutez apparaîtront ici</string>
+    <string name="history_cleared">Historique effacé</string>
+    <string name="history_removed_toast">Retiré de l\'historique</string>
+
+    <!-- Detail Screens (Artist, Album, Playlist, Genre) -->
+    <string name="artist_albums">Albums</string>
+    <string name="artist_about">À propos</string>
+    <string name="artist_top_songs">Meilleurs titres</string>
+    <string name="artist_fallback">Artiste</string>
+    <string name="album_tracks">Titres</string>
+    <string name="album_duration_format">%1$d titres • %2$s</string>
+    <string name="album_filter_placeholder">Filtrer l\'album…</string>
+    <string name="album_disc_header">Disque %1$d</string>
+    <string name="playlist_tracks">Titres</string>
+    <string name="playlist_filter_placeholder">Filtrer la playlist…</string>
+    <string name="playlist_edit">Modifier la playlist</string>
+    <string name="playlist_edit_title">Modifier la playlist</string>
+    <string name="playlist_delete_confirm_title">Supprimer la playlist ?</string>
+    <string name="playlist_delete_confirm_message">Voulez-vous vraiment supprimer définitivement « %1$s » ?</string>
+    <string name="playlist_save">Enregistrer</string>
+    <string name="playlist_reorder">Réorganiser</string>
+    <string name="genre_albums">Albums</string>
+    <string name="genre_tracks">Titres</string>
+    <string name="genre_albums_songs_format">%1$d albums • %2$d morceaux</string>
+
+    <string name="edit_playlist_choose_image">Choisir une image</string>
+    <string name="edit_playlist_remove_image">Supprimer l\'image actuelle</string>
+    <string name="edit_playlist_description_label">Description (Facultatif)</string>
+    <string name="edit_playlist_private">Privée</string>
+    <string name="edit_playlist_public">Publique</string>
+    <string name="edit_playlist_auto_gen">Playlist générée automatiquement</string>
+    <string name="edit_playlist_auto_gen_desc">Il s\'agit d\'une playlist auto-importée basée sur un fichier .m3u</string>
+    <string name="edit_playlist_songs_count">Morceaux (%1$d)</string>
+    <string name="edit_playlist_auto_imported">Playlist auto-importée</string>
+    <string name="edit_playlist_read_only">Lecture seule</string>
+    <string name="edit_playlist_swipe_drag_reorder">Glisser pour réorganiser</string>
+    <string name="edit_playlist_cover_cd">Nouvelle pochette de playlist</string>
+    <string name="edit_playlist_edit_cover_cd">Modifier la pochette</string>
+
+    <string name="failed_load_album">Échec du chargement de l\'album</string>
+    <string name="failed_load_artist">Échec du chargement de l\'artiste</string>
+    <string name="failed_load_playlist">Échec du chargement de la playlist</string>
+    <string name="failed_load_genre">Échec du chargement du genre</string>
+    <string name="failed_to_delete_format">Échec de la suppression : %1$s</string>
+    <string name="failed_to_add_to_playlist">Échec d\'ajout à la playlist</string>
+    <string name="offline_mode_active_title">Mode hors-ligne actif</string>
+    <string name="offline_mode_active_msg">Vous êtes actuellement en mode hors-ligne. Veuillez désactiver le mode hors-ligne ou vous connecter à Internet pour télécharger.</string>
+
+    <string name="album_options_cd">Options de l\'album</string>
+    <string name="playlist_options_cd">Options de la playlist</string>
+    <string name="more_actions_cd">Plus d\'actions</string>
+    <string name="sort_options_cd">Options de tri</string>
+    <string name="sort_ascending_cd">Croissant (toucher pour inverser)</string>
+    <string name="sort_descending_cd">Décroissant (toucher pour inverser)</string>
+    <string name="view_options_cd">Options d\'affichage</string>
+    <string name="clear_search_cd">Effacer le texte</string>
+    <string name="close_search_cd">Fermer la recherche</string>
+    <string name="starred_cd">Favori</string>
+    <string name="not_starred_cd">Non favori</string>
+    <string name="track_not_downloaded_toast">Titre non téléchargé pour la lecture hors-ligne</string>
+
+    <!-- Media Info Screen -->
+    <string name="info_title">Infos</string>
+    <string name="info_track_title">Infos du morceau</string>
+    <string name="info_album_title">Infos de l\'album</string>
+    <string name="info_artist_title">Infos de l\'artiste</string>
+    <string name="info_playlist_title">Infos de la playlist</string>
+    <string name="info_title_label">Titre</string>
+    <string name="info_artist_label">Artiste</string>
+    <string name="info_album_label">Album</string>
+    <string name="info_genre_label">Genre</string>
+    <string name="info_year_label">Année de sortie</string>
+    <string name="info_track_number_label">Numéro de piste</string>
+    <string name="info_disc_number_label">Numéro de disque</string>
+    <string name="info_duration_label">Durée</string>
+    <string name="info_bitrate_label">Débit binaire</string>
+    <string name="info_format_label">Format</string>
+    <string name="info_size_label">Taille du fichier</string>
+    <string name="info_copied">Copié dans le presse-papiers</string>
+    <string name="info_copy">Copier</string>
+    <string name="info_loading">Chargement des métadonnées…</string>
+    <string name="info_copied_title">Titre copié dans le presse-papiers</string>
+    <string name="info_copied_artist">Artiste copié dans le presse-papiers</string>
+    <string name="info_copied_album">Album copié dans le presse-papiers</string>
+    <string name="info_copied_filename">Nom de fichier copié dans le presse-papiers</string>
+    <string name="info_copied_path">Chemin de stockage copié dans le presse-papiers</string>
+    <string name="info_copied_song_id">Identifiant du morceau copié</string>
+    <string name="info_copied_album_id">Identifiant de l\'album copié</string>
+    <string name="info_copied_artist_id">Identifiant de l\'artiste copié</string>
+    <string name="info_copied_playlist_id">Identifiant de la playlist copié</string>
+    <string name="info_date_added_label">Date d\'ajout</string>
+    <string name="info_last_played_label">Dernière écoute</string>
+    <string name="info_play_count_label">Nombre d\'écoutes</string>
+    <string name="info_user_rating_label">Note utilisateur</string>
+    <string name="info_favourited_label">Favori</string>
+    <string name="info_downloaded_label">Téléchargé</string>
+    <string name="info_file_name_label">Nom de fichier</string>
+    <string name="info_storage_path_label">Chemin de stockage</string>
+    <string name="info_download_quality_label">Qualité de téléchargement</string>
+    <string name="info_song_id_label">Identifiant du morceau</string>
+    <string name="info_album_id_label">Identifiant de l\'album</string>
+    <string name="info_artist_id_label">Identifiant de l\'artiste</string>
+    <string name="info_playlist_id_label">Identifiant de la playlist</string>
+    <string name="info_album_artist_label">Artiste de l\'album</string>
+    <string name="info_total_duration_label">Durée totale</string>
+    <string name="info_comment_label">Commentaire</string>
+    <string name="info_public_label">Publique</string>
+    <string name="info_smart_playlist_label">Playlist intelligente</string>
+    <string name="info_owner_label">Propriétaire</string>
+    <string name="info_artist_name_label">Nom de l\'artiste</string>
+    <string name="info_yes">Oui</string>
+    <string name="info_no">Non</string>
+    <string name="info_owner_you">Vous</string>
+    <string name="info_owner_other">Autre</string>
+    <string name="info_kbps_format">%1$d kbps</string>
+    <string name="info_rating_format">%1$d / 5</string>
+    <string name="rating_val_cd">Note %1$d</string>
+    <string name="info_songs_count_format">%1$d morceaux</string>
+    <string name="info_albums_count_format">%1$d albums</string>
+    <string name="info_quality_original_lossless">Original (Sans perte/Direct)</string>
+    <string name="info_quality_original">Original</string>
+    <string name="info_tracks_count_label">Pistes</string>
+    <string name="info_copied_album_title">Titre de l\'album copié</string>
+
+    <!-- Player & Queue & Lyrics -->
+    <string name="now_playing">En cours de lecture</string>
+    <string name="player_playing_from">LECTURE DEPUIS</string>
+    <string name="queue_empty">Aucun morceau dans la file</string>
+    <string name="queue_title">File de lecture</string>
+    <string name="queue_clear_confirm_title">Vider la file de lecture ?</string>
+    <string name="queue_clear_confirm_message">Cela supprimera tous les morceaux de la file actuelle et arrêtera la lecture.</string>
+    <string name="queue_drag_reorder_cd">Glisser pour réorganiser</string>
+    <string name="queue_removed_track">Morceau retiré de la file</string>
+    <string name="queue_cleared">File de lecture vidée</string>
+    <string name="queue_create_playlist_subtitle">Créer avec la file actuelle (%1$d morceaux)</string>
+    <string name="lyrics">Paroles</string>
+    <string name="lyrics_collapse_cd">Réduire les paroles</string>
+    <string name="lyrics_switch_provider_cd">Changer de fournisseur de paroles</string>
+    <string name="lyrics_resume_scroll">Reprendre le défilement auto</string>
+    <string name="lyrics_not_found">Aucune parole trouvée pour ce titre</string>
+    <string name="player_previous_cd">Morceau précédent</string>
+    <string name="player_next_cd">Morceau suivant</string>
+    <string name="sleep_timer">Minuteur de veille</string>
+    <string name="sleep_timer_off">Désactivé</string>
+    <string name="sleep_timer_end_of_song">Fin du morceau</string>
+    <string name="sleep_timer_end_of_queue">Fin de la file</string>
+    <string name="sleep_timer_set">Définir</string>
+    <string name="sleep_timer_active_title">Minuteur actif</string>
+    <string name="sleep_timer_time_remaining">%1$02d:%2$02d restant</string>
+    <string name="sleep_timer_stops_end_of_track">S\'arrête à la fin du morceau</string>
+    <string name="sleep_timer_stops_end_of_queue">S\'arrête à la fin de la file</string>
+    <string name="sleep_timer_turn_off">Désactiver</string>
+    <string name="sleep_timer_set_format">Définir le minuteur (%1$s)</string>
+
+    <!-- Action Sheet & Dialogs -->
+    <string name="action_sheet_rate_title">Noter</string>
+    <string name="action_sheet_remove_download_confirm_title">Supprimer le téléchargement</string>
+    <string name="action_sheet_remove_download_track_msg">Voulez-vous vraiment supprimer « %1$s » (~%2$s) de vos téléchargements ?</string>
+    <string name="action_sheet_remove_download_album_msg">Voulez-vous vraiment supprimer « %1$s » (~%2$s) de vos téléchargements ?</string>
+    <string name="action_sheet_remove_download_playlist_msg">Voulez-vous vraiment supprimer « %1$s » (~%2$s) de vos téléchargements ?</string>
+    <string name="action_sheet_download_album_title">Télécharger l\'album</string>
+    <string name="action_sheet_download_album_msg">Télécharger « %1$s » (%2$d titres, ~%3$s) sur cet appareil pour une écoute hors-ligne ?</string>
+    <string name="action_sheet_download_playlist_title">Télécharger la playlist</string>
+    <string name="action_sheet_download_playlist_msg">Télécharger « %1$s » (%2$d titres, ~%3$s) sur cet appareil pour une écoute hors-ligne ?</string>
+    <string name="dialog_resume_queue_title">Reprendre la lecture ?</string>
+    <string name="dialog_resume_queue_message">Une file de lecture contenant %1$d morceaux a été trouvée depuis %2$s. Souhaitez-vous la restaurer ?</string>
+    <string name="dialog_resume">Reprendre</string>
+    <string name="dialog_dismiss">Ignorer</string>
+    <string name="image_crop_loading">Chargement de l\'image…</string>
+    <string name="image_crop_failed_load">Échec du chargement de l\'image</string>
+    <string name="image_crop_ratio_1_1">Recadrer en 1:1</string>
+    <string name="image_crop_rotate_90">Pivoter de 90°</string>
+    <string name="image_crop_reset">Réinitialiser</string>
+
+    <!-- Toasts -->
+    <string name="toast_added_to_favorites">Ajouté aux favoris</string>
+    <string name="toast_removed_from_favorites">Retiré des favoris</string>
+    <string name="toast_downloading_track">Téléchargement de « %1$s »</string>
+    <string name="toast_downloading_album">Téléchargement de l\'album (%1$d titres)</string>
+    <string name="toast_downloading_playlist">Téléchargement de la playlist (%1$d titres)</string>
+    <string name="toast_removed_from_downloads">Supprimé des téléchargements</string>
+    <string name="toast_playing_next">Lecture suivante</string>
+    <string name="toast_added_to_queue">Ajouté à la file d\'attente</string>
+    <string name="toast_added_to_named_playlist">Ajouté à « %1$s »</string>
+    <string name="toast_created_playlist">Playlist « %1$s » créée</string>
+    <string name="toast_failed_create_playlist">Échec de création de la playlist</string>
+    <string name="toast_no_playable_tracks">Aucun titre lisible trouvé</string>
+    <string name="toast_playlist_deleted">Playlist supprimée</string>
+    <string name="toast_rating_set">Note définie à %1$d étoiles</string>
+    <string name="toast_failed_rate">Échec de la notation</string>
+    <string name="toast_cannot_download_offline">Impossible de télécharger en mode hors ligne. Veuillez vous connecter à Internet.</string>
+    <string name="toast_download_failed">Échec du téléchargement : %1$s</string>
+    <string name="toast_no_tracks_download">Aucun morceau trouvé à télécharger</string>
+    <string name="playlist_create_new_desc">Créer une nouvelle playlist</string>
+    <string name="share_chooser_title">Partager de la musique</string>
+    <string name="rating_stars_cd">%1$d étoiles</string>
+
+    <!-- Settings Titles -->
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_general">Général</string>
+    <string name="settings_playback">Lecture</string>
+    <string name="settings_downloads">Téléchargements et hors ligne</string>
+    <string name="settings_network">Réseau</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_online_lyrics">Fournisseurs de paroles en ligne</string>
+    <string name="settings_check_updates">Rechercher des mises à jour</string>
+    <string name="settings_logout_confirm_title">Déconnexion</string>
+    <string name="settings_logout_confirm_msg">Voulez-vous vraiment vous déconnecter et effacer les données locales en cache ?</string>
+    <string name="settings_offline_summary">Mode hors-ligne • Musique téléchargée</string>
+    <string name="settings_switch_online_cd">Passer en ligne</string>
+    <string name="settings_switch_offline_cd">Passer hors-ligne</string>
+    <string name="settings_selected_cd">Sélectionné</string>
+    <string name="settings_fallback_url_title">URL de serveur de secours</string>
+    <string name="settings_fallback_url_hint">https://secours.example.com</string>
+    <string name="settings_scrobbling_subtitle">Envoyer l\'historique d\'écoute et la lecture en cours à votre serveur Subsonic</string>
+    <string name="settings_sleep_timer_subtitle">Arrêter la musique automatiquement après un délai ou à la fin de la file</string>
+
+    <!-- Appearance Settings -->
+    <string name="setting_display_header">Paramètres d\'affichage</string>
+    <string name="setting_language">Langue</string>
+    <string name="setting_language_subtitle">Langue de l\'interface de l\'application</string>
+    <string name="setting_font">Police</string>
+    <string name="setting_theme">Thème</string>
+    <string name="setting_theme_subtitle">Mode d\'apparence (Système, Sombre, Clair)</string>
+    <string name="setting_dynamic_color_source">Source de couleur dynamique</string>
+    <string name="setting_dynamic_color_source_subtitle">Source utilisée pour l\'extraction dynamique des couleurs</string>
+    <string name="setting_feedback_header">Retour tactile</string>
+    <string name="setting_haptic_feedback">Retour haptique</string>
+    <string name="setting_haptic_feedback_subtitle">Vibrations subtiles lors des actions et pressions</string>
+
+    <!-- Player Settings -->
+    <string name="setting_player_style">Style de page du lecteur</string>
+    <string name="setting_player_style_subtitle">Présentation de la page de lecture plein écran</string>
+    <string name="setting_seekbar_style">Style de la barre de progression</string>
+    <string name="setting_seekbar_style_subtitle">Apparence visuelle et animation de la barre de défilement</string>
+    <string name="setting_miniplayer_header">Mini-lecteur</string>
+    <string name="setting_miniplayer_style">Style du mini-lecteur</string>
+    <string name="setting_miniplayer_style_subtitle">Design visuel du mini-lecteur persistant en bas</string>
+    <string name="setting_miniplayer_placement">Emplacement du mini-lecteur</string>
+    <string name="setting_miniplayer_placement_subtitle">Positionnement par rapport à la barre de navigation</string>
+    <string name="setting_tint_miniplayer">Teinter le mini-lecteur</string>
+    <!-- Cover Art Settings -->
+    <string name="setting_cover_art_header">Pochettes d\'album</string>
+    <string name="setting_animated_covers">Pochettes animées</string>
+    <string name="setting_animated_covers_subtitle">Afficher les vidéos motion canvas pour les titres compatibles</string>
+    <string name="setting_cover_art_resolution">Résolution des pochettes</string>
+    <string name="setting_cover_art_resolution_subtitle">Qualité d\'image des pochettes d\'album et de playlist</string>
+
+    <!-- Lyrics Settings -->
+    <string name="setting_lyrics_header">Paroles</string>
+    <string name="setting_lyrics_provider">Fournisseur de paroles</string>
+    <string name="setting_lyrics_source_header">Source des paroles</string>
+    <string name="setting_lyrics_source_both">Les deux</string>
+    <string name="setting_lyrics_source_online">En ligne</string>
+    <string name="setting_lyrics_source_server">Serveur</string>
+    <string name="setting_lyrics_source_disabled">Aucune parole</string>
+    <string name="setting_online_lyrics_inactive_notice">Désactivé car la source sélectionnée n\'utilise pas les fournisseurs en ligne</string>
+    <string name="setting_blur_inactive_lyrics">Effet de flou des paroles</string>
+    <string name="setting_blur_inactive_lyrics_subtitle">Appliquer un flou de profondeur centré sur la ligne active</string>
+    <string name="setting_keep_screen_on_lyrics">Maintenir l\'écran allumé</string>
+    <string name="setting_keep_screen_on_lyrics_subtitle">Empêcher la mise en veille de l\'écran lors de l\'affichage des paroles</string>
+
+    <!-- External Links Settings -->
+    <string name="setting_external_links_header">Liens externes</string>
+    <string name="setting_show_external_links">Afficher les liens externes</string>
+    <string name="setting_show_external_links_subtitle">Afficher les liens vers des services de métadonnées externes dans les fiches d\'action</string>
+    <string name="setting_show_lastfm_links">Afficher les liens Last.fm</string>
+    <string name="setting_show_lastfm_links_subtitle">Accès rapide aux pages de morceaux et d\'albums sur Last.fm</string>
+    <string name="setting_show_musicbrainz_links">Afficher les liens MusicBrainz</string>
+    <string name="setting_show_musicbrainz_links_subtitle">Accès rapide aux sorties et enregistrements sur MusicBrainz</string>
+
+    <!-- Prefetch Settings -->
+    <string name="setting_prefetch_header">Préchargement de la file</string>
+    <string name="setting_prefetch_upcoming">Précharger les pistes suivantes</string>
+    <string name="setting_prefetch_upcoming_subtitle">Mettre en mémoire tampon les pistes suivantes pour une lecture instantanée</string>
+    <string name="setting_prefetch_track_count">Pistes à précharger</string>
+    <string name="setting_prefetch_track_count_subtitle">Nombre de morceaux à mettre en cache à l\'avance</string>
+    <string name="setting_prefetch_only_on_wifi">Précharger en Wi-Fi uniquement</string>
+    <string name="setting_prefetch_only_on_wifi_subtitle">Éviter la consommation de données mobiles pour le préchargement</string>
+    <string name="prefetch_count_format">%d pistes</string>
+    <string name="prefetch_count_single">1 piste</string>
+
+    <!-- Playback Settings -->
+    <string name="setting_streaming_quality_header">Qualité de streaming</string>
+    <string name="setting_wifi_quality">Qualité Wi-Fi</string>
+    <string name="setting_wifi_quality_subtitle">Débit maximal utilisé lors de l\'écoute en Wi-Fi</string>
+    <string name="setting_cellular_quality">Qualité réseau mobile</string>
+    <string name="setting_cellular_quality_subtitle">Débit maximal utilisé en données mobiles</string>
+    <string name="setting_transcoding_format">Format de transcodage</string>
+    <string name="setting_transcoding_format_subtitle">Codec audio utilisé par le serveur pour le transcodage</string>
+    <string name="setting_auto_next">Piste suivante automatique</string>
+    <string name="setting_auto_next_subtitle">Lire automatiquement la piste suivante de la file</string>
+    <string name="setting_pause_on_disconnect">Pause à la déconnexion</string>
+    <string name="setting_pause_on_disconnect_subtitle">Mettre en pause lors du débranchement du casque ou bluetooth</string>
+    <string name="setting_auto_resume">Reprise automatique</string>
+    <string name="setting_auto_resume_subtitle">Reprendre la lecture après un appel ou une interruption audio</string>
+
+    <!-- Downloads & Storage Settings -->
+    <string name="setting_offline_mode">Mode hors-ligne</string>
+    <string name="setting_download_quality">Qualité de téléchargement</string>
+    <string name="setting_download_quality_subtitle">Débit binaire pour les chansons téléchargées</string>
+    <string name="setting_download_codec">Codec de téléchargement</string>
+    <string name="setting_download_codec_subtitle">Format audio des fichiers téléchargés</string>
+    <string name="setting_wifi_only_downloads">Téléchargements en Wi-Fi uniquement</string>
+    <string name="setting_wifi_only_downloads_subtitle">Télécharger de la musique uniquement en connexion Wi-Fi</string>
+    <string name="setting_storage_maintenance_header">Maintenance du stockage</string>
+    <string name="setting_clear_downloads">Supprimer tous les téléchargements</string>
+    <string name="setting_clear_downloads_subtitle">Supprime tous les fichiers hors-ligne de la mémoire locale</string>
+
+    <!-- Network Settings -->
+    <string name="setting_connected_server_header">Serveur connecté</string>
+    <string name="setting_fallback_url">URL de serveur de secours</string>
+    <string name="setting_synchronization_header">Synchronisation</string>
+    <string name="setting_last_full_sync">Dernière synchronisation complète</string>
+    <string name="setting_sync_never">Jamais</string>
+    <string name="setting_sync_library">Synchroniser la bibliothèque</string>
+    <string name="setting_sync_library_subtitle">Effectuer une synchronisation complète immédiate</string>
+    <string name="setting_disconnect_server">Déconnecter le serveur</string>
+
+    <!-- Scrobbling Settings -->
+    <string name="setting_scrobbling_header">Scrobbling</string>
+    <string name="setting_subsonic_scrobble">Scrobble Subsonic</string>
+    <string name="setting_scrobble_threshold">Point de scrobble</string>
+    <string name="setting_scrobble_threshold_subtitle">Pourcentage du titre lu pour enregistrer le scrobble et l\'historique</string>
+
+    <!-- About Settings -->
+    <string name="setting_terms">Conditions d\'utilisation</string>
+    <string name="setting_privacy">Politique de confidentialité</string>
+    <string name="setting_source_code">Code source</string>
+    <string name="setting_version">Version</string>
+
+    <!-- Auth & Connection -->
+    <string name="login_title">Se connecter au serveur</string>
+    <string name="login_header">Subsonic</string>
+    <string name="login_subtitle">Connectez-vous à votre serveur musical</string>
+    <string name="login_server_url">URL du serveur</string>
+    <string name="login_fallback_server_url">URL de secours (facultatif)</string>
+    <string name="login_username">Nom d\'utilisateur</string>
+    <string name="login_password">Mot de passe</string>
+    <string name="login_button">Connexion</string>
+    <string name="login_connect">Connecter</string>
+    <string name="login_clear">Effacer</string>
+    <string name="login_hide_password">Masquer le mot de passe</string>
+    <string name="login_show_password">Afficher le mot de passe</string>
+    <string name="login_nearby_permission_required">L\'autorisation des appareils à proximité est requise pour les connexions HTTP locales</string>
+    <string name="login_open_settings">Ouvrir les paramètres</string>
+    <string name="status_offline">HORS-LIGNE</string>
+
+    <!-- Settings Screen Additions -->
+    <string name="settings_checking_updates">Recherche de mises à jour…</string>
+    <string name="settings_checking_releases">Recherche de nouvelles versions…</string>
+    <string name="update_available_toast">Mise à jour disponible : %1$s</string>
+    <string name="update_action">Mettre à jour</string>
+    <string name="update_up_to_date">Uta est à jour (v%1$s)</string>
+    <string name="update_error">Impossible de vérifier les mises à jour : %1$s</string>
+    <string name="setting_layout_style_header">Disposition et style</string>
+    <string name="setting_player_style_lyrics_disabled">Affichage des paroles indisponible lorsque les paroles sont désactivées</string>
+    <string name="setting_tint_miniplayer_enabled_desc">Appliquer la couleur d\'accentuation dynamique à l\'arrière-plan du mini lecteur</string>
+    <string name="setting_tint_miniplayer_disabled_desc">Désactivé lorsque le thème dynamique est désactivé</string>
+    <string name="setting_downloads_prefs_header">Préférences hors-ligne et de téléchargement</string>
+    <string name="setting_offline_mode_active_desc">Parcourir uniquement le contenu téléchargé et en cache</string>
+    <string name="setting_offline_mode_inactive_desc">Actuellement connecté au serveur</string>
+    <string name="setting_clear_downloads_dialog_title">Supprimer tous les téléchargements hors-ligne</string>
+    <string name="setting_clear_downloads_dialog_msg">Êtes-vous sûr de vouloir supprimer définitivement toutes les chansons et albums téléchargés ? Cette action est irréversible.</string>
+    <string name="setting_clear_downloads_confirm">Tout supprimer</string>
+    <string name="storage_used_by_uta">Utilisé par Uta</string>
+    <string name="storage_downloaded_music">Musique téléchargée</string>
+    <string name="storage_tracks_offline_format">%1$d titres hors-ligne</string>
+    <string name="storage_other">Autre</string>
+    <string name="storage_other_hint">Autres applications et système</string>
+    <string name="storage_free_space">Espace libre</string>
+    <string name="storage_free_space_hint">Stockage disponible</string>
+    <string name="setting_disconnect_server_confirm_msg">Êtes-vous sûr de vouloir vous déconnecter ? Le cache local du catalogue et les identifiants seront supprimés.</string>
+    <string name="toast_fallback_url_updated">URL de secours mise à jour</string>
+    <string name="settings_fallback_url_help">Spécifiez une URL alternative pour votre serveur (ex. IP locale ou domaine distant).</string>
+    <string name="settings_server_status_format">Utilisateur : %1$s • État : %2$s</string>
+    <string name="status_connected">Connecté</string>
+    <string name="settings_fallback_url_not_configured">Non configurée (appuyez pour définir une URL de secours)</string>
+    <string name="sync_error_format">Erreur de synchronisation : %1$s</string>
+    <string name="toast_sync_started">Synchronisation de la bibliothèque démarrée</string>
+    <string name="settings_no_server_connected">Aucun serveur connecté</string>
+    <string name="settings_no_server_connected_desc">Connectez-vous pour accéder à un serveur musical Subsonic</string>
+    <string name="content_desc_back">Retour</string>
+    <string name="cd_back">Retour</string>
+    <string name="cd_logout">Déconnexion</string>
+    <string name="album_tracks_count">%1$d pistes</string>
+    <string name="album_search_tracks_cd">Rechercher des pistes</string>
+    <string name="playlist_search_tracks_cd">Rechercher des pistes</string>
+    <string name="playlist_new">Nouvelle playlist</string>
+    <string name="playlists_empty_title">Aucune playlist</string>
+    <string name="playlist_name_placeholder">Nom de la playlist</string>
+    <string name="album_unknown_album">Album inconnu</string>
+</resources>

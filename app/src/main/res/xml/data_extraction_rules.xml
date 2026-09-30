@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="external" path="music"/>
+        <exclude domain="database" path="uta_library.db"/>
+        <exclude domain="sharedpref" path="uta_credentials.xml"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="external" path="music"/>
+        <exclude domain="database" path="uta_library.db"/>
+        <exclude domain="sharedpref" path="uta_credentials.xml"/>
+    </device-transfer>
+</data-extraction-rules>
