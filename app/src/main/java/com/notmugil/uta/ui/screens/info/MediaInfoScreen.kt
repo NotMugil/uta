@@ -464,6 +464,7 @@ private fun MediaInfoHeader(
             is MediaTarget.PlaylistTarget -> {
                 CoverArtImage(
                     coverArtId = target.playlist.coverArtId,
+                    playlistId = target.playlist.id,
                     contentDescription = target.playlist.name,
                     size = 72.dp,
                     shape = RoundedCornerShape(14.dp),

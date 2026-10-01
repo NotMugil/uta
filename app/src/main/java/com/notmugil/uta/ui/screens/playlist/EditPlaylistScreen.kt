@@ -365,10 +365,11 @@ fun EditPlaylistScreen(
                             DropdownMenu(
                                 expanded = showCoverMenu,
                                 onDismissRequest = { showCoverMenu = false },
+                                shape = RoundedCornerShape(12.dp),
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                                 modifier = Modifier
                                     .widthIn(min = 160.dp, max = 220.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                             ) {
                                 DropdownMenuItem(
                                     text = {

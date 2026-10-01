@@ -90,18 +90,21 @@ class PlaybackService : MediaSessionService() {
 
         val extractorsFactory = androidx.media3.extractor.DefaultExtractorsFactory()
             .setConstantBitrateSeekingEnabled(true)
+            .setConstantBitrateSeekingAlwaysEnabled(true)
             .setMp3ExtractorFlags(
                 androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING or
-                androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING
+                androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING_ALWAYS
             )
-            .setAdtsExtractorFlags(androidx.media3.extractor.ts.AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING)
+            .setAdtsExtractorFlags(
+                androidx.media3.extractor.ts.AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING or
+                androidx.media3.extractor.ts.AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING_ALWAYS
+            )
 
         val cacheDataSourceFactory = MediaCacheManager.createCacheDataSourceFactory(this)
         val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, extractorsFactory)
             .setDataSourceFactory(cacheDataSourceFactory)
 
         val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(this)
-            .setEnableAudioTrackPlaybackParams(true)
 
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
@@ -119,7 +122,7 @@ class PlaybackService : MediaSessionService() {
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(false)
             .setWakeMode(C.WAKE_MODE_NETWORK)
-            .setSeekParameters(androidx.media3.exoplayer.SeekParameters.CLOSEST_SYNC)
+            .setSeekParameters(androidx.media3.exoplayer.SeekParameters.EXACT)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
 

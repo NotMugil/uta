@@ -166,6 +166,7 @@ fun PlaylistFanCoverArt(
         } else {
             CoverArtImage(
                 coverArtId = playlist.coverArtId,
+                playlistId = playlist.id,
                 contentDescription = playlist.name,
                 size = 240.dp,
                 shape = RoundedCornerShape(26.dp),

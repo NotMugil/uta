@@ -128,7 +128,7 @@ class HomeViewModel @Inject constructor(
             downloadedTrackIds = downloadedMedia.trackIds,
             downloadedAlbumIds = downloadedMedia.albumIds,
             downloadedPlaylistIds = downloadedMedia.playlistIds,
-            isRefreshing = refreshing || syncState is SyncState.Syncing,
+            isRefreshing = refreshing,
             syncMessage = when (syncState) {
                 is SyncState.Syncing -> syncState.stage
                 is SyncState.Error -> syncState.message
@@ -143,9 +143,33 @@ class HomeViewModel @Inject constructor(
     )
 
     init {
-        // Initial sync to populate Room if needed
+        // Initial sync in background to populate Room
         syncEngine.triggerSync(force = false)
         loadDynamicSections()
+
+        viewModelScope.launch {
+            syncEngine.syncState.collect { syncState ->
+                if (syncState is SyncState.Idle) {
+                    loadDynamicSections()
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            libraryRepository.getAlbumsFlow().collect { albums ->
+                if (albums.isNotEmpty() && _randomAlbums.value.isEmpty()) {
+                    loadDynamicSections()
+                }
+            }
+        }
+
+        viewModelScope.launch {
+            libraryRepository.getArtistsFlow().collect { artists ->
+                if (artists.isNotEmpty() && _featuredArtist.value == null) {
+                    loadFeaturedArtist()
+                }
+            }
+        }
     }
 
     private fun loadDynamicSections() {
@@ -183,9 +207,12 @@ class HomeViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            syncEngine.syncLibrary(force = true)
-            loadDynamicSections()
-            _isRefreshing.value = false
+            try {
+                syncEngine.syncLibrary(force = true)
+                loadDynamicSections()
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
 }

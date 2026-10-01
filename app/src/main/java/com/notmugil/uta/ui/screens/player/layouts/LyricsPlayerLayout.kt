@@ -4,6 +4,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -594,11 +595,12 @@ fun LyricsPlayerLayout(
                     DropdownMenu(
                         expanded = showProviderMenu,
                         onDismissRequest = { showProviderMenu = false },
+                        shape = RoundedCornerShape(12.dp),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
                         modifier = Modifier
                             .widthIn(min = 180.dp, max = 260.dp)
                             .heightIn(max = 320.dp)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
                     ) {
                         availableProviderEntries.forEachIndexed { index, provider ->
                             val syncTag = availableProvidersMap[provider]

@@ -30,6 +30,16 @@ class LoginViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            subsonicRepository.authState.collect { authState ->
+                if (authState is com.notmugil.uta.data.AuthState.Unauthenticated) {
+                    _uiState.value = LoginUiState(errorMessage = authState.message)
+                }
+            }
+        }
+    }
+
     fun onServerUrlChange(url: String) {
         _uiState.update { it.copy(serverUrl = url, errorMessage = null) }
     }
@@ -83,7 +93,7 @@ class LoginViewModel @Inject constructor(
                     password = state.password,
                     fallbackServerUrl = state.fallbackServerUrl.trim().takeIf { it.isNotBlank() }
                 )
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.value = LoginUiState()
                 onSuccess()
             } catch (e: Exception) {
                 Timber.w(e, "[Login] Login failed for ${state.serverUrl}")

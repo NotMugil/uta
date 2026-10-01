@@ -78,12 +78,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (isEntirelyEmpty && state.isRefreshing) {
-                FullScreenLoader(
-                    message = state.syncMessage ?: androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_syncing),
-                    containerColor = Color.Transparent
-                )
-            } else if (isEntirelyEmpty && !state.isRefreshing) {
+            if (isEntirelyEmpty && state.syncMessage == null && !state.recentlyAdded.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center

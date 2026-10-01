@@ -67,21 +67,9 @@ object MediaItemMapper {
         val reqBitRate = parsedUri?.getQueryParameter("maxBitRate")?.toIntOrNull() ?: track.bitRate ?: 0
         val cacheKey = "${track.id}::$reqFormat::$reqBitRate"
 
-        val effectiveFormat = (parsedUri?.getQueryParameter("format")?.takeIf { it.isNotBlank() && it != "raw" }
-            ?: (if (streamUrl.startsWith("file://") || streamUrl.startsWith("/")) {
-                streamUrl.substringAfterLast('.', "").takeIf { it.isNotEmpty() && it != "media" }
-            } else null)
-            ?: track.suffix
-            ?: "raw").lowercase()
-
-        val mimeType = when (effectiveFormat) {
-            "mp3" -> "audio/mpeg"
-            "flac" -> "audio/flac"
-            "ogg", "oga", "opus" -> "audio/ogg"
-            "m4a", "aac", "mp4" -> "audio/mp4"
-            "wav" -> "audio/wav"
-            else -> null
-        }
+        val isHls = streamUrl.endsWith(".m3u8", ignoreCase = true) ||
+            streamUrl.contains(".m3u8?", ignoreCase = true) ||
+            streamUrl.contains("/hls", ignoreCase = true)
 
         val builder = MediaItem.Builder()
             .setMediaId(entryId)
@@ -94,8 +82,8 @@ object MediaItemMapper {
                     .build()
             )
 
-        if (mimeType != null) {
-            builder.setMimeType(mimeType)
+        if (isHls) {
+            builder.setMimeType(androidx.media3.common.MimeTypes.APPLICATION_M3U8)
         }
 
         return builder.build()

@@ -68,7 +68,7 @@ fun AlphabetFastScroller(
         if (isScrollInProgress || isDragging) {
             isVisible = true
         } else {
-            delay(2000)
+            delay(400)
             isVisible = false
         }
     }
@@ -125,8 +125,8 @@ fun AlphabetFastScroller(
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn(animationSpec = tween(200)),
-        exit = fadeOut(animationSpec = tween(400)),
+        enter = fadeIn(animationSpec = tween(120)),
+        exit = fadeOut(animationSpec = tween(180)),
         modifier = modifier
     ) {
         Box(

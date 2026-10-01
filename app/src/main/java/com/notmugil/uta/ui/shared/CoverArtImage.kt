@@ -11,7 +11,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,34 +72,42 @@ fun CoverArtImage(
         }
     }
 
-    val localCoverFile = remember(coverArtId) {
-        OfflineDownloadManager.getLocalCoverArtFile(context, coverArtId)
+    val effectiveCoverId = remember(coverArtId, playlistId) {
+        when {
+            !coverArtId.isNullOrBlank() -> coverArtId
+            !playlistId.isNullOrBlank() -> if (playlistId.startsWith("pl-")) playlistId else "pl-$playlistId"
+            else -> null
+        }
+    }
+
+    val localCoverFile = remember(effectiveCoverId) {
+        OfflineDownloadManager.getLocalCoverArtFile(context, effectiveCoverId)
     }
 
     val isOffline = SubsonicSession.isOfflineModeActive
 
-    val imageData: Any? = remember(customModel, customPlaylistCover, coverArtId, localCoverFile, isOffline, standardSizePx) {
+    val imageData: Any? = remember(customModel, customPlaylistCover, effectiveCoverId, localCoverFile, isOffline, standardSizePx) {
         when {
             customModel != null -> customModel
             customPlaylistCover != null && customPlaylistCover.exists() -> customPlaylistCover
             localCoverFile != null && localCoverFile.exists() -> localCoverFile
             isOffline -> null
-            !coverArtId.isNullOrBlank() -> SubsonicSession.client?.getCoverArtUrl(coverArtId, size = standardSizePx.toString())
+            !effectiveCoverId.isNullOrBlank() -> SubsonicSession.client?.getCoverArtUrl(effectiveCoverId, size = standardSizePx.toString())
             else -> null
         }
     }
 
-    val stableCacheKey = remember(customModel, customPlaylistCover, customPlaylistCover?.lastModified(), coverArtId, standardSizePx, localCoverFile) {
+    val stableCacheKey = remember(customModel, customPlaylistCover, customPlaylistCover?.lastModified(), effectiveCoverId, standardSizePx, localCoverFile) {
         if (customModel != null) {
             "custom_${customModel.hashCode()}"
         } else if (customPlaylistCover != null) {
             "${customPlaylistCover.absolutePath}_${customPlaylistCover.lastModified()}"
         } else if (localCoverFile != null) {
             localCoverFile.absolutePath
-        } else if (coverArtId.isNullOrBlank()) {
+        } else if (effectiveCoverId.isNullOrBlank()) {
             null
         } else {
-            "cover_${coverArtId}_$standardSizePx"
+            "cover_${effectiveCoverId}_$standardSizePx"
         }
     }
 
@@ -112,11 +122,13 @@ fun CoverArtImage(
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     }
 
+    var isError by remember(imageData) { mutableStateOf(false) }
+
     Box(
         modifier = boxModifier,
         contentAlignment = Alignment.Center
     ) {
-        if (imageData != null && stableCacheKey != null) {
+        if (imageData != null && stableCacheKey != null && !isError) {
             val request = remember(imageData, stableCacheKey, isOffline) {
                 ImageRequest.Builder(context)
                     .data(imageData)
@@ -132,6 +144,8 @@ fun CoverArtImage(
                 model = request,
                 contentDescription = contentDescription,
                 contentScale = contentScale,
+                onError = { isError = true },
+                onSuccess = { isError = false },
                 modifier = Modifier.fillMaxSize()
             )
         } else {

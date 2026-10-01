@@ -1,5 +1,6 @@
 package com.notmugil.uta.ui.screens.library.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -100,11 +101,12 @@ fun LibraryToolbar(
                 DropdownMenu(
                     expanded = showSortMenu,
                     onDismissRequest = { showSortMenu = false },
+                    shape = RoundedCornerShape(12.dp),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                     modifier = Modifier
                         .widthIn(min = 160.dp, max = 240.dp)
                         .heightIn(max = 320.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                 ) {
                     availableSortOptions.forEachIndexed { index, criteria ->
                         if (index > 0) {
@@ -172,11 +174,12 @@ fun LibraryToolbar(
             DropdownMenu(
                 expanded = showViewMenu,
                 onDismissRequest = { showViewMenu = false },
+                shape = RoundedCornerShape(12.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                 modifier = Modifier
                     .widthIn(min = 160.dp, max = 240.dp)
                     .heightIn(max = 320.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
             ) {
                 val isListSelected = columnCount == 1
                 DropdownMenuItem(

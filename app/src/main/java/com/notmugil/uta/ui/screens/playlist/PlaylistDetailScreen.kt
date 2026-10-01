@@ -149,10 +149,11 @@ fun PlaylistDetailScreen(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        if (!firstCoverArtId.isNullOrBlank()) {
+        if (!firstCoverArtId.isNullOrBlank() || state.playlist != null) {
             Box(modifier = Modifier.fillMaxSize()) {
                 CoverArtImage(
                     coverArtId = firstCoverArtId,
+                    playlistId = state.playlist?.id,
                     contentDescription = null,
                     size = 1000.dp,
                     shape = RoundedCornerShape(0.dp),

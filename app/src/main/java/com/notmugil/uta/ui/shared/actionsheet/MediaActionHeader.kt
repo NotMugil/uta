@@ -74,6 +74,7 @@ fun MediaActionHeader(
             is MediaTarget.PlaylistTarget -> {
                 CoverArtImage(
                     coverArtId = target.playlist.coverArtId,
+                    playlistId = target.playlist.id,
                     contentDescription = target.playlist.name,
                     size = 52.dp,
                     shape = RoundedCornerShape(10.dp),

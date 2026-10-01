@@ -93,7 +93,7 @@ class LibraryViewModel @Inject constructor(
         syncEngine.syncState,
         _isRefreshing
     ) { catalog, (downloadedTracks, downloadedAlbums, downloadedPlaylists), isOffline, syncState, refreshing ->
-        val syncing = refreshing || syncState is SyncState.Syncing
+        val syncing = syncState is SyncState.Syncing
         catalog.copy(
             downloadedTrackIds = downloadedTracks,
             downloadedAlbumIds = downloadedAlbums,
@@ -101,7 +101,7 @@ class LibraryViewModel @Inject constructor(
             isOfflineModeActive = isOffline,
             isLoading = catalog.albums.isEmpty() && catalog.artists.isEmpty() && syncing,
             isSyncing = syncing,
-            isRefreshing = syncing
+            isRefreshing = refreshing
         )
     }.stateIn(
         scope = viewModelScope,

@@ -482,6 +482,7 @@ class SubsonicRepository @Inject constructor(
         }
         if (validFormat != null) {
             builder?.addQueryParameter("format", validFormat)
+            builder?.addQueryParameter("estimateContentLength", "true")
         }
 
         return builder?.build()?.toString()

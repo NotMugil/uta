@@ -3,6 +3,7 @@ package com.notmugil.uta.ui.screens.settings.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -240,11 +241,12 @@ fun <T> SettingsDropdownRow(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
+                    shape = RoundedCornerShape(12.dp),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
                     modifier = Modifier
                         .widthIn(min = 160.dp, max = 240.dp)
                         .heightIn(max = 280.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                 ) {
                     options.forEachIndexed { index, option ->
                         if (index > 0) {

@@ -432,10 +432,10 @@ class AppPreferences @Inject constructor(
 
     private val _transcodingFormat = MutableStateFlow(
         try {
-            val name = prefs.getString(KEY_TRANSCODING_FORMAT, TranscodingFormat.OPUS.name)
-            TranscodingFormat.valueOf(name ?: TranscodingFormat.OPUS.name)
+            val name = prefs.getString(KEY_TRANSCODING_FORMAT, TranscodingFormat.RAW.name)
+            TranscodingFormat.valueOf(name ?: TranscodingFormat.RAW.name)
         } catch (_: Exception) {
-            TranscodingFormat.OPUS
+            TranscodingFormat.RAW
         }
     )
     val transcodingFormat: StateFlow<TranscodingFormat> = _transcodingFormat.asStateFlow()

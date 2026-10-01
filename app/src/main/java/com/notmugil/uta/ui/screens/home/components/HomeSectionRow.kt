@@ -140,6 +140,7 @@ fun HomePlaylistSectionRow(
                     title = playlist.name,
                     subtitle = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.playlist_songs_count, playlist.songCount),
                     coverArtId = playlist.coverArtId,
+                    playlistId = playlist.id,
                     fallbackIcon = Tabler.Outline.Playlist,
                     alpha = alpha,
                     onClick = { onPlaylistClick(playlist.id) },
