@@ -322,7 +322,11 @@ class LibraryRepository @Inject constructor(
     suspend fun fetchArtistDetails(artistId: String): ArtistDetailResult {
         Timber.d("[Artist] Fetching details for artistId=$artistId")
         val localArtist = artistDao.getArtist(artistId, serverId)?.toDomain()
-        val localAlbums = albumDao.getAlbumsByArtist(artistId, serverId).map { it.toDomain() }
+        val localAlbums = if (localArtist != null) {
+            albumDao.getAlbumsByArtist(artistId, localArtist.name, serverId).map { it.toDomain() }
+        } else {
+            albumDao.getAlbumsByArtist(artistId, serverId).map { it.toDomain() }
+        }
         val localTracks = if (localArtist != null) {
             trackDao.getTracksByArtistName(localArtist.name, serverId).map { it.toDomain() }
         } else emptyList()
@@ -347,8 +351,16 @@ class LibraryRepository @Inject constructor(
                 subsonicRepository.getArtistRaw(artistId)
             }
             val artistItem = remoteArtist.toDomain()
-            val remoteAlbums = remoteArtist.album.map { it.toDomain() }
-            val mergedAlbums = (localAlbums + remoteAlbums).distinctBy { it.id }
+            val remoteAlbums = remoteArtist.album.map { album ->
+                val domainAlbum = album.toDomain()
+                domainAlbum.copy(
+                    artist = if (domainAlbum.artist.isBlank() || domainAlbum.artist == "Unknown Artist") artistItem.name else domainAlbum.artist,
+                    artistId = if (domainAlbum.artistId.isNullOrBlank()) artistItem.id else domainAlbum.artistId
+                )
+            }
+            val mergedAlbums = (localAlbums + remoteAlbums)
+                .distinctBy { it.id }
+                .filter { it.artistId == artistId || it.artist.equals(artistItem.name, ignoreCase = true) || it.artist.isBlank() || it.artist == "Unknown Artist" }
 
             val topSongs = try {
                 val remoteTop = subsonicRepository.getTopSongs(artistItem.name, count = 20).map { it.toDomain() }

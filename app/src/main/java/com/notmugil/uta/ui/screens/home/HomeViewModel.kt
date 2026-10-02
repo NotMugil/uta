@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,8 +42,8 @@ class HomeViewModel @Inject constructor(
     private val _randomAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
     private val _randomIsLoading = MutableStateFlow(false)
     private val _quickMixSongs = MutableStateFlow<List<TrackItem>>(emptyList())
-    private val _featuredArtist = MutableStateFlow<ArtistItem?>(null)
-    private val _featuredArtistAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
+    private val _featuredArtistData = MutableStateFlow<FeaturedArtistData?>(null)
+    private val featuredArtistMutex = kotlinx.coroutines.sync.Mutex()
 
     val currentTrack: StateFlow<TrackItem?> = playbackController.currentTrack
     val isPlaying: StateFlow<Boolean> = playbackController.isPlaying
@@ -56,24 +57,17 @@ class HomeViewModel @Inject constructor(
         Tuple4(recent, random, playlists, quickMix)
     }
 
-    private val featuredArtistFlow = combine(
-        _featuredArtist,
-        _featuredArtistAlbums
-    ) { artist, albums ->
-        Pair(artist, albums)
-    }
-
     private val catalogFlow = combine(
         catalogSectionsFlow,
-        featuredArtistFlow
-    ) { (recent, random, playlists, quickMix), (featuredArtist, featuredAlbums) ->
+        _featuredArtistData
+    ) { (recent, random, playlists, quickMix), featuredData ->
         HomeCatalogData(
             recent = recent,
             random = random,
             playlists = playlists,
             quickMix = quickMix,
-            featuredArtist = featuredArtist,
-            featuredArtistAlbums = featuredAlbums
+            featuredArtist = featuredData?.artist,
+            featuredArtistAlbums = featuredData?.albums ?: emptyList()
         )
     }
 
@@ -165,7 +159,7 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             libraryRepository.getArtistsFlow().collect { artists ->
-                if (artists.isNotEmpty() && _featuredArtist.value == null) {
+                if (artists.isNotEmpty() && _featuredArtistData.value == null) {
                     loadFeaturedArtist()
                 }
             }
@@ -183,12 +177,31 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun loadFeaturedArtist() {
-        val artists = artistDao.getArtists(subsonicRepository.currentServerId)
-        if (artists.isNotEmpty()) {
-            val randomArtist = artists.random().toDomain()
-            _featuredArtist.value = randomArtist
-            val details = libraryRepository.fetchArtistDetails(randomArtist.id)
-            _featuredArtistAlbums.value = details.albums.take(8)
+        featuredArtistMutex.withLock {
+            val artists = artistDao.getArtists(subsonicRepository.currentServerId)
+            if (artists.isEmpty()) return
+
+            val candidates = artists.shuffled()
+            for (candidateEntity in candidates.take(5)) {
+                val candidateArtist = candidateEntity.toDomain()
+                val details = libraryRepository.fetchArtistDetails(candidateArtist.id)
+                val validAlbums = details.albums
+                    .map { album ->
+                        album.copy(
+                            artist = if (album.artist.isBlank() || album.artist == "Unknown Artist") candidateArtist.name else album.artist,
+                            artistId = if (album.artistId.isNullOrBlank()) candidateArtist.id else album.artistId
+                        )
+                    }
+                    .filter { it.artistId == candidateArtist.id || it.artist.equals(candidateArtist.name, ignoreCase = true) }
+
+                if (validAlbums.isNotEmpty()) {
+                    _featuredArtistData.value = FeaturedArtistData(
+                        artist = candidateArtist,
+                        albums = validAlbums.take(8)
+                    )
+                    return
+                }
+            }
         }
     }
 
@@ -216,6 +229,11 @@ class HomeViewModel @Inject constructor(
         }
     }
 }
+
+private data class FeaturedArtistData(
+    val artist: ArtistItem,
+    val albums: List<AlbumItem>
+)
 
 private data class Tuple4<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
 

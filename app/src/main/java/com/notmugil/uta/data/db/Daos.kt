@@ -29,6 +29,9 @@ interface AlbumDao {
     @Query("SELECT * FROM albums WHERE artistId = :artistId AND serverId = :serverId ORDER BY year DESC, name ASC")
     suspend fun getAlbumsByArtist(artistId: String, serverId: String): List<AlbumEntity>
 
+    @Query("SELECT * FROM albums WHERE (artistId = :artistId OR (artistName = :artistName AND :artistName != '')) AND serverId = :serverId ORDER BY year DESC, name ASC")
+    suspend fun getAlbumsByArtist(artistId: String, artistName: String, serverId: String): List<AlbumEntity>
+
     @Query("SELECT * FROM albums WHERE genre LIKE :genre AND serverId = :serverId ORDER BY year DESC, name ASC")
     suspend fun getAlbumsByGenre(genre: String, serverId: String): List<AlbumEntity>
 
