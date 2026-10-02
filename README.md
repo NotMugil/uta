@@ -15,3 +15,5 @@
 | **Home** | **Player** | **Lyrics** | **Album** |
 |:---:|:---:|:---:|:---:|
 | ![Home](.github/assets/screenshots/1_home.png) | ![Player](.github/assets/screenshots/2_player.png) | ![Lyrics](.github/assets/screenshots/3_lyrics.png) | ![Album](.github/assets/screenshots/4_album.png) |
+| **Artist** | **Playlist** | **Queue** | **Library** |
+| ![Artist](.github/assets/screenshots/5_artist.png) | ![Playlists](.github/assets/screenshots/6_playlist.png) | ![Queue](.github/assets/screenshots/7_queue.png) | ![Library](.github/assets/screenshots/8_library.png) |
