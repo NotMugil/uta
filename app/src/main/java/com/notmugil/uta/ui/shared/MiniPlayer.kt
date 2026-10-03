@@ -81,6 +81,8 @@ import com.notmugil.uta.ui.theme.LocalDynamicThemeManager
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+import androidx.compose.ui.graphics.luminance
+
 @Composable
 fun MiniPlayer(
     currentTrack: TrackItem?,
@@ -105,25 +107,41 @@ fun MiniPlayer(
     val dynamicDarkBg by dynamicThemeManager?.dynamicDarkBgColor?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(null) }
 
     val accentColor = MaterialTheme.colorScheme.primary
-    val defaultBlackColor = Color.Black
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val baseSurfaceColor = MaterialTheme.colorScheme.surfaceContainerHigh
+
     val containerBgColor = if (miniPlayerStyle == MiniPlayerStyle.AMBIENT) {
-        MaterialTheme.colorScheme.surfaceContainerHigh
+        baseSurfaceColor
     } else if (tintMiniPlayerAccent) {
-        dynamicDarkBg?.let {
-            Color(
-                red = (it.red * 0.75f + defaultBlackColor.red * 0.25f),
-                green = (it.green * 0.75f + defaultBlackColor.green * 0.25f),
-                blue = (it.blue * 0.75f + defaultBlackColor.blue * 0.25f),
+        if (isDark) {
+            val defaultBlackColor = Color.Black
+            dynamicDarkBg?.let {
+                Color(
+                    red = (it.red * 0.75f + defaultBlackColor.red * 0.25f),
+                    green = (it.green * 0.75f + defaultBlackColor.green * 0.25f),
+                    blue = (it.blue * 0.75f + defaultBlackColor.blue * 0.25f),
+                    alpha = 0.98f
+                )
+            } ?: Color(
+                red = (accentColor.red * 0.35f + defaultBlackColor.red * 0.65f),
+                green = (accentColor.green * 0.35f + defaultBlackColor.green * 0.65f),
+                blue = (accentColor.blue * 0.35f + defaultBlackColor.blue * 0.65f),
                 alpha = 0.98f
             )
-        } ?: Color(
-            red = (accentColor.red * 0.35f + defaultBlackColor.red * 0.65f),
-            green = (accentColor.green * 0.35f + defaultBlackColor.green * 0.65f),
-            blue = (accentColor.blue * 0.35f + defaultBlackColor.blue * 0.65f),
-            alpha = 0.98f
-        )
+        } else {
+            Color(
+                red = (accentColor.red * 0.12f + baseSurfaceColor.red * 0.88f),
+                green = (accentColor.green * 0.12f + baseSurfaceColor.green * 0.88f),
+                blue = (accentColor.blue * 0.12f + baseSurfaceColor.blue * 0.88f),
+                alpha = 0.98f
+            )
+        }
     } else {
-        defaultBlackColor
+        if (isDark) {
+            Color.Black
+        } else {
+            baseSurfaceColor
+        }
     }
 
     val visible = currentTrack != null

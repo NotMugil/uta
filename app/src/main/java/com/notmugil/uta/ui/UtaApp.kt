@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -174,6 +175,8 @@ fun UtaApp() {
     val miniPlayerPlacement by prefs?.miniPlayerPlacement?.collectAsState() ?: remember { mutableStateOf(MiniPlayerPlacement.ISOLATED) }
 
     val accentColor = MaterialTheme.colorScheme.primary
+    val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    val dockedBgColor = if (isDark) Color.Black else MaterialTheme.colorScheme.surfaceContainerHigh
 
     val isFloatingMiniPlayer = miniPlayerPlacement == MiniPlayerPlacement.ISOLATED
     val isDockedPlacement = miniPlayerPlacement == MiniPlayerPlacement.COMBINED
@@ -183,8 +186,8 @@ fun UtaApp() {
         indicatorColor = accentColor.copy(alpha = 0.22f),
         selectedIconColor = accentColor,
         selectedTextColor = accentColor,
-        unselectedIconColor = if (isDockedPlacement) Color.White.copy(alpha = 0.65f) else MaterialTheme.colorScheme.onSurfaceVariant,
-        unselectedTextColor = if (isDockedPlacement) Color.White.copy(alpha = 0.65f) else MaterialTheme.colorScheme.onSurfaceVariant
+        unselectedIconColor = if (isDockedPlacement && isDark) Color.White.copy(alpha = 0.65f) else MaterialTheme.colorScheme.onSurfaceVariant,
+        unselectedTextColor = if (isDockedPlacement && isDark) Color.White.copy(alpha = 0.65f) else MaterialTheme.colorScheme.onSurfaceVariant
     )
 
     val toastHostState = remember { ToastHostState() }
@@ -378,7 +381,7 @@ fun UtaApp() {
             // Bottom Navigation Bar & MiniPlayer Overlay
             val navFadeColor = MaterialTheme.colorScheme.background
             val bottomBgModifier = when {
-                isDockedPlacement -> Modifier.background(Color.Black)
+                isDockedPlacement -> Modifier.background(dockedBgColor)
                 shouldShowNavBar -> Modifier.background(
                     Brush.verticalGradient(
                         colors = listOf(
@@ -445,7 +448,7 @@ fun UtaApp() {
                         if (shouldShowNavBar) {
                             NavigationBar(
                                 containerColor = Color.Transparent,
-                                contentColor = if (isDockedPlacement) Color.White else MaterialTheme.colorScheme.onSurface,
+                                contentColor = if (isDockedPlacement && isDark) Color.White else MaterialTheme.colorScheme.onSurface,
                                 windowInsets = WindowInsets(0, 0, 0, 0),
                                 modifier = Modifier
                                     .fillMaxWidth()

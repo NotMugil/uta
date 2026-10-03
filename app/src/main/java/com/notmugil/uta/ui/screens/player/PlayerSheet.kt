@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -187,6 +188,7 @@ fun PlayerSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = null,
+        shape = RectangleShape,
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         modifier = modifier.fillMaxSize()
