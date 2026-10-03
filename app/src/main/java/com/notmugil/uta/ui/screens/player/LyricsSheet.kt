@@ -1,6 +1,9 @@
 package com.notmugil.uta.ui.screens.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -72,6 +75,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -221,6 +225,7 @@ fun LyricsSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = null,
+        shape = RectangleShape,
         containerColor = MaterialTheme.colorScheme.background,
         scrimColor = Color.Black.copy(alpha = 0.5f),
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
@@ -421,6 +426,8 @@ fun LyricsSheet(
                             Modifier.fillMaxSize()
                         }
 
+                        val isBrowsing = userScrolledAway || isDragged
+
                         LazyColumn(
                             state = listState,
                             modifier = listModifier,
@@ -429,22 +436,41 @@ fun LyricsSheet(
                             itemsIndexed(lines) { index, line ->
                                 val isCurrent = index == currentLineIndex
                                 val dist = kotlin.math.abs(index - currentLineIndex)
-                                val lineAlpha = when (dist) {
-                                    0 -> 1.0f
-                                    1 -> 0.65f
-                                    2 -> 0.40f
-                                    3 -> 0.25f
-                                    else -> 0.15f
+                                val targetLineAlpha = if (isBrowsing) {
+                                    if (isCurrent) 1.0f else 0.78f
+                                } else {
+                                    when (dist) {
+                                        0 -> 1.0f
+                                        1 -> 0.75f
+                                        2 -> 0.55f
+                                        3 -> 0.40f
+                                        else -> 0.28f
+                                    }
                                 }
+                                val lineAlpha by animateFloatAsState(
+                                    targetValue = targetLineAlpha,
+                                    animationSpec = tween(220),
+                                    label = "line_alpha_$index"
+                                )
                                 val textColor = MaterialTheme.colorScheme.onBackground
                                 val dimColor = textColor.copy(alpha = lineAlpha)
-                                val lineBlurModifier = if (blurInactiveLyrics && !isCurrent) {
-                                    val blurDp = when (dist) {
-                                        1 -> 1.5.dp
-                                        2 -> 3.dp
-                                        3 -> 5.dp
-                                        else -> ((dist - 3) * 1.5f + 5f).coerceAtMost(8.5f).dp
+
+                                val targetBlurDp = if (blurInactiveLyrics && !isCurrent && !isBrowsing) {
+                                    when (dist) {
+                                        1 -> 0.8.dp
+                                        2 -> 1.8.dp
+                                        3 -> 2.6.dp
+                                        else -> 3.2.dp
                                     }
+                                } else {
+                                    0.dp
+                                }
+                                val blurDp by animateDpAsState(
+                                    targetValue = targetBlurDp,
+                                    animationSpec = tween(220),
+                                    label = "line_blur_$index"
+                                )
+                                val lineBlurModifier = if (blurDp > 0.dp) {
                                     Modifier.blur(blurDp)
                                 } else {
                                     Modifier

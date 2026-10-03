@@ -1,6 +1,8 @@
 package com.notmugil.uta.ui.screens.player.layouts
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -516,6 +518,8 @@ fun LandscapePlayerLayout(
                             CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.5.dp)
                         }
                     } else if (lines.isNotEmpty()) {
+                        val isBrowsing = userScrolledAway || isDragged
+
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
@@ -526,7 +530,13 @@ fun LandscapePlayerLayout(
                                 val isPastLine = index < currentLineIndex
                                 val accentColor = MaterialTheme.colorScheme.primary
                                 val textColor = MaterialTheme.colorScheme.onBackground
-                                val dimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                val targetDimAlpha = if (isBrowsing) 0.78f else 0.38f
+                                val dimAlpha by animateFloatAsState(
+                                    targetValue = targetDimAlpha,
+                                    animationSpec = tween(220),
+                                    label = "landscape_dim_alpha_$index"
+                                )
+                                val dimColor = MaterialTheme.colorScheme.onSurface.copy(alpha = dimAlpha)
 
                                 if (isCurrent && line.isWordSynced) {
                                     Surface(

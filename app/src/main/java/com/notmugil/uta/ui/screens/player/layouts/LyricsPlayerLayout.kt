@@ -1,5 +1,8 @@
 package com.notmugil.uta.ui.screens.player.layouts
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -339,6 +342,8 @@ fun LyricsPlayerLayout(
                     Modifier.fillMaxSize()
                 }
 
+                val isBrowsing = userScrolledAway || isDragged
+
                 LazyColumn(
                     state = listState,
                     modifier = listModifier,
@@ -347,23 +352,42 @@ fun LyricsPlayerLayout(
                     itemsIndexed(lines) { index, line ->
                         val isCurrent = index == currentLineIndex
                         val dist = kotlin.math.abs(index - currentLineIndex)
-                        val lineAlpha = when (dist) {
-                            0 -> 1.0f
-                            1 -> 0.65f
-                            2 -> 0.40f
-                            3 -> 0.25f
-                            else -> 0.15f
+                        val targetLineAlpha = if (isBrowsing) {
+                            if (isCurrent) 1.0f else 0.78f
+                        } else {
+                            when (dist) {
+                                0 -> 1.0f
+                                1 -> 0.75f
+                                2 -> 0.55f
+                                3 -> 0.40f
+                                else -> 0.28f
+                            }
                         }
+                        val lineAlpha by animateFloatAsState(
+                            targetValue = targetLineAlpha,
+                            animationSpec = tween(220),
+                            label = "player_line_alpha_$index"
+                        )
                         val accentColor = MaterialTheme.colorScheme.primary
                         val textColor = MaterialTheme.colorScheme.onBackground
                         val dimColor = textColor.copy(alpha = lineAlpha)
-                        val lineBlurModifier = if (blurInactiveLyrics && !isCurrent) {
-                            val blurDp = when (dist) {
-                                1 -> 1.5.dp
-                                2 -> 3.dp
-                                3 -> 5.dp
-                                else -> ((dist - 3) * 1.5f + 5f).coerceAtMost(8.5f).dp
+
+                        val targetBlurDp = if (blurInactiveLyrics && !isCurrent && !isBrowsing) {
+                            when (dist) {
+                                1 -> 0.8.dp
+                                2 -> 1.8.dp
+                                3 -> 2.6.dp
+                                else -> 3.2.dp
                             }
+                        } else {
+                            0.dp
+                        }
+                        val blurDp by animateDpAsState(
+                            targetValue = targetBlurDp,
+                            animationSpec = tween(220),
+                            label = "player_line_blur_$index"
+                        )
+                        val lineBlurModifier = if (blurDp > 0.dp) {
                             Modifier.blur(blurDp)
                         } else {
                             Modifier
