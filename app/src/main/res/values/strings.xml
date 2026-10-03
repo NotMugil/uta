@@ -537,7 +537,7 @@
     <string name="settings_server_status_format">User: %1$s • Status: %2$s</string>
     <string name="status_connected">Connected</string>
     <string name="settings_fallback_url_not_configured">Not configured (tap to set LAN/Remote fallback)</string>
-    <string name="sync_error_format">Sync Error: %1$s</string>
+    <string name="sync_error_format">Sync failed: %1$s</string>
     <string name="toast_sync_started">Library sync started</string>
     <string name="settings_no_server_connected">No server connected</string>
     <string name="settings_no_server_connected_desc">Log in to connect to a Subsonic music server</string>

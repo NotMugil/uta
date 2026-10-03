@@ -235,4 +235,44 @@ class LibrarySyncEngineTest {
         coVerify { subsonicRepository.getAlbumRaw("al_corrupt") }
         coVerify { albumDao.upsertAlbum(match { it.id == "al_corrupt" }) }
     }
+
+    @Test
+    fun `formatSyncError formats network and server exceptions accurately`() {
+        assertEquals(
+            "Connection timed out",
+            LibrarySyncEngine.formatSyncError(java.net.SocketTimeoutException("timeout"))
+        )
+        assertEquals(
+            "Connection timed out",
+            LibrarySyncEngine.formatSyncError(java.io.IOException("failed to connect to /192.168.1.1 (port 4533) after 10000ms: connect failed"))
+        )
+        assertEquals(
+            "Cannot resolve server address",
+            LibrarySyncEngine.formatSyncError(java.net.UnknownHostException("Unable to resolve host \"music.example.com\": No address associated with hostname"))
+        )
+        assertEquals(
+            "Connection refused (port unreachable)",
+            LibrarySyncEngine.formatSyncError(java.net.ConnectException("failed to connect: ECONNREFUSED (Connection refused)"))
+        )
+        assertEquals(
+            "SSL certificate error",
+            LibrarySyncEngine.formatSyncError(javax.net.ssl.SSLHandshakeException("CertPathValidatorException: Trust anchor for certification path not found."))
+        )
+        assertEquals(
+            "Invalid username or password",
+            LibrarySyncEngine.formatSyncError(RuntimeException("Wrong username or password (401)"))
+        )
+        assertEquals(
+            "Server unavailable (gateway error)",
+            LibrarySyncEngine.formatSyncError(RuntimeException("HTTP 502 Bad Gateway"))
+        )
+        assertEquals(
+            "Internal server error (500)",
+            LibrarySyncEngine.formatSyncError(RuntimeException("HTTP 500 Internal Server Error"))
+        )
+        assertEquals(
+            "Server unreachable",
+            LibrarySyncEngine.formatSyncError(null)
+        )
+    }
 }

@@ -119,6 +119,9 @@ class LoginViewModel @Inject constructor(
             raw.contains("refused", ignoreCase = true) -> "Connection refused (port unreachable)"
             raw.contains("ssl", ignoreCase = true) || raw.contains("cert", ignoreCase = true) -> "SSL certificate error"
             raw.contains("offline", ignoreCase = true) || raw.contains("network", ignoreCase = true) || raw.contains("internet", ignoreCase = true) -> "Network error"
+            raw.contains("Unable to resolve host", ignoreCase = true) ||
+                raw.contains("UnknownHost", ignoreCase = true) ||
+                raw.contains("No address associated", ignoreCase = true) -> "Cannot resolve server address"
             raw.contains("unreachable", ignoreCase = true) || raw.contains("failed to connect", ignoreCase = true) -> "Server unreachable"
             raw.isNotBlank() && raw.length <= 50 -> raw
             else -> "Server unreachable"

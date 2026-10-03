@@ -537,7 +537,7 @@
     <string name="settings_server_status_format">Utilisateur : %1$s • État : %2$s</string>
     <string name="status_connected">Connecté</string>
     <string name="settings_fallback_url_not_configured">Non configurée (appuyez pour définir une URL de secours)</string>
-    <string name="sync_error_format">Erreur de synchronisation : %1$s</string>
+    <string name="sync_error_format">Échec de la synchronisation : %1$s</string>
     <string name="toast_sync_started">Synchronisation de la bibliothèque démarrée</string>
     <string name="settings_no_server_connected">Aucun serveur connecté</string>
     <string name="settings_no_server_connected_desc">Connectez-vous pour accéder à un serveur musical Subsonic</string>

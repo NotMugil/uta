@@ -575,9 +575,14 @@ class LibrarySyncEngine @Inject constructor(
             )
 
             if (failures.size == 4) {
-                val errorMsg = failures.first().exceptionOrNull()?.localizedMessage ?: "Sync failed"
+                val errorMsg = formatSyncError(failures.first().exceptionOrNull())
                 Timber.e("[Sync] All sync stages failed: $errorMsg")
                 _syncState.value = SyncState.Error(errorMsg)
+                false
+            } else if (failures.isNotEmpty()) {
+                val errorMsg = formatSyncError(failures.first().exceptionOrNull())
+                Timber.w("[Sync] Some sync stages failed: $errorMsg")
+                _syncState.value = SyncState.Error("Partial sync: $errorMsg")
                 false
             } else {
                 _syncState.value = SyncState.Idle
@@ -592,7 +597,7 @@ class LibrarySyncEngine @Inject constructor(
             if (subsonicRepository.isNetworkOrTimeoutException(e)) {
                 networkMonitorProvider.get().markServerUnreachable()
             }
-            _syncState.value = SyncState.Error(e.localizedMessage ?: "Sync failed")
+            _syncState.value = SyncState.Error(formatSyncError(e))
             false
         }
     }
@@ -667,6 +672,115 @@ class LibrarySyncEngine @Inject constructor(
         if (!src.renameTo(dest)) {
             src.copyTo(dest, overwrite = true)
             src.delete()
+        }
+    }
+
+    companion object {
+        fun formatSyncError(throwable: Throwable?): String {
+            if (throwable == null) return "Server unreachable"
+
+            var current: Throwable? = throwable
+            val causes = mutableListOf<Throwable>()
+            while (current != null && !causes.contains(current)) {
+                causes.add(current)
+                current = current.cause
+            }
+
+            for (c in causes) {
+                when (c) {
+                    is java.net.SocketTimeoutException -> return "Connection timed out"
+                    is java.net.UnknownHostException -> return "Cannot resolve server address"
+                    is java.net.ConnectException -> return "Connection refused (port unreachable)"
+                    is java.net.NoRouteToHostException, is java.net.PortUnreachableException -> return "Server unreachable"
+                    is javax.net.ssl.SSLException, is java.security.cert.CertificateException -> return "SSL certificate error"
+                }
+            }
+
+            val fullErrorText = buildString {
+                for (c in causes) {
+                    append(c.javaClass.name).append(" ").append(c.message).append(" ")
+                }
+            }
+
+            return when {
+                fullErrorText.contains("ssl", ignoreCase = true) ||
+                    fullErrorText.contains("cert", ignoreCase = true) ||
+                    fullErrorText.contains("handshake", ignoreCase = true) ||
+                    fullErrorText.contains("pkix", ignoreCase = true) ->
+                    "SSL certificate error"
+
+                fullErrorText.contains("Wrong username", ignoreCase = true) ||
+                    fullErrorText.contains("401", ignoreCase = true) ||
+                    fullErrorText.contains("credential", ignoreCase = true) ||
+                    fullErrorText.contains("Unauthorized", ignoreCase = true) ||
+                    (fullErrorText.contains("user", ignoreCase = true) && fullErrorText.contains("pass", ignoreCase = true)) ->
+                    "Invalid username or password"
+
+                fullErrorText.contains("403", ignoreCase = true) ||
+                    fullErrorText.contains("Forbidden", ignoreCase = true) ->
+                    "Access forbidden (403)"
+
+                fullErrorText.contains("404", ignoreCase = true) ||
+                    fullErrorText.contains("Endpoint not found", ignoreCase = true) ->
+                    "Server endpoint not found (404)"
+
+                fullErrorText.contains("429", ignoreCase = true) ||
+                    fullErrorText.contains("Too Many Requests", ignoreCase = true) ->
+                    "Rate limit exceeded (429)"
+
+                fullErrorText.contains("502", ignoreCase = true) ||
+                    fullErrorText.contains("503", ignoreCase = true) ||
+                    fullErrorText.contains("504", ignoreCase = true) ||
+                    fullErrorText.contains("Bad Gateway", ignoreCase = true) ||
+                    fullErrorText.contains("Gateway Timeout", ignoreCase = true) ||
+                    fullErrorText.contains("Service Unavailable", ignoreCase = true) ->
+                    "Server unavailable (gateway error)"
+
+                fullErrorText.contains("500", ignoreCase = true) ||
+                    fullErrorText.contains("Internal Server Error", ignoreCase = true) ->
+                    "Internal server error (500)"
+
+                fullErrorText.contains("timeout", ignoreCase = true) ||
+                    fullErrorText.contains("timed out", ignoreCase = true) ||
+                    fullErrorText.contains("after ") ->
+                    "Connection timed out"
+
+                fullErrorText.contains("refused", ignoreCase = true) ||
+                    fullErrorText.contains("ECONNREFUSED", ignoreCase = true) ->
+                    "Connection refused (port unreachable)"
+
+                fullErrorText.contains("Unable to resolve host", ignoreCase = true) ||
+                    fullErrorText.contains("UnknownHost", ignoreCase = true) ||
+                    fullErrorText.contains("No address associated", ignoreCase = true) ->
+                    "Cannot resolve server address"
+
+                fullErrorText.contains("NoRouteToHost", ignoreCase = true) ||
+                    fullErrorText.contains("No route to host", ignoreCase = true) ||
+                    fullErrorText.contains("Network is unreachable", ignoreCase = true) ||
+                    fullErrorText.contains("ENETUNREACH", ignoreCase = true) ->
+                    "Network unreachable"
+
+                fullErrorText.contains("No active session", ignoreCase = true) ->
+                    "No active server session"
+
+                fullErrorText.contains("offline", ignoreCase = true) ->
+                    "Offline mode active"
+
+                fullErrorText.contains("unreachable", ignoreCase = true) ||
+                    fullErrorText.contains("failed to connect", ignoreCase = true) ->
+                    "Server unreachable"
+
+                else -> {
+                    val raw = (throwable.localizedMessage ?: throwable.message.orEmpty())
+                        .replace(Regex("^(java|kotlin|okhttp3|retrofit2)[a-zA-Z0-9_.]*Exception:\\s*"), "")
+                        .trim()
+                    if (raw.isNotBlank() && raw.length <= 50 && !raw.contains("\n") && !raw.contains("at com.")) {
+                        raw
+                    } else {
+                        "Server unreachable"
+                    }
+                }
+            }
         }
     }
 }

@@ -37,6 +37,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import timber.log.Timber
 import java.security.MessageDigest
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -196,6 +197,16 @@ class SubsonicRepository @Inject constructor(
         }
     }
 
+    private val pingClient: OkHttpClient by lazy {
+        okHttpClient.newBuilder()
+            .connectTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(6, TimeUnit.SECONDS)
+            .writeTimeout(6, TimeUnit.SECONDS)
+            .callTimeout(8, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(false)
+            .build()
+    }
+
     suspend fun login(serverUrl: String, username: String, password: String, fallbackServerUrl: String? = null): SubsonicClient =
         withContext(Dispatchers.IO) {
             val normalizedUrl = normalizeUrl(serverUrl)
@@ -206,11 +217,10 @@ class SubsonicRepository @Inject constructor(
                 password = password
             )
 
-            // Ping test using OkHttp
+            // Fast validation ping test using dedicated short-timeout client
             pingWithOkHttp(credentials.serverUrl, credentials.username, credentials.password)
 
             val client = buildClient(credentials, serverUrlOverride = normalizedUrl)
-            client.ping()
 
             credentialStore.save(credentials)
             if (normalizedFallback != null) {
@@ -248,7 +258,7 @@ class SubsonicRepository @Inject constructor(
             .build()
 
         val response = try {
-            okHttpClient.newCall(request).execute()
+            pingClient.newCall(request).execute()
         } catch (e: Exception) {
             if (isNetworkOrTimeoutException(e)) {
                 networkMonitorProvider.get().markServerUnreachable()
