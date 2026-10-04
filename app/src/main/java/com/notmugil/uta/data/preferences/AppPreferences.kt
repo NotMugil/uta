@@ -184,6 +184,38 @@ enum class CoverArtQuality(val displayName: String) {
     LOW("Low")
 }
 
+data class HomeSectionConfig(
+    val section: HomeSection,
+    val enabled: Boolean = true
+)
+
+enum class HomeSection(val titleRes: Int) {
+    QUICK_PICKS(com.notmugil.uta.R.string.home_quick_picks),
+    YOUR_PLAYLISTS(com.notmugil.uta.R.string.home_playlists),
+    RECENTLY_ADDED(com.notmugil.uta.R.string.home_recently_added),
+    MOST_PLAYED_ALBUMS(com.notmugil.uta.R.string.home_most_played_albums),
+    MOST_PLAYED_SONGS(com.notmugil.uta.R.string.home_most_played_songs),
+    RECENTLY_PLAYED(com.notmugil.uta.R.string.home_recently_played),
+    FEATURED_ARTIST(com.notmugil.uta.R.string.home_featured_artist),
+    RANDOM_ALBUMS(com.notmugil.uta.R.string.home_random_albums);
+
+    companion object {
+        val defaultSections: List<HomeSectionConfig> = listOf(
+            HomeSectionConfig(QUICK_PICKS, true),
+            HomeSectionConfig(YOUR_PLAYLISTS, true),
+            HomeSectionConfig(MOST_PLAYED_SONGS, true),
+            HomeSectionConfig(MOST_PLAYED_ALBUMS, true),
+            HomeSectionConfig(RECENTLY_ADDED, true),
+            HomeSectionConfig(RECENTLY_PLAYED, true),
+            HomeSectionConfig(FEATURED_ARTIST, true),
+            HomeSectionConfig(RANDOM_ALBUMS, true)
+        )
+
+        fun fromString(name: String): HomeSection? =
+            entries.find { it.name.equals(name, ignoreCase = true) }
+    }
+}
+
 val LocalAppPreferences = staticCompositionLocalOf<AppPreferences?> {
     null
 }
@@ -242,6 +274,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_COVER_ART_QUALITY = "cover_art_quality"
         private const val KEY_KEEP_SCREEN_ON_LYRICS = "keep_screen_on_lyrics"
         private const val KEY_BLUR_INACTIVE_LYRICS = "blur_inactive_lyrics"
+        private const val KEY_HOME_SECTIONS = "home_sections_config"
     }
 
     private inline fun <reified T : Enum<T>> getEnumPreference(key: String, defaultValue: T): T {
@@ -718,5 +751,33 @@ class AppPreferences @Inject constructor(
         } else {
             prefs.edit().remove(KEY_FALLBACK_SERVER_URL).apply()
         }
+    }
+
+    private val _homeSectionConfigs = MutableStateFlow(loadHomeSectionConfigs())
+    val homeSectionConfigs: StateFlow<List<HomeSectionConfig>> = _homeSectionConfigs.asStateFlow()
+
+    private fun loadHomeSectionConfigs(): List<HomeSectionConfig> {
+        val raw = prefs.getString(KEY_HOME_SECTIONS, null)
+        val defaultList = HomeSection.defaultSections
+        if (raw.isNullOrBlank()) return defaultList
+        val parsed = raw.split(";").mapNotNull { entry ->
+            val parts = entry.split(":")
+            val section = HomeSection.fromString(parts.getOrNull(0).orEmpty()) ?: return@mapNotNull null
+            val enabled = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
+            HomeSectionConfig(section, enabled)
+        }
+        val presentSections = parsed.map { it.section }.toSet()
+        val missingSections = defaultList.filter { it.section !in presentSections }
+        return (parsed + missingSections).ifEmpty { defaultList }
+    }
+
+    fun setHomeSectionConfigs(configs: List<HomeSectionConfig>) {
+        _homeSectionConfigs.value = configs
+        val str = configs.joinToString(";") { "${it.section.name}:${it.enabled}" }
+        prefs.edit().putString(KEY_HOME_SECTIONS, str).apply()
+    }
+
+    fun resetHomeSections() {
+        setHomeSectionConfigs(HomeSection.defaultSections)
     }
 }

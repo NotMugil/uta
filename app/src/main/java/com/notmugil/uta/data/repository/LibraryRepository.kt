@@ -60,6 +60,21 @@ class LibraryRepository @Inject constructor(
             .map { list -> list.map { it.toDomain() } }
     }
 
+    fun getMostPlayedAlbumsFlow(limit: Int = 20): Flow<List<AlbumItem>> {
+        return albumDao.getMostPlayedAlbumsFlow(serverId, limit)
+            .map { list -> list.map { it.toDomain() } }
+    }
+
+    fun getRecentlyPlayedAlbumsFlow(limit: Int = 20): Flow<List<AlbumItem>> {
+        return albumDao.getRecentlyPlayedAlbumsFlow(serverId, limit)
+            .map { list -> list.map { it.toDomain() } }
+    }
+
+    fun getMostPlayedTracksFlow(limit: Int = 20): Flow<List<TrackItem>> {
+        return trackDao.getMostPlayedTracksFlow(serverId, limit)
+            .map { list -> list.map { it.toDomain() } }
+    }
+
     fun getRandomAlbumsFlow(limit: Int = 20): Flow<List<AlbumItem>> {
         return albumDao.getRandomAlbumsFlow(serverId, limit)
             .map { list -> list.map { it.toDomain() } }

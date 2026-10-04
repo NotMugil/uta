@@ -13,9 +13,12 @@ data class SectionState<T>(
 
 data class HomeState(
     val quickMixSongs: List<TrackItem> = emptyList(),
+    val mostPlayedSongs: List<TrackItem> = emptyList(),
     val featuredArtist: ArtistItem? = null,
     val featuredArtistAlbums: List<AlbumItem> = emptyList(),
     val recentlyAdded: SectionState<List<AlbumItem>> = SectionState(isLoading = true, data = emptyList()),
+    val mostPlayedAlbums: SectionState<List<AlbumItem>> = SectionState(isLoading = true, data = emptyList()),
+    val recentlyPlayedAlbums: SectionState<List<AlbumItem>> = SectionState(isLoading = true, data = emptyList()),
     val randomAlbums: SectionState<List<AlbumItem>> = SectionState(isLoading = true, data = emptyList()),
     val playlists: SectionState<List<PlaylistItem>> = SectionState(isLoading = true, data = emptyList()),
     val downloadedTrackIds: Set<String> = emptySet(),
@@ -23,5 +26,6 @@ data class HomeState(
     val downloadedPlaylistIds: Set<String> = emptySet(),
     val isRefreshing: Boolean = false,
     val syncMessage: String? = null,
-    val isOfflineModeActive: Boolean = false
+    val isOfflineModeActive: Boolean = false,
+    val visibleSections: List<com.notmugil.uta.data.preferences.HomeSection> = com.notmugil.uta.data.preferences.HomeSection.defaultSections.map { it.section }
 )

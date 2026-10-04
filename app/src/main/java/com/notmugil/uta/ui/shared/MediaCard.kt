@@ -1,7 +1,6 @@
 package com.notmugil.uta.ui.shared
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +20,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -36,6 +36,7 @@ fun MediaCard(
     shape: Shape = RoundedCornerShape(8.dp),
     alpha: Float = 1f,
     columnCount: Int? = null,
+    cardWidth: androidx.compose.ui.unit.Dp = 156.dp,
     fallbackIcon: ImageVector = Tabler.Outline.Disc,
     playlistId: String? = null
 ) {
@@ -53,7 +54,7 @@ fun MediaCard(
 
     Column(
         modifier = modifier
-            .then(if (columnCount != null) Modifier.fillMaxWidth() else Modifier.width(140.dp))
+            .then(if (columnCount != null) Modifier.fillMaxWidth() else Modifier.width(cardWidth))
             .alpha(alpha)
             .combinedClickable(
                 onClick = onClick,
@@ -83,9 +84,8 @@ fun MediaCard(
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onBackground,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .basicMarquee()
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth()
         )
 
         Text(
@@ -93,9 +93,8 @@ fun MediaCard(
             style = subStyle,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .basicMarquee()
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

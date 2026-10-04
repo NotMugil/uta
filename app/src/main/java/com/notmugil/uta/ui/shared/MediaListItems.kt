@@ -2,7 +2,6 @@ package com.notmugil.uta.ui.shared
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -125,7 +124,7 @@ fun SongListItem(
                 fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
                 color = if (isCurrentSong) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
             val sub = if (showAlbumName) {
                 listOfNotNull(song.artist.takeIf { it.isNotBlank() }, song.album.takeIf { !it.isNullOrBlank() })
@@ -139,7 +138,7 @@ fun SongListItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee()
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )
             }
         }
@@ -241,7 +240,7 @@ fun AlbumListItem(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
             val subText = buildString {
                 append(album.artist)
@@ -258,7 +257,7 @@ fun AlbumListItem(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
         }
     }
@@ -301,7 +300,7 @@ fun ArtistListItem(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
             Text(
                 text = if (artist.albumCount == 1) "1 album" else "${artist.albumCount} albums",
@@ -356,7 +355,7 @@ fun PlaylistListItem(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
             )
             val subText = buildString {
                 append("${playlist.songCount} tracks")

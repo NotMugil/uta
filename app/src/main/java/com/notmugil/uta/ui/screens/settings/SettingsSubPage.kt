@@ -11,6 +11,7 @@ enum class SettingsSubPage(@StringRes val titleResId: Int) {
     ABOUT(R.string.settings_about),
 
     // Nested Sub-Pages
+    HOME_SECTIONS(R.string.setting_home_sections_title),
     LYRICS_PROVIDERS(R.string.setting_lyrics_provider),
     ONLINE_LYRICS_PROVIDERS(R.string.setting_lyrics_provider);
 

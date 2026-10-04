@@ -35,6 +35,7 @@ class HomeViewModel @Inject constructor(
     private val syncEngine: LibrarySyncEngine,
     private val networkMonitor: NetworkMonitor,
     private val playbackController: PlaybackController,
+    private val appPreferences: com.notmugil.uta.data.preferences.AppPreferences,
     val sleepTimerManager: SleepTimerManager
 ) : ViewModel() {
 
@@ -52,20 +53,32 @@ class HomeViewModel @Inject constructor(
         libraryRepository.getRecentlyAddedAlbumsFlow(15),
         _randomAlbums,
         libraryRepository.getPlaylistsFlow(),
-        _quickMixSongs
-    ) { recent, random, playlists, quickMix ->
-        Tuple4(recent, random, playlists, quickMix)
+        _quickMixSongs,
+        libraryRepository.getMostPlayedTracksFlow(16)
+    ) { recent, random, playlists, quickMix, mostPlayedTracks ->
+        Tuple5(recent, random, playlists, quickMix, mostPlayedTracks)
+    }
+
+    private val playedAlbumsFlow = combine(
+        libraryRepository.getMostPlayedAlbumsFlow(15),
+        libraryRepository.getRecentlyPlayedAlbumsFlow(15)
+    ) { mostPlayed, recentlyPlayed ->
+        Pair(mostPlayed, recentlyPlayed)
     }
 
     private val catalogFlow = combine(
         catalogSectionsFlow,
+        playedAlbumsFlow,
         _featuredArtistData
-    ) { (recent, random, playlists, quickMix), featuredData ->
+    ) { (recent, random, playlists, quickMix, mostPlayedTracks), (mostPlayedAlbums, recentlyPlayedAlbums), featuredData ->
         HomeCatalogData(
             recent = recent,
             random = random,
             playlists = playlists,
             quickMix = quickMix,
+            mostPlayedSongs = mostPlayedTracks,
+            mostPlayedAlbums = mostPlayedAlbums,
+            recentlyPlayedAlbums = recentlyPlayedAlbums,
             featuredArtist = featuredData?.artist,
             featuredArtistAlbums = featuredData?.albums ?: emptyList()
         )
@@ -85,13 +98,20 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-    val state: StateFlow<HomeState> = combine(
+    private val homeFlow = combine(
         catalogFlow,
         downloadedMediaFlow,
+        appPreferences.homeSectionConfigs
+    ) { catalog, downloadedMedia, sectionConfigs ->
+        Triple(catalog, downloadedMedia, sectionConfigs)
+    }
+
+    val state: StateFlow<HomeState> = combine(
+        homeFlow,
         syncEngine.syncState,
         _isRefreshing,
         networkMonitor.isOfflineModeActive
-    ) { catalog, downloadedMedia, syncState, refreshing, isOffline ->
+    ) { (catalog, downloadedMedia, sectionConfigs), syncState, refreshing, isOffline ->
         val effectiveQuickMix = if (isOffline) {
             val count = downloadedMedia.downloadedTracks.size
             val pages = (count / 4).coerceAtMost(4)
@@ -100,16 +120,31 @@ class HomeViewModel @Inject constructor(
             catalog.quickMix
         }
 
+        val effectiveMostPlayedSongs = if (isOffline) {
+            catalog.mostPlayedSongs.filter { downloadedMedia.trackIds.contains(it.id) }
+        } else {
+            catalog.mostPlayedSongs
+        }
+
         val effectiveFeaturedArtist = if (isOffline) null else catalog.featuredArtist
         val effectiveFeaturedAlbums = if (isOffline) emptyList() else catalog.featuredArtistAlbums
 
         HomeState(
             quickMixSongs = effectiveQuickMix,
+            mostPlayedSongs = effectiveMostPlayedSongs,
             featuredArtist = effectiveFeaturedArtist,
             featuredArtistAlbums = effectiveFeaturedAlbums,
             recentlyAdded = SectionState(
                 isLoading = catalog.recent.isEmpty() && syncState is SyncState.Syncing,
                 data = catalog.recent
+            ),
+            mostPlayedAlbums = SectionState(
+                isLoading = catalog.mostPlayedAlbums.isEmpty() && syncState is SyncState.Syncing,
+                data = catalog.mostPlayedAlbums
+            ),
+            recentlyPlayedAlbums = SectionState(
+                isLoading = catalog.recentlyPlayedAlbums.isEmpty() && syncState is SyncState.Syncing,
+                data = catalog.recentlyPlayedAlbums
             ),
             randomAlbums = SectionState(
                 isLoading = (catalog.random.isEmpty() && syncState is SyncState.Syncing) || _randomIsLoading.value,
@@ -128,7 +163,8 @@ class HomeViewModel @Inject constructor(
                 is SyncState.Error -> syncState.message
                 is SyncState.Idle -> null
             },
-            isOfflineModeActive = isOffline
+            isOfflineModeActive = isOffline,
+            visibleSections = sectionConfigs.filter { it.enabled }.map { it.section }
         )
     }.stateIn(
         scope = viewModelScope,
@@ -235,13 +271,16 @@ private data class FeaturedArtistData(
     val albums: List<AlbumItem>
 )
 
-private data class Tuple4<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+private data class Tuple5<A, B, C, D, E>(val first: A, val second: B, val third: C, val fourth: D, val fifth: E)
 
 private data class HomeCatalogData(
     val recent: List<AlbumItem>,
     val random: List<AlbumItem>,
     val playlists: List<PlaylistItem>,
     val quickMix: List<TrackItem>,
+    val mostPlayedSongs: List<TrackItem>,
+    val mostPlayedAlbums: List<AlbumItem>,
+    val recentlyPlayedAlbums: List<AlbumItem>,
     val featuredArtist: ArtistItem?,
     val featuredArtistAlbums: List<AlbumItem>
 )

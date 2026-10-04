@@ -62,10 +62,15 @@ class SettingsViewModel @Inject constructor(
     fun navigateBackFromSubPage() {
         _currentSubPage.value = when (_currentSubPage.value) {
             SettingsSubPage.LYRICS_PROVIDERS,
-            SettingsSubPage.ONLINE_LYRICS_PROVIDERS -> SettingsSubPage.GENERAL
+            SettingsSubPage.ONLINE_LYRICS_PROVIDERS,
+            SettingsSubPage.HOME_SECTIONS -> SettingsSubPage.GENERAL
             else -> null
         }
     }
+
+    val homeSectionConfigs: StateFlow<List<com.notmugil.uta.data.preferences.HomeSectionConfig>> = appPreferences.homeSectionConfigs
+    fun setHomeSectionConfigs(configs: List<com.notmugil.uta.data.preferences.HomeSectionConfig>) = appPreferences.setHomeSectionConfigs(configs)
+    fun resetHomeSections() = appPreferences.resetHomeSections()
 
     val authState: StateFlow<AuthState> = subsonicRepository.authState
     val syncState: StateFlow<SyncState> = syncEngine.syncState

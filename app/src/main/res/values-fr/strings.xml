@@ -87,12 +87,22 @@
 
     <!-- Home Screen -->
     <string name="home_quick_picks">Suggestions rapides</string>
+    <string name="home_playlists">Vos playlists</string>
+    <string name="home_most_played_songs">Morceaux les plus écoutés</string>
     <string name="home_recently_added">Récemment ajoutés</string>
+    <string name="home_most_played_albums">Albums les plus écoutés</string>
+    <string name="home_recently_played">Récemment écoutés</string>
     <string name="home_random_albums">Albums aléatoires</string>
+    <string name="home_featured_artist">Artiste à la une</string>
     <string name="home_empty_title">Votre bibliothèque est vide</string>
     <string name="home_empty_subtitle">Synchronisez votre serveur Subsonic pour commencer l\'écoute.</string>
     <string name="home_syncing">Synchronisation de votre bibliothèque…</string>
-    <string name="featured_artist_more_from">PLUS DE</string>
+    <string name="featured_artist_more_from">Plus de</string>
+
+    <!-- Home Sections Settings -->
+    <string name="setting_home_sections_title">Sections de la page d\'accueil</string>
+    <string name="setting_home_sections_subtitle">Personnaliser et réorganiser les sections de l\'accueil</string>
+    <string name="setting_home_sections_reset">Rétablir par défaut</string>
 
     <!-- Search Screen -->
     <string name="search_placeholder">Titres, albums, artistes…</string>

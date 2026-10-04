@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -20,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.notmugil.uta.domain.model.AlbumItem
 import com.notmugil.uta.domain.model.PlaylistItem
 import com.notmugil.uta.ui.screens.home.SectionState
@@ -50,8 +53,9 @@ fun HomeAlbumSectionRow(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
             )
             if (onSeeMoreClick != null) {
                 IconButton(
@@ -66,6 +70,8 @@ fun HomeAlbumSectionRow(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -111,8 +117,9 @@ fun HomePlaylistSectionRow(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
             )
             if (onSeeMoreClick != null) {
                 IconButton(
@@ -127,6 +134,8 @@ fun HomePlaylistSectionRow(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),

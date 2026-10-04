@@ -86,20 +86,30 @@
     <string name="greeting_night">Good night</string>
 
     <!-- Home Screen -->
-    <string name="home_quick_picks">Quick Picks</string>
-    <string name="home_recently_added">Recently Added</string>
-    <string name="home_random_albums">Random Albums</string>
+    <string name="home_quick_picks">Quick picks</string>
+    <string name="home_playlists">Your playlists</string>
+    <string name="home_most_played_songs">Most played songs</string>
+    <string name="home_recently_added">Recently added</string>
+    <string name="home_most_played_albums">Most played albums</string>
+    <string name="home_recently_played">Recently played</string>
+    <string name="home_random_albums">Random albums</string>
+    <string name="home_featured_artist">Featured artist</string>
     <string name="home_empty_title">Your library is empty</string>
     <string name="home_empty_subtitle">Sync your Subsonic server to start listening.</string>
     <string name="home_syncing">Syncing your music library…</string>
-    <string name="featured_artist_more_from">MORE FROM</string>
+    <string name="featured_artist_more_from">More from</string>
+
+    <!-- Home Sections Settings -->
+    <string name="setting_home_sections_title">Home page sections</string>
+    <string name="setting_home_sections_subtitle">Customize and reorder sections on the home screen</string>
+    <string name="setting_home_sections_reset">Reset to default</string>
 
     <!-- Search Screen -->
     <string name="search_placeholder">Search songs, albums, artists…</string>
     <string name="search_tracks">Tracks</string>
     <string name="search_albums">Albums</string>
     <string name="search_artists">Artists</string>
-    <string name="search_browse_genres">Browse Genres</string>
+    <string name="search_browse_genres">Browse genres</string>
     <string name="search_no_results">No results found</string>
     <string name="search_no_results_for">No results found for \"%1$s\"</string>
     <string name="search_empty_prompt">Search your music library</string>
@@ -167,7 +177,7 @@
     <!-- Detail Screens (Artist, Album, Playlist, Genre) -->
     <string name="artist_albums">Albums</string>
     <string name="artist_about">About</string>
-    <string name="artist_top_songs">Top Songs</string>
+    <string name="artist_top_songs">Top songs</string>
     <string name="artist_fallback">Artist</string>
     <string name="album_tracks">Tracks</string>
     <string name="album_duration_format">%1$d tracks • %2$s</string>

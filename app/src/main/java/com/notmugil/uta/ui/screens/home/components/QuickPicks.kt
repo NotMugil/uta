@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.ui.shared.SongListItem
 
@@ -38,13 +39,21 @@ fun QuickPicks(
     val mediaActionHandler = com.notmugil.uta.ui.shared.actionsheet.LocalMediaActionHandler.current
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         HorizontalPager(
             state = quickMixPagerState,
@@ -85,13 +94,13 @@ fun QuickPicks(
                         isPlaying = isCurrent && isPlaying,
                         isDownloaded = isDownloaded,
                         isOffline = isOffline,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 2.dp, top = 8.dp, bottom = 8.dp),
                         onClick = { onPlaySong(song, randomSongs) },
-                        onLongClick = { mediaActionHandler.show(com.notmugil.uta.ui.shared.actionsheet.MediaTarget.TrackTarget(song)) }
+                        onLongClick = { mediaActionHandler.show(com.notmugil.uta.ui.shared.actionsheet.MediaTarget.TrackTarget(song)) },
+                        onMoreClick = { mediaActionHandler.show(com.notmugil.uta.ui.shared.actionsheet.MediaTarget.TrackTarget(song)) }
                     )
                 }
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }

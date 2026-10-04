@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.notmugil.uta.data.preferences.HomeSection
 import com.notmugil.uta.ui.screens.home.components.FeaturedArtistSection
 import com.notmugil.uta.ui.screens.home.components.HomeAlbumSectionRow
 import com.notmugil.uta.ui.screens.home.components.HomeHeader
@@ -108,76 +109,125 @@ fun HomeScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 168.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 168.dp),
+                    verticalArrangement = Arrangement.spacedBy(22.dp)
                 ) {
-                if (state.quickMixSongs.isNotEmpty()) {
-                    item {
-                        QuickPicks(
-                            title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_quick_picks),
-                            randomSongs = state.quickMixSongs,
-                            currentTrack = currentTrack,
-                            isPlaying = isPlaying,
-                            downloadedTrackIds = state.downloadedTrackIds,
-                            isOffline = state.isOfflineModeActive,
-                            onPlaySong = { track, queue -> viewModel.playTrack(track, queue) }
-                        )
-                    }
-                }
-
-                item {
-                    HomePlaylistSectionRow(
-                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.tab_playlists),
-                        sectionState = state.playlists,
-                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.PLAYLISTS) },
-                        downloadedPlaylistIds = state.downloadedPlaylistIds,
-                        isOffline = state.isOfflineModeActive,
-                        onPlaylistClick = onNavigateToPlaylist
-                    )
-                }
-
-                item {
-                    HomeAlbumSectionRow(
-                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_recently_added),
-                        sectionState = state.recentlyAdded,
-                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.ALBUMS) },
-                        downloadedAlbumIds = state.downloadedAlbumIds,
-                        isOffline = state.isOfflineModeActive,
-                        onAlbumClick = onNavigateToAlbum
-                    )
-                }
-
-                if (!state.isOfflineModeActive) {
-                    state.featuredArtist?.let { artist ->
-                        item {
-                            FeaturedArtistSection(
-                                artist = artist,
-                                albums = state.featuredArtistAlbums,
-                                songs = emptyList(),
-                                currentTrack = currentTrack,
-                                isPlaying = isPlaying,
-                                downloadedAlbumIds = state.downloadedAlbumIds,
-                                downloadedTrackIds = state.downloadedTrackIds,
-                                isOffline = state.isOfflineModeActive,
-                                onNavigateToArtist = onNavigateToArtist,
-                                onNavigateToAlbum = onNavigateToAlbum,
-                                onPlaySong = { track, queue -> viewModel.playTrack(track, queue) }
-                            )
+                    state.visibleSections.forEach { section ->
+                        when (section) {
+                            HomeSection.QUICK_PICKS -> {
+                                if (state.quickMixSongs.isNotEmpty()) {
+                                    item(key = section.name) {
+                                        QuickPicks(
+                                            title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_quick_picks),
+                                            randomSongs = state.quickMixSongs,
+                                            currentTrack = currentTrack,
+                                            isPlaying = isPlaying,
+                                            downloadedTrackIds = state.downloadedTrackIds,
+                                            isOffline = state.isOfflineModeActive,
+                                            onPlaySong = { track, queue -> viewModel.playTrack(track, queue) }
+                                        )
+                                    }
+                                }
+                            }
+                            HomeSection.YOUR_PLAYLISTS -> {
+                                item(key = section.name) {
+                                    HomePlaylistSectionRow(
+                                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_playlists),
+                                        sectionState = state.playlists,
+                                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.PLAYLISTS) },
+                                        downloadedPlaylistIds = state.downloadedPlaylistIds,
+                                        isOffline = state.isOfflineModeActive,
+                                        onPlaylistClick = onNavigateToPlaylist
+                                    )
+                                }
+                            }
+                            HomeSection.RECENTLY_ADDED -> {
+                                item(key = section.name) {
+                                    HomeAlbumSectionRow(
+                                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_recently_added),
+                                        sectionState = state.recentlyAdded,
+                                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.ALBUMS) },
+                                        downloadedAlbumIds = state.downloadedAlbumIds,
+                                        isOffline = state.isOfflineModeActive,
+                                        onAlbumClick = onNavigateToAlbum
+                                    )
+                                }
+                            }
+                            HomeSection.MOST_PLAYED_ALBUMS -> {
+                                item(key = section.name) {
+                                    HomeAlbumSectionRow(
+                                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_most_played_albums),
+                                        sectionState = state.mostPlayedAlbums,
+                                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.ALBUMS) },
+                                        downloadedAlbumIds = state.downloadedAlbumIds,
+                                        isOffline = state.isOfflineModeActive,
+                                        onAlbumClick = onNavigateToAlbum
+                                    )
+                                }
+                            }
+                            HomeSection.MOST_PLAYED_SONGS -> {
+                                if (state.mostPlayedSongs.isNotEmpty()) {
+                                    item(key = section.name) {
+                                        QuickPicks(
+                                            title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_most_played_songs),
+                                            randomSongs = state.mostPlayedSongs,
+                                            currentTrack = currentTrack,
+                                            isPlaying = isPlaying,
+                                            downloadedTrackIds = state.downloadedTrackIds,
+                                            isOffline = state.isOfflineModeActive,
+                                            onPlaySong = { track, queue -> viewModel.playTrack(track, queue) }
+                                        )
+                                    }
+                                }
+                            }
+                            HomeSection.RECENTLY_PLAYED -> {
+                                item(key = section.name) {
+                                    HomeAlbumSectionRow(
+                                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_recently_played),
+                                        sectionState = state.recentlyPlayedAlbums,
+                                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.ALBUMS) },
+                                        downloadedAlbumIds = state.downloadedAlbumIds,
+                                        isOffline = state.isOfflineModeActive,
+                                        onAlbumClick = onNavigateToAlbum
+                                    )
+                                }
+                            }
+                            HomeSection.FEATURED_ARTIST -> {
+                                if (!state.isOfflineModeActive) {
+                                    state.featuredArtist?.let { artist ->
+                                        item(key = section.name) {
+                                            FeaturedArtistSection(
+                                                artist = artist,
+                                                albums = state.featuredArtistAlbums,
+                                                songs = emptyList(),
+                                                currentTrack = currentTrack,
+                                                isPlaying = isPlaying,
+                                                downloadedAlbumIds = state.downloadedAlbumIds,
+                                                downloadedTrackIds = state.downloadedTrackIds,
+                                                isOffline = state.isOfflineModeActive,
+                                                onNavigateToArtist = onNavigateToArtist,
+                                                onNavigateToAlbum = onNavigateToAlbum,
+                                                onPlaySong = { track, queue -> viewModel.playTrack(track, queue) }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            HomeSection.RANDOM_ALBUMS -> {
+                                item(key = section.name) {
+                                    HomeAlbumSectionRow(
+                                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_random_albums),
+                                        sectionState = state.randomAlbums,
+                                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.ALBUMS) },
+                                        downloadedAlbumIds = state.downloadedAlbumIds,
+                                        isOffline = state.isOfflineModeActive,
+                                        onAlbumClick = onNavigateToAlbum
+                                    )
+                                }
+                            }
                         }
                     }
                 }
-
-                item {
-                    HomeAlbumSectionRow(
-                        title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.home_random_albums),
-                        sectionState = state.randomAlbums,
-                        onSeeMoreClick = { onNavigateToLibraryTab(LibraryTab.ALBUMS) },
-                        downloadedAlbumIds = state.downloadedAlbumIds,
-                        isOffline = state.isOfflineModeActive,
-                        onAlbumClick = onNavigateToAlbum
-                    )
-                }
-            }
         }
     }
 

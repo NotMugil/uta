@@ -1,7 +1,6 @@
 package com.notmugil.uta.ui.screens.home.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.notmugil.uta.domain.model.AlbumItem
 import com.notmugil.uta.domain.model.ArtistItem
 import com.notmugil.uta.domain.model.TrackItem
@@ -93,10 +93,11 @@ fun FeaturedArtistSection(
                     )
                     Text(
                         text = artist.name,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 19.sp),
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onBackground,
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee()
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
                 }
             }
@@ -113,10 +114,12 @@ fun FeaturedArtistSection(
             }
         }
 
+        Spacer(modifier = Modifier.height(4.dp))
+
         if (albums.isNotEmpty()) {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 items(albums, key = { it.id }) { album ->
                     val isDownloaded = downloadedAlbumIds.contains(album.id)
@@ -146,7 +149,5 @@ fun FeaturedArtistSection(
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }

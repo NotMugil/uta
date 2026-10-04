@@ -41,6 +41,28 @@ interface AlbumDao {
     @Query("SELECT * FROM albums WHERE serverId = :serverId ORDER BY createdAt DESC, starredAt DESC LIMIT :limit")
     fun getRecentlyAddedAlbumsFlow(serverId: String, limit: Int = 20): Flow<List<AlbumEntity>>
 
+    @Query("""
+        SELECT a.* FROM albums a
+        INNER JOIN tracks t ON a.id = t.albumId AND a.serverId = t.serverId
+        LEFT JOIN history_entries h ON t.id = h.trackId AND a.serverId = h.serverId
+        WHERE a.serverId = :serverId AND (COALESCE(t.playCount, 0) > 0 OR h.id IS NOT NULL)
+        GROUP BY a.id, a.serverId
+        ORDER BY (SUM(COALESCE(t.playCount, 0)) + COUNT(h.id)) DESC, a.name COLLATE NOCASE ASC
+        LIMIT :limit
+    """)
+    fun getMostPlayedAlbumsFlow(serverId: String, limit: Int = 20): Flow<List<AlbumEntity>>
+
+    @Query("""
+        SELECT a.* FROM albums a
+        INNER JOIN tracks t ON a.id = t.albumId AND a.serverId = t.serverId
+        LEFT JOIN history_entries h ON t.id = h.trackId AND a.serverId = h.serverId
+        WHERE a.serverId = :serverId AND (t.playedAt IS NOT NULL OR h.playedAt IS NOT NULL)
+        GROUP BY a.id, a.serverId
+        ORDER BY MAX(COALESCE(h.playedAt, 0), COALESCE(t.playedAt, 0)) DESC
+        LIMIT :limit
+    """)
+    fun getRecentlyPlayedAlbumsFlow(serverId: String, limit: Int = 20): Flow<List<AlbumEntity>>
+
     @Query("SELECT * FROM albums WHERE serverId = :serverId ORDER BY RANDOM() LIMIT :limit")
     fun getRandomAlbumsFlow(serverId: String, limit: Int = 20): Flow<List<AlbumEntity>>
 
@@ -117,6 +139,16 @@ interface TrackDao {
 
     @Query("SELECT * FROM tracks WHERE serverId = :serverId AND starredAt IS NOT NULL ORDER BY starredAt DESC")
     fun getStarredTracksFlow(serverId: String): Flow<List<TrackEntity>>
+
+    @Query("""
+        SELECT t.* FROM tracks t
+        LEFT JOIN history_entries h ON t.id = h.trackId AND t.serverId = h.serverId
+        WHERE t.serverId = :serverId AND (COALESCE(t.playCount, 0) > 0 OR h.id IS NOT NULL)
+        GROUP BY t.id, t.serverId
+        ORDER BY (COALESCE(t.playCount, 0) + COUNT(h.id)) DESC, MAX(COALESCE(h.playedAt, 0), COALESCE(t.playedAt, 0)) DESC
+        LIMIT :limit
+    """)
+    fun getMostPlayedTracksFlow(serverId: String, limit: Int = 20): Flow<List<TrackEntity>>
 
     @Query("SELECT * FROM tracks WHERE serverId = :serverId ORDER BY title COLLATE NOCASE ASC")
     fun getTracksFlow(serverId: String): Flow<List<TrackEntity>>

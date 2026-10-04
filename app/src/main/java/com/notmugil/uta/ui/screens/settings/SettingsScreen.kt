@@ -58,6 +58,7 @@ import com.notmugil.uta.ui.screens.settings.components.SettingsItemRow
 import com.notmugil.uta.ui.screens.settings.sections.AboutSubPage
 import com.notmugil.uta.ui.screens.settings.sections.DownloadsStorageSubPage
 import com.notmugil.uta.ui.screens.settings.sections.GeneralSubPage
+import com.notmugil.uta.ui.screens.settings.sections.HomeSectionsSubPage
 import com.notmugil.uta.ui.screens.settings.sections.NetworkSubPage
 import com.notmugil.uta.ui.screens.settings.sections.OnlineLyricsProvidersSubPage
 import com.notmugil.uta.ui.screens.settings.sections.PlaybackAudioSubPage
@@ -80,6 +81,7 @@ fun SettingsScreen(
     val downloadsScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
     val networkScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
     val lyricsProvidersScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
+    val homeSectionsScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
     val aboutScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
 
     var showLogoutDialog by remember { mutableStateOf(false) }
@@ -110,6 +112,7 @@ fun SettingsScreen(
         SettingsSubPage.NETWORK -> networkScrollState
         SettingsSubPage.LYRICS_PROVIDERS,
         SettingsSubPage.ONLINE_LYRICS_PROVIDERS -> lyricsProvidersScrollState
+        SettingsSubPage.HOME_SECTIONS -> homeSectionsScrollState
         SettingsSubPage.ABOUT -> aboutScrollState
         null -> mainScrollState
     }
@@ -341,42 +344,54 @@ private fun SettingsSubPageView(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .statusBarsPadding()
-                .padding(top = 60.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
-        ) {
-            when (subPage) {
-                SettingsSubPage.GENERAL -> {
-                    GeneralSubPage(
-                        viewModel = viewModel,
-                        onNavigate = onNavigateToSubPage
-                    )
-                }
-                SettingsSubPage.LYRICS_PROVIDERS,
-                SettingsSubPage.ONLINE_LYRICS_PROVIDERS -> {
-                    OnlineLyricsProvidersSubPage(viewModel = viewModel)
-                }
-                SettingsSubPage.PLAYBACK -> {
-                    PlaybackAudioSubPage(viewModel = viewModel)
-                }
-                SettingsSubPage.DOWNLOADS -> {
-                    DownloadsStorageSubPage(viewModel = viewModel)
-                }
-                SettingsSubPage.NETWORK -> {
-                    NetworkSubPage(
-                        viewModel = viewModel,
-                        onRequestLogout = onRequestLogout
-                    )
-                }
-                SettingsSubPage.ABOUT -> {
-                    AboutSubPage()
-                }
+        if (subPage == SettingsSubPage.HOME_SECTIONS) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(top = 60.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
+            ) {
+                HomeSectionsSubPage(viewModel = viewModel)
             }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .statusBarsPadding()
+                    .padding(top = 60.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
+            ) {
+                when (subPage) {
+                    SettingsSubPage.GENERAL -> {
+                        GeneralSubPage(
+                            viewModel = viewModel,
+                            onNavigate = onNavigateToSubPage
+                        )
+                    }
+                    SettingsSubPage.LYRICS_PROVIDERS,
+                    SettingsSubPage.ONLINE_LYRICS_PROVIDERS -> {
+                        OnlineLyricsProvidersSubPage(viewModel = viewModel)
+                    }
+                    SettingsSubPage.PLAYBACK -> {
+                        PlaybackAudioSubPage(viewModel = viewModel)
+                    }
+                    SettingsSubPage.DOWNLOADS -> {
+                        DownloadsStorageSubPage(viewModel = viewModel)
+                    }
+                    SettingsSubPage.NETWORK -> {
+                        NetworkSubPage(
+                            viewModel = viewModel,
+                            onRequestLogout = onRequestLogout
+                        )
+                    }
+                    SettingsSubPage.ABOUT -> {
+                        AboutSubPage()
+                    }
+                    SettingsSubPage.HOME_SECTIONS -> {}
+                }
 
-            Spacer(modifier = Modifier.height(168.dp))
+                Spacer(modifier = Modifier.height(168.dp))
+            }
         }
 
         val fadeColor = MaterialTheme.colorScheme.background

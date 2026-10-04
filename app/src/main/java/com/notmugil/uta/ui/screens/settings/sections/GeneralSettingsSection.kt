@@ -110,6 +110,14 @@ fun GeneralSubPage(
 
         SettingsSectionHeader(stringResource(R.string.setting_layout_style_header))
 
+        SettingsItemRow(
+            icon = null,
+            title = stringResource(R.string.setting_home_sections_title),
+            subtitle = stringResource(R.string.setting_home_sections_subtitle),
+            verticalPadding = 14.dp,
+            onClick = { onNavigate(SettingsSubPage.HOME_SECTIONS) }
+        )
+
         SettingsDropdownRow(
             icon = null,
             title = stringResource(R.string.setting_player_style),
