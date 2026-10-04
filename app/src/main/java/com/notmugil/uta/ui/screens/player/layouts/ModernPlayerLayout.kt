@@ -63,7 +63,8 @@ fun ModernPlayerLayout(
     isDownloaded: Boolean = false,
     isDownloading: Boolean = false,
     downloadProgress: Float? = null,
-    onToggleDownload: () -> Unit = {}
+    onToggleDownload: () -> Unit = {},
+    trackStats: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -127,7 +128,8 @@ fun ModernPlayerLayout(
             onDraggingSliderChange = onDraggingSliderChange,
             onDragPositionChange = onDragPositionChange,
             onSeekTo = onSeekTo,
-            songKey = track?.id
+            songKey = track?.id,
+            trackStats = trackStats
         )
 
         Spacer(modifier = Modifier.height(16.dp))

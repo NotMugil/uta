@@ -50,10 +50,13 @@ import com.notmugil.uta.data.download.OfflineDownloadManager
 import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.preferences.LyricsSourceMode
 import com.notmugil.uta.data.preferences.PlayerStyle
+import com.notmugil.uta.data.preferences.StreamingBitrate
 import com.notmugil.uta.domain.model.QueueItem
 import com.notmugil.uta.domain.model.TrackItem
+import androidx.media3.common.Format
 import com.notmugil.uta.player.SleepTimerManager
 import com.notmugil.uta.player.SleepTimerMode
+import com.notmugil.uta.util.Formatters
 import com.notmugil.uta.ui.shared.ActionConfirmDialog
 import com.notmugil.uta.ui.screens.player.components.LyricsAmbientBackground
 import com.notmugil.uta.ui.screens.player.layouts.CinematicPlayerLayout
@@ -101,6 +104,7 @@ fun PlayerSheet(
     onMoreOptions: () -> Unit = {},
     offlineDownloadManager: OfflineDownloadManager? = null,
     sleepTimerManager: SleepTimerManager? = null,
+    audioFormat: Format? = null,
     modifier: Modifier = Modifier,
     isBuffering: Boolean = false
 ) {
@@ -113,6 +117,14 @@ fun PlayerSheet(
     val playerStyle by (appPreferences?.playerStyle?.collectAsState() ?: remember { mutableStateOf(PlayerStyle.DEFAULT) })
     val lyricsSourceMode by (appPreferences?.lyricsSourceMode?.collectAsState() ?: remember { mutableStateOf(LyricsSourceMode.BOTH) })
     val effectivePlayerStyle = playerStyle
+
+    val wifiBitrate by (appPreferences?.wifiStreamingBitrate?.collectAsState() ?: remember { mutableStateOf(StreamingBitrate.UNLIMITED) })
+    val cellBitrate by (appPreferences?.cellularStreamingBitrate?.collectAsState() ?: remember { mutableStateOf(StreamingBitrate.AUTO) })
+    val requestedBitrate = if (wifiBitrate.kbps > 0) wifiBitrate.kbps else cellBitrate.kbps.takeIf { it > 0 }
+
+    val trackStats = remember(track, audioFormat, requestedBitrate) {
+        Formatters.formatTrackAudioStats(track, audioFormat, requestedBitrate)
+    }
 
     var isDraggingSlider by remember { mutableStateOf(false) }
     var dragPositionMs by remember { mutableFloatStateOf(0f) }
@@ -401,7 +413,8 @@ fun PlayerSheet(
                         isDownloaded = isDownloaded,
                         isDownloading = isDownloading,
                         downloadProgress = downloadProgress,
-                        onToggleDownload = onToggleDownload
+                        onToggleDownload = onToggleDownload,
+                        trackStats = trackStats
                     )
                 } else {
                     when (effectivePlayerStyle) {
@@ -441,7 +454,8 @@ fun PlayerSheet(
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
-                                onToggleDownload = onToggleDownload
+                                onToggleDownload = onToggleDownload,
+                                trackStats = trackStats
                             )
                         }
                         PlayerStyle.MODERN -> {
@@ -479,7 +493,8 @@ fun PlayerSheet(
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
-                                onToggleDownload = onToggleDownload
+                                onToggleDownload = onToggleDownload,
+                                trackStats = trackStats
                             )
                         }
                         PlayerStyle.CINEMATIC -> {
@@ -517,7 +532,8 @@ fun PlayerSheet(
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
-                                onToggleDownload = onToggleDownload
+                                onToggleDownload = onToggleDownload,
+                                trackStats = trackStats
                             )
                         }
                         PlayerStyle.LYRICS -> {
@@ -552,7 +568,8 @@ fun PlayerSheet(
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
-                                onToggleDownload = onToggleDownload
+                                onToggleDownload = onToggleDownload,
+                                trackStats = trackStats
                             )
                         }
                         PlayerStyle.COVER -> {
@@ -589,7 +606,8 @@ fun PlayerSheet(
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
-                                onToggleDownload = onToggleDownload
+                                onToggleDownload = onToggleDownload,
+                                trackStats = trackStats
                             )
                         }
                     }

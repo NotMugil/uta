@@ -9,15 +9,27 @@ import org.junit.Test
 class StreamParamsResolverTest {
 
     @Test
-    fun `UNLIMITED bitrate always returns raw format and no maxBitRate`() {
+    fun `UNLIMITED bitrate with RAW format returns raw format and no maxBitRate`() {
+        val params = StreamParamsResolver.resolve(
+            bitrateSetting = StreamingBitrate.UNLIMITED,
+            formatSetting = TranscodingFormat.RAW,
+            sourceSuffix = "flac",
+            sourceBitRate = 1000
+        )
+        assertEquals("raw", params.format)
+        assertNull(params.maxBitRate)
+    }
+
+    @Test
+    fun `UNLIMITED bitrate with MP3 format returns mp3 format and 320 maxBitRate`() {
         val params = StreamParamsResolver.resolve(
             bitrateSetting = StreamingBitrate.UNLIMITED,
             formatSetting = TranscodingFormat.MP3,
             sourceSuffix = "flac",
             sourceBitRate = 1000
         )
-        assertEquals("raw", params.format)
-        assertNull(params.maxBitRate)
+        assertEquals("mp3", params.format)
+        assertEquals(320, params.maxBitRate)
     }
 
     @Test

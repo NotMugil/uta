@@ -1,8 +1,7 @@
 package com.notmugil.uta.ui.screens.player.components
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -14,9 +13,13 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.preferences.SeekBarStyle
 import com.notmugil.uta.util.Formatters
@@ -32,6 +35,7 @@ fun PlayerSeekBarSection(
     onDragPositionChange: (Float) -> Unit,
     onSeekTo: (Long) -> Unit,
     songKey: String? = null,
+    trackStats: String? = null,
     modifier: Modifier = Modifier
 ) {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
@@ -84,21 +88,39 @@ fun PlayerSeekBarSection(
                 )
         )
 
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .then(if (isNeedle) Modifier.padding(top = 2.dp) else Modifier),
-            horizontalArrangement = Arrangement.SpaceBetween
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = Formatters.formatDurationMs(if (isDraggingSlider) dragPositionMs.toLong() else currentPositionMs),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterStart)
             )
+            if (!trackStats.isNullOrBlank()) {
+                Text(
+                    text = trackStats,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 9.5.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 0.2.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = 48.dp)
+                )
+            }
             Text(
                 text = Formatters.formatDurationMs(durationMs),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterEnd)
             )
         }
     }

@@ -51,6 +51,7 @@ class QueuePrefetchManager @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
     private val activeJobs = ConcurrentHashMap<String, Job>()
     private val pruneMutex = Mutex()
+    private var prefetchJob: Job? = null
 
     init {
         scope.launch {
@@ -94,7 +95,6 @@ class QueuePrefetchManager @Inject constructor(
         val activeNetwork = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(activeNetwork) ?: return false
 
-        // If network is metered (e.g. mobile hotspot), treat as cellular to save data
         if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)) {
             return false
         }
@@ -125,35 +125,27 @@ class QueuePrefetchManager @Inject constructor(
         val currentTrackId = queue.getOrNull(currentIndex)?.id
         val protectedTrackIds = (upcomingTracks.map { it.id } + listOfNotNull(currentTrackId)).toSet()
 
-        // Cancel jobs for tracks that moved out of the active prefetch window
         activeJobs.keys.forEach { trackId ->
             if (trackId !in protectedTrackIds) {
                 activeJobs.remove(trackId)?.cancel()
             }
         }
 
+        prefetchJob?.cancel()
         if (upcomingTracks.isEmpty()) return
 
-        scope.launch {
+        prefetchJob = scope.launch {
             for (track in upcomingTracks) {
                 if (!isActive) break
 
-                // 1. Skip if already downloaded locally
                 if (offlineDownloadManager.getLocalUriForTrack(track.id) != null) {
                     continue
                 }
 
-                // 2. Skip if already fully prefetched
                 if (isSongPrefetched(track.id)) {
                     continue
                 }
 
-                // 3. Skip if already downloading
-                if (activeJobs.containsKey(track.id)) {
-                    continue
-                }
-
-                // 4. Download and cache in background
                 val job = launch {
                     downloadTrackToPrefetch(track)
                 }
@@ -282,6 +274,8 @@ class QueuePrefetchManager @Inject constructor(
     }
 
     fun cancelAllPrefetches() {
+        prefetchJob?.cancel()
+        prefetchJob = null
         activeJobs.values.forEach { it.cancel() }
         activeJobs.clear()
     }

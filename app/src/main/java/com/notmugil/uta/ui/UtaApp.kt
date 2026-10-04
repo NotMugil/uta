@@ -151,6 +151,7 @@ fun UtaApp() {
     val isShuffleEnabled by playbackController.isShuffleEnabled.collectAsStateWithLifecycle()
     val sleepTimerMode by sleepTimerManager.activeMode.collectAsStateWithLifecycle()
     val remoteQueuePrompt by playbackController.remoteQueuePrompt.collectAsStateWithLifecycle()
+    val audioFormat by playbackController.audioFormat.collectAsStateWithLifecycle()
 
     var isPlayerSheetVisible by rememberSaveable { mutableStateOf(false) }
     var isQueueSheetVisible by rememberSaveable { mutableStateOf(false) }
@@ -549,7 +550,8 @@ fun UtaApp() {
                     currentTrack?.let { mediaActionState.show(MediaTarget.TrackTarget(it)) }
                 },
                 offlineDownloadManager = offlineDownloadManager,
-                sleepTimerManager = sleepTimerManager
+                sleepTimerManager = sleepTimerManager,
+                audioFormat = audioFormat
             )
         }
 

@@ -68,7 +68,8 @@ fun CinematicPlayerLayout(
     isDownloaded: Boolean = false,
     isDownloading: Boolean = false,
     downloadProgress: Float? = null,
-    onToggleDownload: () -> Unit = {}
+    onToggleDownload: () -> Unit = {},
+    trackStats: String? = null
 ) {
     UtaTheme(darkTheme = true) {
         val dynamicThemeManager = LocalDynamicThemeManager.current
@@ -144,7 +145,8 @@ fun CinematicPlayerLayout(
                     onDraggingSliderChange = onDraggingSliderChange,
                     onDragPositionChange = onDragPositionChange,
                     onSeekTo = onSeekTo,
-                    songKey = track?.id
+                    songKey = track?.id,
+                    trackStats = trackStats
                 )
 
                 Spacer(modifier = Modifier.height(26.dp))

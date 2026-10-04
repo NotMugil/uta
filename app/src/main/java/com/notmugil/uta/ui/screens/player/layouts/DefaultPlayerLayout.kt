@@ -85,7 +85,8 @@ fun DefaultPlayerLayout(
     isDownloaded: Boolean = false,
     isDownloading: Boolean = false,
     downloadProgress: Float? = null,
-    onToggleDownload: () -> Unit = {}
+    onToggleDownload: () -> Unit = {},
+    trackStats: String? = null
 ) {
     Column(
         modifier = Modifier
@@ -302,6 +303,7 @@ fun DefaultPlayerLayout(
             onDragPositionChange = onDragPositionChange,
             onSeekTo = onSeekTo,
             songKey = track?.id,
+            trackStats = trackStats,
             modifier = Modifier.padding(horizontal = 24.dp)
         )
 

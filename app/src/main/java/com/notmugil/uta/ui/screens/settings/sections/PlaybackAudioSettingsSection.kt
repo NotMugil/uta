@@ -69,12 +69,14 @@ fun PlaybackAudioSubPage(
             title = stringResource(R.string.setting_wifi_quality),
             subtitle = if (isFlac) {
                 "Lossless audio (FLAC ignores bitrate caps)"
+            } else if (transcodingFormat != TranscodingFormat.RAW && wifiBitrate == StreamingBitrate.UNLIMITED) {
+                "Maximum quality ${transcodingFormat.displayName}"
             } else if (wifiBitrate == StreamingBitrate.UNLIMITED) {
                 "Direct stream without transcoding"
             } else if (wifiBitrate == StreamingBitrate.AUTO) {
-                "Original quality unless transcoding format is set"
+                "Automatic quality based on format"
             } else {
-                stringResource(R.string.setting_wifi_quality_subtitle)
+                "${wifiBitrate.displayName} streaming quality"
             },
             selectedValue = wifiBitrate,
             options = StreamingBitrate.entries,
@@ -87,12 +89,14 @@ fun PlaybackAudioSubPage(
             title = stringResource(R.string.setting_cellular_quality),
             subtitle = if (isFlac) {
                 "Lossless audio (FLAC ignores bitrate caps)"
+            } else if (transcodingFormat != TranscodingFormat.RAW && cellularBitrate == StreamingBitrate.UNLIMITED) {
+                "Maximum quality ${transcodingFormat.displayName}"
             } else if (cellularBitrate == StreamingBitrate.UNLIMITED) {
                 "Direct stream without transcoding"
             } else if (cellularBitrate == StreamingBitrate.AUTO) {
-                "Original quality unless transcoding format is set"
+                "Automatic quality based on format"
             } else {
-                stringResource(R.string.setting_cellular_quality_subtitle)
+                "${cellularBitrate.displayName} streaming quality"
             },
             selectedValue = cellularBitrate,
             options = StreamingBitrate.entries,
@@ -103,7 +107,11 @@ fun PlaybackAudioSubPage(
         SettingsDropdownRow(
             icon = null,
             title = stringResource(R.string.setting_transcoding_format),
-            subtitle = stringResource(R.string.setting_transcoding_format_subtitle),
+            subtitle = if (transcodingFormat == TranscodingFormat.RAW) {
+                "Stream original server file without transcoding"
+            } else {
+                "Transcode streamed audio into ${transcodingFormat.displayName}"
+            },
             selectedValue = transcodingFormat,
             options = TranscodingFormat.entries,
             getDisplayName = { it.displayName },

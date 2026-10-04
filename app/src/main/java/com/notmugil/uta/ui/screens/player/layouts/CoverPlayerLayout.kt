@@ -95,7 +95,8 @@ fun CoverPlayerLayout(
     isDownloaded: Boolean = false,
     isDownloading: Boolean = false,
     downloadProgress: Float? = null,
-    onToggleDownload: () -> Unit = {}
+    onToggleDownload: () -> Unit = {},
+    trackStats: String? = null
 ) {
     val dynamicThemeManager = LocalDynamicThemeManager.current
     val dynamicDarkBgColor by (dynamicThemeManager?.dynamicDarkBgColor?.collectAsState() ?: remember { mutableStateOf(null) })
@@ -335,7 +336,8 @@ fun CoverPlayerLayout(
                     onDraggingSliderChange = onDraggingSliderChange,
                     onDragPositionChange = onDragPositionChange,
                     onSeekTo = onSeekTo,
-                    songKey = track?.id
+                    songKey = track?.id,
+                    trackStats = trackStats
                 )
 
                 Spacer(modifier = Modifier.height(18.dp))

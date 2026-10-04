@@ -123,7 +123,8 @@ fun LyricsPlayerLayout(
     isDownloaded: Boolean = false,
     isDownloading: Boolean = false,
     downloadProgress: Float? = null,
-    onToggleDownload: () -> Unit = {}
+    onToggleDownload: () -> Unit = {},
+    trackStats: String? = null
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -590,7 +591,8 @@ fun LyricsPlayerLayout(
             onDraggingSliderChange = onDraggingSliderChange,
             onDragPositionChange = onDragPositionChange,
             onSeekTo = onSeekTo,
-            songKey = track?.id
+            songKey = track?.id,
+            trackStats = trackStats
         )
 
         Spacer(modifier = Modifier.height(10.dp))

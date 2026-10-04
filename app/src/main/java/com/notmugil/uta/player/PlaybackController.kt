@@ -2,9 +2,12 @@ package com.notmugil.uta.player
 
 import android.content.ComponentName
 import android.content.Context
+import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
+import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -170,6 +173,9 @@ class PlaybackController @Inject constructor(
     private val _remoteQueuePrompt = MutableStateFlow<RemoteQueuePrompt?>(null)
     val remoteQueuePrompt: StateFlow<RemoteQueuePrompt?> = _remoteQueuePrompt.asStateFlow()
 
+    private val _audioFormat = MutableStateFlow<Format?>(null)
+    val audioFormat: StateFlow<Format?> = _audioFormat.asStateFlow()
+
     private var lastUndoSnapshot: QueueUndoSnapshot? = null
 
     private var positionJob: Job? = null
@@ -209,33 +215,43 @@ class PlaybackController @Inject constructor(
     private fun refreshQueueStreamUrls() {
         scope.launch {
             val ctrl = getConnectedController() ?: return@launch
+            if (ctrl.isPlaying) {
+                ctrl.pause()
+            }
             val count = ctrl.mediaItemCount
             if (count == 0) return@launch
 
-            val currentIndex = ctrl.currentMediaItemIndex
+            val currentIndex = ctrl.currentMediaItemIndex.coerceIn(0, count - 1)
+            val currentPosition = ctrl.currentPosition.coerceAtLeast(0L)
 
-            // Read items safely on Main thread
             val currentItems = (0 until count).map { i -> ctrl.getMediaItemAt(i) }
 
-            // Resolve updated stream URLs for upcoming items on IO thread
             val updatedItems = withContext(Dispatchers.IO) {
-                currentItems.mapIndexed { i, item ->
-                    if (i <= currentIndex) {
-                        item // keep active and preceding tracks untouched so current playback is not interrupted
-                    } else {
-                        val track = MediaItemMapper.toTrackItem(item) ?: return@mapIndexed item
-                        val entryId = MediaItemMapper.getEntryId(item)
-                        val streamUrl = resolveStreamUrl(track) ?: return@mapIndexed item
-                        val coverUrl = if (isOffline) null else subsonicRepository.getCoverArtUrl(track.coverArtId)
-                        MediaItemMapper.toMediaItem(track, streamUrl, coverUrl, entryId = entryId)
-                    }
+                currentItems.map { item ->
+                    val track = MediaItemMapper.toTrackItem(item) ?: return@map item
+                    val entryId = MediaItemMapper.getEntryId(item)
+                    val streamUrl = resolveStreamUrl(track) ?: return@map item
+                    val coverUrl = if (isOffline) null else subsonicRepository.getCoverArtUrl(track.coverArtId)
+                    MediaItemMapper.toMediaItem(track, streamUrl, coverUrl, entryId = entryId)
                 }
             }
 
-            if (updatedItems.size == count && count > currentIndex + 1) {
-                for (i in (currentIndex + 1) until count) {
-                    ctrl.replaceMediaItem(i, updatedItems[i])
+            if (updatedItems.size == count) {
+                if (updatedItems.size <= 100) {
+                    ctrl.setMediaItems(updatedItems, currentIndex, currentPosition)
+                } else {
+                    val firstChunk = updatedItems.take(100)
+                    val initialIndex = if (currentIndex < 100) currentIndex else 0
+                    val initialPos = if (currentIndex < 100) currentPosition else 0L
+                    ctrl.setMediaItems(firstChunk, initialIndex, initialPos)
+                    for (chunk in updatedItems.drop(100).chunked(100)) {
+                        ctrl.addMediaItems(chunk)
+                    }
+                    if (currentIndex >= 100) {
+                        performSeek(ctrl, currentPosition, currentIndex)
+                    }
                 }
+                ctrl.prepare()
                 syncState(ctrl)
                 debouncePersistQueue()
             }
@@ -320,6 +336,7 @@ class PlaybackController @Inject constructor(
                 _currentQueueIndex.value = -1
                 _currentPositionMs.value = 0L
                 _durationMs.value = 0L
+                _audioFormat.value = null
                 val serverId = subsonicRepository.currentServerId
                 playbackQueueStore.clearQueue(serverId)
             } else {
@@ -426,18 +443,27 @@ class PlaybackController @Inject constructor(
         isListenerAttached = true
 
         mediaController.addListener(object : Player.Listener {
+            override fun onTracksChanged(tracks: Tracks) {
+                updateAudioFormat(mediaController)
+            }
+
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 try {
                     val track = MediaItemMapper.toTrackItem(mediaItem)
                     val entryId = MediaItemMapper.getEntryId(mediaItem)
                     _currentTrack.value = track
                     _currentEntryId.value = entryId
+                    updateAudioFormat(mediaController)
                     val rawIndex = mediaController.currentMediaItemIndex
                     if (mediaController.shuffleModeEnabled) {
                         val displayIndex = _queue.value.indexOfFirst { it.entryId == entryId }
                         _currentQueueIndex.value = if (displayIndex >= 0) displayIndex else rawIndex
                     } else {
                         _currentQueueIndex.value = rawIndex
+                    }
+                    val targetQueueIndex = _currentQueueIndex.value
+                    if (_queue.value.isNotEmpty() && targetQueueIndex >= 0) {
+                        queuePrefetchManager.prefetchUpcomingTracks(_queue.value.map { it.track }, targetQueueIndex)
                     }
                     val dur = mediaController.duration
                     _durationMs.value = if (dur > 0L) dur else ((track?.durationSeconds ?: 0L) * 1000L)
@@ -483,6 +509,7 @@ class PlaybackController @Inject constructor(
 
             override fun onPlaybackStateChanged(playbackState: Int) {
                 _isBuffering.value = (playbackState == Player.STATE_BUFFERING)
+                updateAudioFormat(mediaController)
                 val dur = mediaController.duration
                 if (dur > 0L) {
                     _durationMs.value = dur
@@ -702,10 +729,32 @@ class PlaybackController @Inject constructor(
         _playbackSpeed.value = mediaController.playbackParameters.speed
         val dur = mediaController.duration
         _durationMs.value = if (dur > 0L) dur else ((mappedTrack?.durationSeconds ?: 0L) * 1000L)
+        updateAudioFormat(mediaController)
         syncQueue(mediaController)
         if (mediaController.isPlaying) {
             startPositionUpdates()
         }
+    }
+
+    private fun updateAudioFormat(player: Player?) {
+        if (player == null) {
+            _audioFormat.value = null
+            return
+        }
+        var selectedFormat: Format? = null
+        val tracks = player.currentTracks
+        for (group in tracks.groups) {
+            if (group.type == C.TRACK_TYPE_AUDIO && group.isSelected) {
+                for (i in 0 until group.length) {
+                    if (group.isTrackSelected(i)) {
+                        selectedFormat = group.getTrackFormat(i)
+                        break
+                    }
+                }
+            }
+            if (selectedFormat != null) break
+        }
+        _audioFormat.value = selectedFormat
     }
 
     private fun syncQueue(mediaController: MediaController) {
@@ -1276,6 +1325,7 @@ class PlaybackController @Inject constructor(
         _currentQueueIndex.value = -1
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
+        _audioFormat.value = null
         _remoteQueuePrompt.value = null
 
         val serverId = subsonicRepository.currentServerId

@@ -127,6 +127,7 @@ fun LandscapePlayerLayout(
     isDownloading: Boolean = false,
     downloadProgress: Float? = null,
     onToggleDownload: () -> Unit = {},
+    trackStats: String? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -326,6 +327,7 @@ fun LandscapePlayerLayout(
                 onDragPositionChange = onDragPositionChange,
                 onSeekTo = onSeekTo,
                 songKey = track?.id,
+                trackStats = trackStats,
                 modifier = Modifier.padding(horizontal = 6.dp)
             )
 
