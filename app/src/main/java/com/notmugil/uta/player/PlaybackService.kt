@@ -90,21 +90,100 @@ class PlaybackService : MediaSessionService() {
 
         val extractorsFactory = androidx.media3.extractor.DefaultExtractorsFactory()
             .setConstantBitrateSeekingEnabled(true)
-            .setConstantBitrateSeekingAlwaysEnabled(true)
             .setMp3ExtractorFlags(
-                androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING or
-                androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING_ALWAYS
+                androidx.media3.extractor.mp3.Mp3Extractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING
             )
             .setAdtsExtractorFlags(
-                androidx.media3.extractor.ts.AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING or
-                androidx.media3.extractor.ts.AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING_ALWAYS
+                androidx.media3.extractor.ts.AdtsExtractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING
             )
+
+        val mediaCodecSelector = androidx.media3.exoplayer.mediacodec.MediaCodecSelector { mimeType, requiresSecureDecoder, requiresTunnelingDecoder ->
+            val decoders = androidx.media3.exoplayer.mediacodec.MediaCodecUtil.getDecoderInfos(
+                mimeType,
+                requiresSecureDecoder,
+                requiresTunnelingDecoder
+            )
+            if (mimeType == androidx.media3.common.MimeTypes.AUDIO_OPUS) {
+                decoders.sortedWith { a, b ->
+                    fun score(name: String): Int {
+                        return when {
+                            name.contains("inproc", ignoreCase = true) -> 1
+                            name.startsWith("OMX.google.", ignoreCase = true) -> 2
+                            name.contains("c2.android.opus.decoder", ignoreCase = true) -> 100
+                            else -> 10
+                        }
+                    }
+                    score(a.name).compareTo(score(b.name))
+                }
+            } else {
+                decoders
+            }
+        }
 
         val cacheDataSourceFactory = MediaCacheManager.createCacheDataSourceFactory(this)
         val mediaSourceFactory = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(this, extractorsFactory)
             .setDataSourceFactory(cacheDataSourceFactory)
 
-        val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(this)
+        val renderersFactory = object : androidx.media3.exoplayer.DefaultRenderersFactory(this) {
+            override fun buildAudioRenderers(
+                context: Context,
+                extensionRendererMode: Int,
+                mediaCodecSelector: androidx.media3.exoplayer.mediacodec.MediaCodecSelector,
+                enableDecoderFallback: Boolean,
+                audioSink: androidx.media3.exoplayer.audio.AudioSink,
+                eventHandler: android.os.Handler,
+                eventListener: androidx.media3.exoplayer.audio.AudioRendererEventListener,
+                out: java.util.ArrayList<androidx.media3.exoplayer.Renderer>
+            ) {
+                out.add(
+                    object : androidx.media3.exoplayer.audio.MediaCodecAudioRenderer(
+                        context,
+                        mediaCodecSelector,
+                        enableDecoderFallback,
+                        eventHandler,
+                        eventListener,
+                        audioSink
+                    ) {
+                        override fun getCodecMaxInputSize(
+                            codecInfo: androidx.media3.exoplayer.mediacodec.MediaCodecInfo,
+                            format: androidx.media3.common.Format,
+                            streamFormats: Array<androidx.media3.common.Format>
+                        ): Int {
+                            val defaultSize = super.getCodecMaxInputSize(codecInfo, format, streamFormats)
+                            if (defaultSize != androidx.media3.common.C.LENGTH_UNSET && defaultSize > 0) {
+                                return defaultSize
+                            }
+                            if (format.sampleMimeType == androidx.media3.common.MimeTypes.AUDIO_OPUS ||
+                                codecInfo.mimeType == androidx.media3.common.MimeTypes.AUDIO_OPUS
+                            ) {
+                                return 64 * 1024
+                            }
+                            return defaultSize
+                        }
+
+                        override fun getMediaFormat(
+                            format: androidx.media3.common.Format,
+                            codecMimeType: String,
+                            codecMaxInputSize: Int,
+                            codecOperatingRate: Float
+                        ): android.media.MediaFormat {
+                            val mediaFormat = super.getMediaFormat(format, codecMimeType, codecMaxInputSize, codecOperatingRate)
+                            if (codecMimeType == androidx.media3.common.MimeTypes.AUDIO_OPUS ||
+                                format.sampleMimeType == androidx.media3.common.MimeTypes.AUDIO_OPUS
+                            ) {
+                                val maxInputSize = if (codecMaxInputSize > 0) codecMaxInputSize else 64 * 1024
+                                mediaFormat.setInteger(android.media.MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize)
+                            }
+                            return mediaFormat
+                        }
+                    }
+                )
+            }
+        }.apply {
+            setMediaCodecSelector(mediaCodecSelector)
+            setEnableDecoderFallback(true)
+            setExtensionRendererMode(androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+        }
 
         val loadControl = androidx.media3.exoplayer.DefaultLoadControl.Builder()
             .setBufferDurationsMs(
@@ -122,19 +201,43 @@ class PlaybackService : MediaSessionService() {
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(false)
             .setWakeMode(C.WAKE_MODE_NETWORK)
-            .setSeekParameters(androidx.media3.exoplayer.SeekParameters.EXACT)
+            .setSeekParameters(androidx.media3.exoplayer.SeekParameters.DEFAULT)
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
 
+        exoPlayer.addAnalyticsListener(object : androidx.media3.exoplayer.analytics.AnalyticsListener {
+            override fun onAudioInputFormatChanged(
+                eventTime: androidx.media3.exoplayer.analytics.AnalyticsListener.EventTime,
+                format: androidx.media3.common.Format,
+                decoderReuseEvaluation: androidx.media3.exoplayer.DecoderReuseEvaluation?
+            ) {
+                timber.log.Timber.d("[PlaybackService] Audio input format changed: container=${format.containerMimeType} sample=${format.sampleMimeType} bitrate=${format.bitrate} sampleRate=${format.sampleRate} channels=${format.channelCount}")
+            }
+        })
+
         var consecutiveErrors = 0
+        var lastErrorItemId: String? = null
+
         exoPlayer.addListener(object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
-                consecutiveErrors = 0
+                timber.log.Timber.d("[PlaybackService] Media transition (reason=$reason): uri=${mediaItem?.localConfiguration?.uri}, title=${mediaItem?.mediaMetadata?.title}")
                 if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
                     if (!getPreferences().autoNextEnabled.value && exoPlayer.repeatMode != Player.REPEAT_MODE_ONE) {
                         timber.log.Timber.d("[PlaybackService] Auto Next disabled -> pausing after track completion")
                         exoPlayer.pause()
                     }
+                }
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY) {
+                    timber.log.Timber.d("[PlaybackService] Player READY: uri=${exoPlayer.currentMediaItem?.localConfiguration?.uri}, audioFormat=${exoPlayer.audioFormat}")
+                }
+            }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isPlaying) {
+                    consecutiveErrors = 0
                 }
             }
 
@@ -148,16 +251,39 @@ class PlaybackService : MediaSessionService() {
             }
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                consecutiveErrors++
-                timber.log.Timber.w(error, "[PlaybackService] Playback error ($consecutiveErrors/3): ${error.message} (errorCode=${error.errorCode}, name=${error.errorCodeName})")
+                val itemId = exoPlayer.currentMediaItem?.mediaId
+                consecutiveErrors = if (itemId == lastErrorItemId) consecutiveErrors + 1 else 1
+                lastErrorItemId = itemId
+
+                timber.log.Timber.w(
+                    error,
+                    "[PlaybackService] Playback error ($consecutiveErrors/3) for item $itemId: ${error.message} (errorCode=${error.errorCode}, name=${error.errorCodeName})"
+                )
+
+                val isDecoderError = error.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_DECODING_FAILED ||
+                    error.errorCode == androidx.media3.common.PlaybackException.ERROR_CODE_DECODER_INIT_FAILED
+
                 try {
-                    if (consecutiveErrors < 3 && exoPlayer.hasNextMediaItem()) {
-                        exoPlayer.seekToNextMediaItem()
-                        exoPlayer.prepare()
-                        exoPlayer.play()
-                    } else {
-                        timber.log.Timber.e("[PlaybackService] Bounded retry limit reached (3 errors), stopping playback")
-                        exoPlayer.stop()
+                    when {
+                        // 1st / 2nd failure on this item: retry same item at current position
+                        isDecoderError && consecutiveErrors <= 2 -> {
+                            val pos = exoPlayer.currentPosition.coerceAtLeast(0L)
+                            timber.log.Timber.i("[PlaybackService] Retrying same track at position ${pos}ms (attempt $consecutiveErrors)")
+                            exoPlayer.seekTo(exoPlayer.currentMediaItemIndex, pos)
+                            exoPlayer.prepare()
+                            exoPlayer.play()
+                        }
+                        // Still failing or other error: skip to next item if available
+                        consecutiveErrors <= 3 && exoPlayer.hasNextMediaItem() -> {
+                            timber.log.Timber.i("[PlaybackService] Skipping to next media item after error (attempt $consecutiveErrors)")
+                            exoPlayer.seekToNextMediaItem()
+                            exoPlayer.prepare()
+                            exoPlayer.play()
+                        }
+                        else -> {
+                            timber.log.Timber.e("[PlaybackService] Max retry limit reached ($consecutiveErrors errors), stopping playback")
+                            exoPlayer.stop()
+                        }
                     }
                 } catch (e: Exception) {
                     timber.log.Timber.e(e, "[PlaybackService] Error handling playback failure recovery")
