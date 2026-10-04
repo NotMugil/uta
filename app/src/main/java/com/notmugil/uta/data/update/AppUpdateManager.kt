@@ -29,7 +29,7 @@ sealed interface UpdateResult {
 }
 
 object AppUpdateManager {
-    private const val GITHUB_RELEASES_API = "https://api.github.com/repos/NotMugil/uta/releases/latest"
+    private const val GITHUB_RELEASES_API = "https://api.github.com/repos/NotMugil/uta/releases"
     private const val GITHUB_RELEASES_URL = "https://github.com/NotMugil/uta/releases"
 
     private val httpClient = OkHttpClient.Builder()
@@ -132,7 +132,16 @@ object AppUpdateManager {
 
             val body = response.body.string()
             if (body.isBlank()) return@withContext UpdateResult.Error("Empty response body")
-            val json = JSONObject(body)
+            val trimmed = body.trim()
+            val json = if (trimmed.startsWith("[")) {
+                val array = org.json.JSONArray(trimmed)
+                if (array.length() == 0) {
+                    return@withContext UpdateResult.UpToDate(currentVersion = currentVersion)
+                }
+                array.getJSONObject(0)
+            } else {
+                JSONObject(trimmed)
+            }
 
             val tagName = json.optString("tag_name", "").ifBlank { json.optString("name", "") }
             val releaseUrl = json.optString("html_url", GITHUB_RELEASES_URL).ifBlank { GITHUB_RELEASES_URL }
