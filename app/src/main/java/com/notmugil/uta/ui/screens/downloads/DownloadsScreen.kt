@@ -250,9 +250,23 @@ fun DownloadsScreen(
 
     if (trackToDelete != null) {
         val targetTrack = trackToDelete!!
+        val downloadedItem = state.downloadedTracks.firstOrNull { it.track.id == targetTrack.id }
+        val sizeBytes = if (downloadedItem != null && downloadedItem.fileSizeBytes > 0L) {
+            downloadedItem.fileSizeBytes
+        } else if (targetTrack.bitRate != null && targetTrack.bitRate > 0) {
+            (targetTrack.bitRate * 1000L / 8L) * targetTrack.durationSeconds
+        } else {
+            0L
+        }
+        val sizeStr = if (sizeBytes > 0L) com.notmugil.uta.util.Formatters.formatBytes(sizeBytes) else null
+        val msg = if (sizeStr != null) {
+            androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.action_sheet_remove_download_track_msg, targetTrack.title, sizeStr)
+        } else {
+            androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.downloads_delete_confirm_msg, targetTrack.title)
+        }
         ActionConfirmDialog(
             title = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.action_sheet_remove_download_confirm_title),
-            message = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.downloads_delete_confirm_msg, targetTrack.title),
+            message = msg,
             confirmText = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.action_delete),
             dismissText = androidx.compose.ui.res.stringResource(com.notmugil.uta.R.string.action_cancel),
             isDestructive = true,

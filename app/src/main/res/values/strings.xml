@@ -35,6 +35,7 @@
     <string name="action_remove_from_downloads">Remove from Downloads</string>
     <string name="action_delete_playlist">Delete Playlist</string>
     <string name="action_tracks_count_format">%1$d tracks</string>
+    <string name="action_track_single_format">1 track</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_confirm">Confirm</string>
     <string name="action_delete">Delete</string>
@@ -143,7 +144,7 @@
     <string name="downloads_no_matching_subtitle">Try searching for a different title, artist, or album.</string>
     <string name="downloads_tracks_count">%1$d Tracks</string>
     <string name="downloads_downloading_count"> (%1$d downloading)</string>
-    <string name="downloads_delete_confirm_msg">Remove \"%1$s\" from offline storage?</string>
+    <string name="downloads_delete_confirm_msg">Remove \"%1$s\" from this device?</string>
     <string name="download_status_downloading">Downloading %1$d%%</string>
     <string name="download_status_queued">Queued</string>
     <string name="download_status_failed">Download failed</string>
@@ -316,13 +317,13 @@
     <!-- Action Sheet & Dialogs -->
     <string name="action_sheet_rate_title">Rate</string>
     <string name="action_sheet_remove_download_confirm_title">Remove Download</string>
-    <string name="action_sheet_remove_download_track_msg">Are you sure you want to remove \"%1$s\" (~%2$s) from your offline downloads?</string>
-    <string name="action_sheet_remove_download_album_msg">Are you sure you want to remove \"%1$s\" (~%2$s) from your offline downloads?</string>
-    <string name="action_sheet_remove_download_playlist_msg">Are you sure you want to remove \"%1$s\" (~%2$s) from your offline downloads?</string>
+    <string name="action_sheet_remove_download_track_msg">Remove \"%1$s\" from this device?\n %2$s</string>
+    <string name="action_sheet_remove_download_album_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
+    <string name="action_sheet_remove_download_playlist_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
     <string name="action_sheet_download_album_title">Download Album</string>
-    <string name="action_sheet_download_album_msg">Download \"%1$s\" (%2$d tracks, ~%3$s) to this device for offline listening?</string>
+    <string name="action_sheet_download_album_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
     <string name="action_sheet_download_playlist_title">Download Playlist</string>
-    <string name="action_sheet_download_playlist_msg">Download \"%1$s\" (%2$d tracks, ~%3$s) to this device for offline listening?</string>
+    <string name="action_sheet_download_playlist_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
     <string name="dialog_resume_queue_title">Resume Playback?</string>
     <string name="dialog_resume_queue_message">A play queue with %1$d tracks was found from %2$s. Would you like to restore it?</string>
     <string name="dialog_resume">Resume</string>

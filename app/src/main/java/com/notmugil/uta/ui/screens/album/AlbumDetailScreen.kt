@@ -208,6 +208,8 @@ fun AlbumDetailScreen(
                     item(key = "album_header") {
                         AlbumHeader(
                             album = album,
+                            allTracks = state.tracks,
+                            downloadedTrackIds = state.downloadedTrackIds,
                             playableTracks = playableTracks,
                             allDownloaded = allDownloaded,
                             isDownloading = state.isDownloading,

@@ -235,6 +235,16 @@ class OfflineDownloadManager @Inject constructor(
         }.distinctUntilChanged().flowOn(Dispatchers.IO)
     }
 
+    fun getDownloadedTrackIdsFlow(): Flow<List<String>> {
+        val serverId = subsonicRepository.currentServerId
+        return localMediaDao.getDownloadedTrackIdsFlow(serverId)
+    }
+
+    suspend fun getDownloadedTrackIds(): List<String> = withContext(Dispatchers.IO) {
+        val serverId = subsonicRepository.currentServerId
+        if (serverId.isBlank()) emptyList() else localMediaDao.getDownloadedTrackIds(serverId)
+    }
+
     suspend fun getLocalUriForTrack(trackId: String): String? = withContext(Dispatchers.IO) {
         val serverId = subsonicRepository.currentServerId
         val record = localMediaDao.getLocalMedia(trackId, serverId) ?: return@withContext null

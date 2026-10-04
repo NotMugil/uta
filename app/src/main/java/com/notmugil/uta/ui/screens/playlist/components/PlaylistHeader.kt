@@ -35,7 +35,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.notmugil.uta.R
+import com.notmugil.uta.data.download.DownloadEstimator
+import com.notmugil.uta.data.preferences.DownloadQualityPreference
+import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.domain.model.PlaylistItem
 import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.util.Formatters
@@ -52,7 +56,8 @@ fun PlaylistHeader(
     onShuffleAll: () -> Unit,
     onToggleDownload: () -> Unit,
     onEditPlaylist: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    downloadedTrackIds: Set<String> = emptySet()
 ) {
     var showDownloadConfirmDialog by remember { mutableStateOf(false) }
     var showRemoveDownloadConfirmDialog by remember { mutableStateOf(false) }
@@ -210,16 +215,47 @@ fun PlaylistHeader(
             )
         }
 
+        val appPreferences = LocalAppPreferences.current
+        val downloadQuality = appPreferences?.downloadQuality?.collectAsStateWithLifecycle()?.value
+            ?: DownloadQualityPreference.BITRATE_192
+
         if (showDownloadConfirmDialog && !isOffline) {
-            val estimatedSizeBytes = remember(tracks) {
-                tracks.sumOf { s ->
-                    s.durationSeconds * 40000L
-                }.coerceAtLeast(10_000_000L)
+            val nonDownloadedTracks = remember(tracks, downloadedTrackIds) {
+                if (tracks.isNotEmpty()) {
+                    tracks.filter { it.id !in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+            }
+            val nonDownloadedCount = if (nonDownloadedTracks.isNotEmpty()) {
+                nonDownloadedTracks.size
+            } else if (tracks.isEmpty()) {
+                playlist.songCount
+            } else {
+                0
+            }
+            val estimatedSizeBytes = remember(nonDownloadedTracks, downloadQuality, nonDownloadedCount) {
+                DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = nonDownloadedTracks,
+                    quality = downloadQuality,
+                    fallbackSongCount = nonDownloadedCount
+                )
             }
             val estimatedSizeStr = Formatters.formatBytes(estimatedSizeBytes)
+            val tracksStr = if (nonDownloadedCount == 1) {
+                stringResource(R.string.action_track_single_format)
+            } else {
+                stringResource(R.string.action_tracks_count_format, nonDownloadedCount)
+            }
             ActionConfirmDialog(
                 title = stringResource(R.string.action_sheet_download_playlist_title),
-                message = stringResource(R.string.action_sheet_download_playlist_msg, playlist.name, tracks.size, estimatedSizeStr),
+                message = stringResource(
+                    R.string.action_sheet_download_playlist_msg,
+                    playlist.name,
+                    tracksStr,
+                    estimatedSizeStr,
+                    downloadQuality.displayName
+                ),
                 confirmText = stringResource(R.string.action_download),
                 dismissText = stringResource(R.string.action_cancel),
                 onConfirm = {
@@ -231,15 +267,41 @@ fun PlaylistHeader(
         }
 
         if (showRemoveDownloadConfirmDialog) {
-            val estimatedSizeBytes = remember(tracks) {
-                tracks.sumOf { s ->
-                    s.durationSeconds * 40000L
-                }.coerceAtLeast(10_000_000L)
+            val downloadedTracks = remember(tracks, downloadedTrackIds) {
+                if (tracks.isNotEmpty()) {
+                    tracks.filter { it.id in downloadedTrackIds }
+                } else {
+                    playableTracks
+                }
+            }
+            val downloadedCount = if (downloadedTracks.isNotEmpty()) {
+                downloadedTracks.size
+            } else if (tracks.isEmpty()) {
+                playlist.songCount
+            } else {
+                0
+            }
+            val estimatedSizeBytes = remember(downloadedTracks, downloadQuality, downloadedCount) {
+                DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = downloadedTracks,
+                    quality = downloadQuality,
+                    fallbackSongCount = downloadedCount
+                )
             }
             val estimatedSizeStr = Formatters.formatBytes(estimatedSizeBytes)
+            val tracksStr = if (downloadedCount == 1) {
+                stringResource(R.string.action_track_single_format)
+            } else {
+                stringResource(R.string.action_tracks_count_format, downloadedCount)
+            }
             ActionConfirmDialog(
                 title = stringResource(R.string.action_sheet_remove_download_confirm_title),
-                message = stringResource(R.string.action_sheet_remove_download_playlist_msg, playlist.name, estimatedSizeStr),
+                message = stringResource(
+                    R.string.action_sheet_remove_download_playlist_msg,
+                    playlist.name,
+                    tracksStr,
+                    estimatedSizeStr
+                ),
                 confirmText = stringResource(R.string.action_remove),
                 dismissText = stringResource(R.string.action_cancel),
                 isDestructive = true,

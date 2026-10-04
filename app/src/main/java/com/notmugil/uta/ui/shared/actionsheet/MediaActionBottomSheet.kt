@@ -57,7 +57,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.notmugil.uta.R
 import com.notmugil.uta.data.db.LocalMediaEntity
+import com.notmugil.uta.data.download.DownloadEstimator
 import com.notmugil.uta.data.download.OfflineDownloadManager
+import com.notmugil.uta.data.preferences.DownloadQualityPreference
+import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.repository.LibraryRepository
 import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.player.PlaybackController
@@ -66,6 +69,7 @@ import com.notmugil.uta.ui.shared.CoverArtImage
 import com.notmugil.uta.ui.shared.LocalToastHostState
 import com.notmugil.uta.ui.shared.ToastType
 import com.notmugil.uta.util.Formatters
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
@@ -133,6 +137,23 @@ fun MediaActionBottomSheet(
     val allPlaylists by libraryRepository.getPlaylistsFlow().collectAsStateWithLifecycle(initialValue = emptyList())
     val editablePlaylists = remember(allPlaylists) {
         allPlaylists.filter { it.canEditTracks }
+    }
+
+    val appPreferences = LocalAppPreferences.current
+    val downloadQuality by (appPreferences?.downloadQuality ?: remember { MutableStateFlow(DownloadQualityPreference.BITRATE_192) }).collectAsStateWithLifecycle()
+    val downloadedTrackIdsList by offlineDownloadManager.getDownloadedTrackIdsFlow().collectAsStateWithLifecycle(initialValue = emptyList())
+    val downloadedTrackIds = remember(downloadedTrackIdsList) { downloadedTrackIdsList.toSet() }
+
+    val albumTracks by if (target is MediaTarget.AlbumTarget) {
+        libraryRepository.getTracksForAlbumFlow(target.album.id).collectAsStateWithLifecycle(initialValue = emptyList())
+    } else {
+        remember { MutableStateFlow(emptyList<TrackItem>()) }.collectAsStateWithLifecycle()
+    }
+
+    val playlistTracks by if (target is MediaTarget.PlaylistTarget) {
+        libraryRepository.getTracksForPlaylistFlow(target.playlist.id).collectAsStateWithLifecycle(initialValue = emptyList())
+    } else {
+        remember { MutableStateFlow(emptyList<TrackItem>()) }.collectAsStateWithLifecycle()
     }
 
     val cancelString = stringResource(R.string.action_cancel)
@@ -301,7 +322,9 @@ fun MediaActionBottomSheet(
                         if (!tracks.isNullOrEmpty()) {
                             offlineDownloadManager.enqueueTracks(tracks, scopeId = target.album.id, scopeType = "ALBUM")
                             isDownloadedState = true
-                            toastHostState.showToast(context.getString(R.string.toast_downloading_album, tracks.size), ToastType.INFO, Tabler.Outline.Download)
+                            val nonDownloaded = tracks.filter { it.id !in downloadedTrackIds }
+                            val count = nonDownloaded.size.takeIf { it > 0 } ?: tracks.size
+                            toastHostState.showToast(context.getString(R.string.toast_downloading_album, count), ToastType.INFO, Tabler.Outline.Download)
                         } else {
                             toastHostState.showToast(context.getString(R.string.toast_no_tracks_download), ToastType.ERROR)
                         }
@@ -315,7 +338,9 @@ fun MediaActionBottomSheet(
                         if (!tracks.isNullOrEmpty()) {
                             offlineDownloadManager.enqueueTracks(tracks, scopeId = target.playlist.id, scopeType = "PLAYLIST")
                             isDownloadedState = true
-                            toastHostState.showToast(context.getString(R.string.toast_downloading_playlist, tracks.size), ToastType.INFO, Tabler.Outline.Download)
+                            val nonDownloaded = tracks.filter { it.id !in downloadedTrackIds }
+                            val count = nonDownloaded.size.takeIf { it > 0 } ?: tracks.size
+                            toastHostState.showToast(context.getString(R.string.toast_downloading_playlist, count), ToastType.INFO, Tabler.Outline.Download)
                         } else {
                             toastHostState.showToast(context.getString(R.string.toast_no_tracks_download), ToastType.ERROR)
                         }
@@ -331,19 +356,73 @@ fun MediaActionBottomSheet(
     if (showDownloadConfirmDialog && (target is MediaTarget.AlbumTarget || target is MediaTarget.PlaylistTarget)) {
         val (title, message) = when (target) {
             is MediaTarget.AlbumTarget -> {
-                val estimatedBytes = (target.album.songCount * 40000L * 210L).coerceAtLeast(10_000_000L)
+                val nonDownloaded = if (albumTracks.isNotEmpty()) {
+                    albumTracks.filter { it.id !in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+                val nonDownloadedCount = if (nonDownloaded.isNotEmpty()) {
+                    nonDownloaded.size
+                } else if (albumTracks.isEmpty()) {
+                    target.album.songCount
+                } else {
+                    0
+                }
+                val estimatedBytes = DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = nonDownloaded,
+                    quality = downloadQuality,
+                    fallbackSongCount = nonDownloadedCount
+                )
                 val sizeStr = Formatters.formatBytes(estimatedBytes)
+                val tracksStr = if (nonDownloadedCount == 1) {
+                    stringResource(R.string.action_track_single_format)
+                } else {
+                    stringResource(R.string.action_tracks_count_format, nonDownloadedCount)
+                }
                 Pair(
                     stringResource(R.string.action_sheet_download_album_title),
-                    stringResource(R.string.action_sheet_download_album_msg, target.album.title, target.album.songCount, sizeStr)
+                    stringResource(
+                        R.string.action_sheet_download_album_msg,
+                        target.album.title,
+                        tracksStr,
+                        sizeStr,
+                        downloadQuality.displayName
+                    )
                 )
             }
             is MediaTarget.PlaylistTarget -> {
-                val estimatedBytes = (target.playlist.songCount * 40000L * 210L).coerceAtLeast(10_000_000L)
+                val nonDownloaded = if (playlistTracks.isNotEmpty()) {
+                    playlistTracks.filter { it.id !in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+                val nonDownloadedCount = if (nonDownloaded.isNotEmpty()) {
+                    nonDownloaded.size
+                } else if (playlistTracks.isEmpty()) {
+                    target.playlist.songCount
+                } else {
+                    0
+                }
+                val estimatedBytes = DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = nonDownloaded,
+                    quality = downloadQuality,
+                    fallbackSongCount = nonDownloadedCount
+                )
                 val sizeStr = Formatters.formatBytes(estimatedBytes)
+                val tracksStr = if (nonDownloadedCount == 1) {
+                    stringResource(R.string.action_track_single_format)
+                } else {
+                    stringResource(R.string.action_tracks_count_format, nonDownloadedCount)
+                }
                 Pair(
                     stringResource(R.string.action_sheet_download_playlist_title),
-                    stringResource(R.string.action_sheet_download_playlist_msg, target.playlist.name, target.playlist.songCount, sizeStr)
+                    stringResource(
+                        R.string.action_sheet_download_playlist_msg,
+                        target.playlist.name,
+                        tracksStr,
+                        sizeStr,
+                        downloadQuality.displayName
+                    )
                 )
             }
             is MediaTarget.TrackTarget, is MediaTarget.ArtistTarget -> Pair("", "")
@@ -368,7 +447,10 @@ fun MediaActionBottomSheet(
                 val estimatedBytes = if (target.track.bitRate != null && target.track.bitRate > 0) {
                     (target.track.bitRate * 1000L / 8L) * target.track.durationSeconds
                 } else {
-                    (target.track.durationSeconds * 40000L).coerceAtLeast(3_000_000L)
+                    DownloadEstimator.calculateEstimatedSizeBytes(
+                        tracks = listOf(target.track),
+                        quality = downloadQuality
+                    )
                 }
                 val sizeStr = Formatters.formatBytes(estimatedBytes)
                 Pair(
@@ -377,17 +459,71 @@ fun MediaActionBottomSheet(
                 )
             }
             is MediaTarget.AlbumTarget -> {
-                val sizeStr = Formatters.formatBytes((target.album.songCount * 40000L * 210L).coerceAtLeast(10_000_000L))
+                val downloadedTracks = if (albumTracks.isNotEmpty()) {
+                    albumTracks.filter { it.id in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+                val downloadedCount = if (downloadedTracks.isNotEmpty()) {
+                    downloadedTracks.size
+                } else if (albumTracks.isEmpty()) {
+                    target.album.songCount
+                } else {
+                    0
+                }
+                val estimatedBytes = DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = downloadedTracks,
+                    quality = downloadQuality,
+                    fallbackSongCount = downloadedCount
+                )
+                val sizeStr = Formatters.formatBytes(estimatedBytes)
+                val tracksStr = if (downloadedCount == 1) {
+                    stringResource(R.string.action_track_single_format)
+                } else {
+                    stringResource(R.string.action_tracks_count_format, downloadedCount)
+                }
                 Pair(
                     stringResource(R.string.action_sheet_remove_download_confirm_title),
-                    stringResource(R.string.action_sheet_remove_download_album_msg, target.album.title, sizeStr)
+                    stringResource(
+                        R.string.action_sheet_remove_download_album_msg,
+                        target.album.title,
+                        tracksStr,
+                        sizeStr
+                    )
                 )
             }
             is MediaTarget.PlaylistTarget -> {
-                val sizeStr = Formatters.formatBytes((target.playlist.songCount * 40000L * 210L).coerceAtLeast(10_000_000L))
+                val downloadedTracks = if (playlistTracks.isNotEmpty()) {
+                    playlistTracks.filter { it.id in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+                val downloadedCount = if (downloadedTracks.isNotEmpty()) {
+                    downloadedTracks.size
+                } else if (playlistTracks.isEmpty()) {
+                    target.playlist.songCount
+                } else {
+                    0
+                }
+                val estimatedBytes = DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = downloadedTracks,
+                    quality = downloadQuality,
+                    fallbackSongCount = downloadedCount
+                )
+                val sizeStr = Formatters.formatBytes(estimatedBytes)
+                val tracksStr = if (downloadedCount == 1) {
+                    stringResource(R.string.action_track_single_format)
+                } else {
+                    stringResource(R.string.action_tracks_count_format, downloadedCount)
+                }
                 Pair(
                     stringResource(R.string.action_sheet_remove_download_confirm_title),
-                    stringResource(R.string.action_sheet_remove_download_playlist_msg, target.playlist.name, sizeStr)
+                    stringResource(
+                        R.string.action_sheet_remove_download_playlist_msg,
+                        target.playlist.name,
+                        tracksStr,
+                        sizeStr
+                    )
                 )
             }
             is MediaTarget.ArtistTarget -> Pair("", "")

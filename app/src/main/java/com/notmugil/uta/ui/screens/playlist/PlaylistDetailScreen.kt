@@ -221,6 +221,7 @@ fun PlaylistDetailScreen(
                         PlaylistHeader(
                             playlist = playlist,
                             tracks = state.tracks,
+                            downloadedTrackIds = state.downloadedTrackIds,
                             playableTracks = playableTracks,
                             allDownloaded = allDownloaded,
                             isDownloading = state.isDownloading,
