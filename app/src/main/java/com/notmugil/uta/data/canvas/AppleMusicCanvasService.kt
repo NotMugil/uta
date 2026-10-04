@@ -116,6 +116,88 @@ object AppleMusicCanvasService {
         null
     }
 
+    suspend fun searchAlbum(albumTitle: String, artist: String): CanvasArtwork? = withContext(Dispatchers.IO) {
+        val client = HttpClient(OkHttp)
+        try {
+            val token = getToken(client) ?: return@withContext null
+
+            val termBuilder = StringBuilder()
+            if (!albumTitle.contains(artist, ignoreCase = true)) {
+                termBuilder.append("$artist ")
+            }
+            termBuilder.append(albumTitle)
+
+            val searchResponse = client.get("$AMP_BASE/us/search") {
+                header("Authorization", "Bearer $token")
+                header("Origin", "https://music.apple.com")
+                header("Referer", "https://music.apple.com/")
+                header("User-Agent", USER_AGENT)
+                parameter("term", termBuilder.toString().trim())
+                parameter("types", "albums")
+                parameter("limit", "10")
+                parameter("extend", "editorialVideo")
+            }
+
+            if (searchResponse.status.value == 401) {
+                cachedToken = null
+                tokenExpiresAtMs = 0
+                return@withContext null
+            }
+            if (!searchResponse.status.isSuccess()) return@withContext null
+
+            val body = searchResponse.bodyAsText()
+            val root = json.parseToJsonElement(body).jsonObject
+            val results = root["results"]?.jsonObject
+            val albums = results?.get("albums")?.jsonObject
+            val hits = albums?.get("data")?.jsonArray ?: return@withContext null
+
+            for (hitEl in hits) {
+                val hit = hitEl.jsonObject
+                val attributes = hit["attributes"]?.jsonObject ?: continue
+
+                val albumName = attributes["name"]?.jsonPrimitive?.content ?: continue
+                val albumArtist = attributes["artistName"]?.jsonPrimitive?.content ?: continue
+
+                val candidateMatch = CanvasArtwork(
+                    url = "",
+                    title = albumName,
+                    artist = albumArtist,
+                    source = CanvasSource.APPLE_MUSIC
+                )
+                if (!candidateMatch.matches(albumTitle, artist)) continue
+
+                val editorialVideo = attributes["editorialVideo"]?.jsonObject
+                if (editorialVideo != null) {
+                    val urls = extractMotionUrls(editorialVideo)
+                    if (urls != null) {
+                        Timber.d("[AppleMusicCanvas] Found album editorial video for '$albumName'")
+                        return@withContext CanvasArtwork(
+                            url = urls.first,
+                            fallbackUrl = urls.second,
+                            title = albumName,
+                            artist = albumArtist,
+                            album = albumName,
+                            source = CanvasSource.APPLE_MUSIC
+                        )
+                    }
+                }
+
+                val albumId = hit["id"]?.jsonPrimitive?.content
+                if (albumId != null) {
+                    val albumMotion = fetchAlbumMotion(client, albumId, token, albumName, albumArtist)
+                    if (albumMotion != null) {
+                        return@withContext albumMotion
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "[AppleMusicCanvas] Album search error: ${e.message}")
+        } finally {
+            client.close()
+        }
+        null
+    }
+
     private fun extractAlbumId(songHit: kotlinx.serialization.json.JsonObject): String? {
         try {
             val relationships = songHit["relationships"]?.jsonObject

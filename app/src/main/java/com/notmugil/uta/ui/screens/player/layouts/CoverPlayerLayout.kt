@@ -137,6 +137,7 @@ fun CoverPlayerLayout(
                 track = track,
                 isPlaying = isPlaying,
                 shape = RectangleShape,
+                highRes = true,
                 modifier = Modifier.fillMaxSize()
             )
 

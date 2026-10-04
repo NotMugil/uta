@@ -1,7 +1,9 @@
 package com.notmugil.uta.util
 
-import com.notmugil.uta.domain.model.TrackItem
+import androidx.annotation.OptIn
 import androidx.media3.common.Format
+import androidx.media3.common.util.UnstableApi
+import com.notmugil.uta.domain.model.TrackItem
 import java.util.Locale
 
 object Formatters {
@@ -50,6 +52,7 @@ object Formatters {
         }
     }
 
+    @OptIn(UnstableApi::class)
     fun formatTrackAudioStats(
         track: TrackItem?,
         audioFormat: Format? = null,

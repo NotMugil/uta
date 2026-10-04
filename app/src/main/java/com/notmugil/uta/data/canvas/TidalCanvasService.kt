@@ -41,6 +41,80 @@ object TidalCanvasService {
         null
     }
 
+    suspend fun searchAlbum(albumTitle: String, artist: String): CanvasArtwork? = withContext(Dispatchers.IO) {
+        var result = executeAlbumSearch("$artist $albumTitle", albumTitle, artist)
+        if (result != null) return@withContext result
+
+        val primaryArtist = artist.split(Regex("[,&]")).first().trim()
+        if (primaryArtist.isNotEmpty() && !primaryArtist.equals(artist, ignoreCase = true)) {
+            result = executeAlbumSearch("$primaryArtist $albumTitle", albumTitle, artist)
+            if (result != null) return@withContext result
+        }
+
+        result = executeAlbumSearch(albumTitle, albumTitle, artist)
+        if (result != null) return@withContext result
+
+        null
+    }
+
+    private suspend fun executeAlbumSearch(
+        query: String,
+        wantAlbumTitle: String,
+        wantArtist: String
+    ): CanvasArtwork? {
+        val client = HttpClient(OkHttp)
+        try {
+            val response = client.get(SEARCH_URL) {
+                header("X-Tidal-Token", EMBED_TOKEN)
+                header("User-Agent", USER_AGENT)
+                parameter("query", query)
+                parameter("limit", "10")
+                parameter("types", "ALBUMS")
+                parameter("countryCode", "US")
+            }
+
+            if (!response.status.isSuccess()) return null
+
+            val body = response.bodyAsText()
+            val root = json.parseToJsonElement(body).jsonObject
+            val albums = root["albums"]?.jsonObject
+            val items = albums?.get("items")?.jsonArray ?: return null
+
+            for (itemEl in items) {
+                val item = itemEl.jsonObject
+                val title = item["title"]?.jsonPrimitive?.content ?: continue
+
+                val artistsList = item["artists"]?.jsonArray
+                val artistNames = artistsList?.mapNotNull {
+                    it.jsonObject["name"]?.jsonPrimitive?.content
+                } ?: emptyList()
+
+                val videoCover = item["videoCover"]?.jsonPrimitive?.content
+                if (videoCover.isNullOrBlank()) continue
+
+                val videoUrl = coverUrl(videoCover.trim()) ?: continue
+
+                val candidate = CanvasArtwork(
+                    url = videoUrl,
+                    title = title,
+                    artist = artistNames.joinToString(", "),
+                    album = title,
+                    source = CanvasSource.TIDAL
+                )
+
+                if (candidate.matches(wantAlbumTitle, wantArtist)) {
+                    Timber.d("[TidalCanvas] Found album video cover for '$title' by ${artistNames.joinToString()}")
+                    return candidate
+                }
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "[TidalCanvas] Album search failed: ${e.message}")
+        } finally {
+            client.close()
+        }
+        return null
+    }
+
     private suspend fun executeTrackSearch(
         query: String,
         wantTitle: String,

@@ -49,16 +49,17 @@ import kotlinx.coroutines.launch
 fun AnimatedAlbumArtView(
     album: AlbumItem,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(24.dp)
+    shape: Shape = RoundedCornerShape(24.dp),
+    highRes: Boolean = false
 ) {
     val context = LocalContext.current
     val appPreferences = LocalAppPreferences.current
     val isAnimatedPref = appPreferences?.animatedArtworkEnabled?.collectAsStateWithLifecycle()?.value ?: false
 
-    var canvasArtwork by remember(album.id) { mutableStateOf<CanvasArtwork?>(null) }
-    var isVideoReady by remember(album.id) { mutableStateOf(false) }
+    var canvasArtwork by remember(album.id, album.title, album.artist) { mutableStateOf<CanvasArtwork?>(null) }
+    var isVideoReady by remember(album.id, album.title, album.artist) { mutableStateOf(false) }
 
-    LaunchedEffect(album.id, isAnimatedPref) {
+    LaunchedEffect(album.id, album.title, album.artist, isAnimatedPref) {
         isVideoReady = false
         if (isAnimatedPref) {
             canvasArtwork = CanvasRepository.getAlbumCanvas(album, context)
@@ -85,6 +86,7 @@ fun AnimatedAlbumArtView(
             coverArtId = album.coverArtId,
             contentDescription = album.title,
             shape = shape,
+            highRes = highRes,
             modifier = Modifier.fillMaxSize()
         )
 
@@ -173,7 +175,8 @@ fun AnimatedAlbumArtView(
     track: TrackItem?,
     isPlaying: Boolean = true,
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(24.dp)
+    shape: Shape = RoundedCornerShape(24.dp),
+    highRes: Boolean = false
 ) {
     val context = LocalContext.current
     val appPreferences = LocalAppPreferences.current
@@ -207,6 +210,7 @@ fun AnimatedAlbumArtView(
             coverArtId = track?.coverArtId,
             contentDescription = track?.title,
             shape = shape,
+            highRes = highRes,
             modifier = Modifier.fillMaxSize()
         )
 

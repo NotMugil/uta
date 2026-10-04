@@ -43,19 +43,21 @@ fun CoverArtImage(
     fallbackIcon: ImageVector = Tabler.Outline.Music,
     contentScale: ContentScale = ContentScale.Crop,
     playlistId: String? = null,
-    customModel: Any? = null
+    customModel: Any? = null,
+    highRes: Boolean = false
 ) {
     val context = LocalContext.current
     val appPreferences = LocalAppPreferences.current
     val coverArtQuality = appPreferences?.coverArtQuality?.value ?: CoverArtQuality.HIGH
 
-    val standardSizePx = remember(size, coverArtQuality) {
+    val standardSizePx = remember(size, coverArtQuality, highRes) {
         val base = when {
-            size == Dp.Unspecified -> 450
+            highRes -> 1400
+            size == Dp.Unspecified -> 600
             size <= 64.dp -> 180
             size <= 160.dp -> 450
             size <= 320.dp -> 900
-            else -> 1200
+            else -> 1400
         }
         when (coverArtQuality) {
             CoverArtQuality.HIGH -> base

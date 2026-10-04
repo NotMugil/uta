@@ -64,6 +64,45 @@ object CommunityCanvasService {
         null
     }
 
+    suspend fun searchAlbum(albumTitle: String, artist: String): CanvasArtwork? = withContext(Dispatchers.IO) {
+        try {
+            val manifest = getManifest()
+            if (manifest.isEmpty()) return@withContext null
+
+            val wantAlbum = CanvasArtwork.normalizeForMatch(albumTitle)
+            val wantArtist = CanvasArtwork.normalizeForMatch(artist)
+
+            for (entry in manifest) {
+                val credited = CanvasArtwork.normalizeForMatch(entry.artist)
+                val listedAlbum = CanvasArtwork.normalizeForMatch(entry.album)
+                val song = CanvasArtwork.normalizeForMatch(entry.song)
+
+                val artistOk = credited.isNotEmpty() &&
+                    (wantArtist.contains(credited) || credited.contains(wantArtist) || wantArtist == credited)
+
+                val albumOk = listedAlbum.isNotEmpty() &&
+                    (wantAlbum.contains(listedAlbum) || listedAlbum.contains(wantAlbum) || wantAlbum == listedAlbum)
+
+                val songMatchAlbum = song.isNotEmpty() &&
+                    (wantAlbum.contains(song) || song.contains(wantAlbum) || wantAlbum == song)
+
+                if (artistOk && (albumOk || songMatchAlbum)) {
+                    Timber.d("[CommunityCanvas] Manifest hit for album '${entry.album}' by '${entry.artist}'")
+                    return@withContext CanvasArtwork(
+                        url = entry.url,
+                        title = entry.song,
+                        artist = entry.artist,
+                        album = entry.album.ifEmpty { null },
+                        source = CanvasSource.COMMUNITY
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "[CommunityCanvas] Album search error: ${e.message}")
+        }
+        null
+    }
+
     private suspend fun getManifest(): List<CommunityEntry> {
         val now = System.currentTimeMillis()
         if (entries.isNotEmpty() && now - fetchedAtMs < TTL_MS) {

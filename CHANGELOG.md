@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- High-resolution album artwork rendering for Cover and Cinematic player layouts.
+
+### Fixed
+
+- Fix animated album artwork resolution and playback on the album details page.
+
 ## [1.0.0-alpha.2] - 2026-10-04
 
 ### Added
