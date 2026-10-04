@@ -380,14 +380,10 @@ private fun ArtistHeroHeader(
                 Text(
                     text = artist.name,
                     style = MaterialTheme.typography.headlineLarge.copy(
-                        fontSize = 32.sp,
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            blurRadius = 8f
-                        )
+                        fontSize = 32.sp
                     ),
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onBackground,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

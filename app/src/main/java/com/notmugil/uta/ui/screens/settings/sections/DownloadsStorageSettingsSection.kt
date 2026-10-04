@@ -173,7 +173,7 @@ fun DownloadsStorageSubPage(
                         modifier = Modifier
                             .fillMaxHeight()
                             .weight(dlRatio.coerceAtLeast(0.005f))
-                            .background(Color(0xFF00E676))
+                            .background(Color(0xFFFF85A1))
                     )
                 }
                 if (otherRatio > 0f) {
@@ -193,7 +193,7 @@ fun DownloadsStorageSubPage(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 StorageLineItem(
-                    color = Color(0xFF00E676),
+                    color = Color(0xFFFF85A1),
                     label = stringResource(R.string.storage_downloaded_music),
                     hint = stringResource(R.string.storage_tracks_offline_format, storageStats.downloadedTrackCount),
                     size = Formatters.formatBytes(dlBytes)

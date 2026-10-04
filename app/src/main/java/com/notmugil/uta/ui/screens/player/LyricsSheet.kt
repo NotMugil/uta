@@ -142,7 +142,7 @@ fun LyricsSheet(
             val enabledOnline = onlineLyricsProviders.filter { it.enabled }.map { it.provider }
             when (lyricsSourceMode) {
                 LyricsSourceMode.DISABLED -> emptyList()
-                LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
+                LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.SUBSONIC)
                 LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnline
             }
         }
@@ -150,7 +150,7 @@ fun LyricsSheet(
 
     var lyricsData by remember { mutableStateOf<LyricsData?>(null) }
     var selectedProvider by remember { mutableStateOf(LyricsProvider.AUTO) }
-    val effectiveSelectedProvider = if (isOffline) LyricsProvider.SUBSONIC else selectedProvider
+    val effectiveSelectedProvider = if (isOffline || lyricsSourceMode == LyricsSourceMode.SERVER_ONLY) LyricsProvider.SUBSONIC else selectedProvider
     var availableProvidersMap by remember(track.id) { mutableStateOf<Map<LyricsProvider, String>>(emptyMap()) }
     var showProviderMenu by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }

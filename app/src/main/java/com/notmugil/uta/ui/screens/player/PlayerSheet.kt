@@ -40,8 +40,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.notmugil.uta.R
 import com.notmugil.uta.data.SubsonicSession
 import com.notmugil.uta.data.download.DownloadStatus
 import com.notmugil.uta.data.download.OfflineDownloadManager
@@ -52,6 +54,7 @@ import com.notmugil.uta.domain.model.QueueItem
 import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.player.SleepTimerManager
 import com.notmugil.uta.player.SleepTimerMode
+import com.notmugil.uta.ui.shared.ActionConfirmDialog
 import com.notmugil.uta.ui.screens.player.components.LyricsAmbientBackground
 import com.notmugil.uta.ui.screens.player.layouts.CinematicPlayerLayout
 import com.notmugil.uta.ui.screens.player.layouts.CoverPlayerLayout
@@ -109,8 +112,7 @@ fun PlayerSheet(
 
     val playerStyle by (appPreferences?.playerStyle?.collectAsState() ?: remember { mutableStateOf(PlayerStyle.DEFAULT) })
     val lyricsSourceMode by (appPreferences?.lyricsSourceMode?.collectAsState() ?: remember { mutableStateOf(LyricsSourceMode.BOTH) })
-    val isLyricsDisabled = lyricsSourceMode == LyricsSourceMode.DISABLED
-    val effectivePlayerStyle = if (isLyricsDisabled && playerStyle == PlayerStyle.LYRICS) PlayerStyle.DEFAULT else playerStyle
+    val effectivePlayerStyle = playerStyle
 
     var isDraggingSlider by remember { mutableStateOf(false) }
     var dragPositionMs by remember { mutableFloatStateOf(0f) }
@@ -118,6 +120,7 @@ fun PlayerSheet(
     var showQueueSheet by remember { mutableStateOf(false) }
     var showLyricsSheet by remember { mutableStateOf(false) }
     var showSleepTimerSheet by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     // Offline download state
     val downloadStatusFlow = remember(track.id, offlineDownloadManager) {
@@ -140,9 +143,7 @@ fun PlayerSheet(
             if (isDownloading) {
                 offlineDownloadManager.cancelTrack(track.id)
             } else if (isDownloaded) {
-                coroutineScope.launch {
-                    offlineDownloadManager.deleteDownloadedTrack(track.id)
-                }
+                showDeleteConfirmDialog = true
             } else {
                 offlineDownloadManager.enqueueTrack(track)
             }
@@ -436,7 +437,7 @@ fun PlayerSheet(
                                 onOpenSleepTimer = { showSleepTimerSheet = true },
                                 onOpenLyrics = { showLyricsSheet = true },
                                 onOpenQueue = { showQueueSheet = true },
-                                showLyrics = !isLyricsDisabled,
+                                showLyrics = true,
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
@@ -474,7 +475,7 @@ fun PlayerSheet(
                                 onOpenSleepTimer = { showSleepTimerSheet = true },
                                 onOpenLyrics = { showLyricsSheet = true },
                                 onOpenQueue = { showQueueSheet = true },
-                                showLyrics = !isLyricsDisabled,
+                                showLyrics = true,
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
@@ -512,7 +513,7 @@ fun PlayerSheet(
                                 onOpenSleepTimer = { showSleepTimerSheet = true },
                                 onOpenLyrics = { showLyricsSheet = true },
                                 onOpenQueue = { showQueueSheet = true },
-                                showLyrics = !isLyricsDisabled,
+                                showLyrics = true,
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
@@ -584,7 +585,7 @@ fun PlayerSheet(
                                 onOpenSleepTimer = { showSleepTimerSheet = true },
                                 onOpenLyrics = { showLyricsSheet = true },
                                 onOpenQueue = { showQueueSheet = true },
-                                showLyrics = !isLyricsDisabled,
+                                showLyrics = true,
                                 isDownloaded = isDownloaded,
                                 isDownloading = isDownloading,
                                 downloadProgress = downloadProgress,
@@ -628,6 +629,23 @@ fun PlayerSheet(
             SleepTimerSheet(
                 sleepTimerManager = sleepTimerManager,
                 onDismiss = { showSleepTimerSheet = false }
+            )
+        }
+
+        if (showDeleteConfirmDialog) {
+            ActionConfirmDialog(
+                title = stringResource(R.string.action_sheet_remove_download_confirm_title),
+                message = stringResource(R.string.downloads_delete_confirm_msg, track.title),
+                confirmText = stringResource(R.string.action_delete),
+                dismissText = stringResource(R.string.action_cancel),
+                isDestructive = true,
+                onConfirm = {
+                    coroutineScope.launch {
+                        offlineDownloadManager?.deleteDownloadedTrack(track.id)
+                    }
+                    showDeleteConfirmDialog = false
+                },
+                onDismiss = { showDeleteConfirmDialog = false }
             )
         }
     }

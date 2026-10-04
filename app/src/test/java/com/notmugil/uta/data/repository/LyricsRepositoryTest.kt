@@ -119,4 +119,56 @@ class LyricsRepositoryTest {
         assertEquals(1, available.size)
         assertTrue(available.containsKey(LyricsProvider.SUBSONIC))
     }
+
+    @Test
+    fun `checkAvailableProviders when server unreachable does not include Subsonic`() = runBlocking {
+        isServerUnreachableFlow.value = true
+        isOnlineFlow.value = true
+        isOfflineModeManualFlow.value = false
+
+        val available = repository.checkAvailableProviders(sampleTrack)
+        org.junit.Assert.assertFalse(available.containsKey(LyricsProvider.SUBSONIC))
+    }
+
+    @Test
+    fun `getLyrics in SERVER_ONLY mode fetches only from Subsonic`() = runBlocking {
+        lyricsSourceModeFlow.value = LyricsSourceMode.SERVER_ONLY
+        isOnlineFlow.value = true
+        isOfflineModeManualFlow.value = false
+
+        coEvery { subsonicRepository.getStructuredLyrics(any()) } returns emptyList()
+        coEvery { subsonicRepository.getLyrics("Test Artist", "Test Song") } returns SubsonicLyrics(
+            artist = "Test Artist",
+            title = "Test Song",
+            value = "[00:05.00]Server Only Lyric"
+        )
+
+        val result = repository.getLyrics(sampleTrack, provider = LyricsProvider.AUTO)
+
+        assertNotNull(result)
+        assertEquals("Server (LRC)", result.source)
+        assertEquals("Server Only Lyric", result.syncedLines.first().text)
+    }
+
+    @Test
+    fun `checkAvailableProviders in SERVER_ONLY mode returns only Subsonic`() = runBlocking {
+        lyricsSourceModeFlow.value = LyricsSourceMode.SERVER_ONLY
+        isOnlineFlow.value = true
+        isOfflineModeManualFlow.value = false
+
+        coEvery { subsonicRepository.getStructuredLyrics(any()) } returns emptyList()
+        coEvery { subsonicRepository.getLyrics("Test Artist", "Test Song") } returns SubsonicLyrics(
+            artist = "Test Artist",
+            title = "Test Song",
+            value = "[00:05.00]Server Only Lyric"
+        )
+
+        val available = repository.checkAvailableProviders(sampleTrack)
+
+        assertEquals(1, available.size)
+        assertTrue(available.containsKey(LyricsProvider.SUBSONIC))
+        org.junit.Assert.assertFalse(available.containsKey(LyricsProvider.AUTO))
+        org.junit.Assert.assertFalse(available.containsKey(LyricsProvider.LRCLIB))
+        org.junit.Assert.assertFalse(available.containsKey(LyricsProvider.PAXSENIX))
+    }
 }

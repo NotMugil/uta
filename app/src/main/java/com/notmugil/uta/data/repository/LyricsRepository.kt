@@ -880,7 +880,7 @@ class LyricsRepository @Inject constructor(
         val isOnline = networkMonitor.isOnline.value
         val isTrueOffline = isManualOffline || !isOnline
 
-        val effectiveProvider = if (isTrueOffline && (mode == LyricsSourceMode.SERVER_ONLY || mode == LyricsSourceMode.BOTH)) {
+        val effectiveProvider = if (mode == LyricsSourceMode.SERVER_ONLY || isTrueOffline) {
             LyricsProvider.SUBSONIC
         } else {
             provider
@@ -890,10 +890,16 @@ class LyricsRepository @Inject constructor(
 
         val cached = LyricsCache.get(context, cacheKey)
         if (cached != null && (!forceRefresh || isTrueOffline)) {
-            return@withContext cached
+            if (mode == LyricsSourceMode.SERVER_ONLY) {
+                if (cached.source.startsWith("Server", ignoreCase = true) || cached.source.equals("subsonic", ignoreCase = true)) {
+                    return@withContext cached
+                }
+            } else {
+                return@withContext cached
+            }
         }
 
-        if (isTrueOffline) {
+        if (isTrueOffline || mode == LyricsSourceMode.SERVER_ONLY || effectiveProvider == LyricsProvider.SUBSONIC) {
             return@withContext fetchSubsonicLyrics(track)?.also {
                 LyricsCache.put(context, cacheKey, it)
             } ?: LyricsData()
@@ -933,13 +939,14 @@ class LyricsRepository @Inject constructor(
                 }
             }
             LyricsProvider.AUTO -> {
+                val isServerDown = networkMonitor.isServerUnreachable.value
                 val enabledOnlineProviders = appPreferences.onlineLyricsProviders.value
                     .filter { it.enabled }
                     .map { it.provider }
 
                 val allEnabledProviders = when (mode) {
-                    LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.SUBSONIC)
-                    LyricsSourceMode.BOTH -> enabledOnlineProviders + listOf(LyricsProvider.SUBSONIC)
+                    LyricsSourceMode.SERVER_ONLY -> if (isServerDown) emptyList() else listOf(LyricsProvider.SUBSONIC)
+                    LyricsSourceMode.BOTH -> if (isServerDown) enabledOnlineProviders else enabledOnlineProviders + listOf(LyricsProvider.SUBSONIC)
                     LyricsSourceMode.DISABLED -> emptyList()
                 }
 
@@ -1007,9 +1014,14 @@ class LyricsRepository @Inject constructor(
     }
 
     private suspend fun fetchSubsonicLyrics(track: TrackItem): LyricsData? {
+        if (networkMonitor.isServerUnreachable.value) {
+            return null
+        }
         try {
-            val structured = subsonicRepository.getStructuredLyrics(track.id)
-            val firstStructured = structured.firstOrNull()
+            val structured = kotlinx.coroutines.withTimeoutOrNull(4000L) {
+                subsonicRepository.getStructuredLyrics(track.id)
+            }
+            val firstStructured = structured?.firstOrNull()
             if (firstStructured != null && firstStructured.lines.isNotEmpty()) {
                 val syncedLines = firstStructured.lines.mapNotNull { line ->
                     val start = line.start?.toLong() ?: return@mapNotNull null
@@ -1025,8 +1037,14 @@ class LyricsRepository @Inject constructor(
             }
         } catch (_: Exception) {}
 
+        if (networkMonitor.isServerUnreachable.value) {
+            return null
+        }
+
         try {
-            val plain = subsonicRepository.getLyrics(track.artist, track.title)
+            val plain = kotlinx.coroutines.withTimeoutOrNull(4000L) {
+                subsonicRepository.getLyrics(track.artist, track.title)
+            }
             val rawLyrics = plain?.value
             if (!rawLyrics.isNullOrBlank()) {
                 val parsedLines = LrcParser.parse(rawLyrics)
@@ -1052,12 +1070,13 @@ class LyricsRepository @Inject constructor(
     suspend fun checkAvailableProviders(
         track: TrackItem
     ): Map<LyricsProvider, String> = withContext(Dispatchers.IO) {
-        val cached = availabilityCache[track.id]
+        val mode = appPreferences.lyricsSourceMode.value
+        val cacheKey = "${track.id}_${mode.name}"
+        val cached = availabilityCache[cacheKey]
         if (cached != null) {
             return@withContext cached
         }
 
-        val mode = appPreferences.lyricsSourceMode.value
         if (mode == LyricsSourceMode.DISABLED) {
             return@withContext emptyMap()
         }
@@ -1066,22 +1085,24 @@ class LyricsRepository @Inject constructor(
         val isOnline = networkMonitor.isOnline.value
         val isTrueOffline = isManualOffline || !isOnline
 
-        if (isTrueOffline) {
+        if (isTrueOffline || mode == LyricsSourceMode.SERVER_ONLY) {
+            val isServerDown = networkMonitor.isServerUnreachable.value
+            if (isServerDown && !isManualOffline) {
+                availabilityCache.put(cacheKey, emptyMap())
+                return@withContext emptyMap()
+            }
             val data = getLyrics(track, provider = LyricsProvider.SUBSONIC)
             val tag = data.syncTypeTag
             val map = if (tag != null) mapOf(LyricsProvider.SUBSONIC to tag) else emptyMap()
-            availabilityCache.put(track.id, map)
+            availabilityCache.put(cacheKey, map)
             return@withContext map
         }
 
+        val isServerDown = networkMonitor.isServerUnreachable.value
         val enabledOnline = appPreferences.onlineLyricsProviders.value
             .filter { it.enabled }
             .map { it.provider }
-        val providers = when (mode) {
-            LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.SUBSONIC)
-            LyricsSourceMode.BOTH -> listOf(LyricsProvider.SUBSONIC) + enabledOnline
-            LyricsSourceMode.DISABLED -> emptyList()
-        }
+        val providers = if (isServerDown) enabledOnline else listOf(LyricsProvider.SUBSONIC) + enabledOnline
 
         val availableMap = mutableMapOf<LyricsProvider, String>()
         val deferreds = providers.map { provider ->
@@ -1106,7 +1127,7 @@ class LyricsRepository @Inject constructor(
             availableMap[LyricsProvider.AUTO] = autoTag
         }
 
-        availabilityCache.put(track.id, availableMap)
+        availabilityCache.put(cacheKey, availableMap)
         availableMap
     }
 
