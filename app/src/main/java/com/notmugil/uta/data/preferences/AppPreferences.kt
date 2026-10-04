@@ -23,10 +23,8 @@ enum class AppLanguage(val code: String, val displayName: String, val nativeName
     val label: String get() = "$nativeName ($code)"
 
     companion object {
-        fun fromCode(code: String?): AppLanguage = when (code?.lowercase()) {
-            "fr", "french", "français" -> FRENCH
-            else -> ENGLISH
-        }
+        fun fromCode(code: String?): AppLanguage =
+            entries.find { it.code.equals(code, ignoreCase = true) || it.name.equals(code, ignoreCase = true) } ?: ENGLISH
     }
 }
 
@@ -42,12 +40,8 @@ enum class DynamicColorSource(val displayName: String) {
     BOTH("Both");
 
     companion object {
-        fun fromString(value: String?): DynamicColorSource = when (value) {
-            "COVER_ONLY" -> COVER_ONLY
-            "WALLPAPER_ONLY" -> WALLPAPER_ONLY
-            "BOTH", "COVER_AND_WALLPAPER" -> BOTH
-            else -> BOTH
-        }
+        fun fromString(value: String?): DynamicColorSource =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: BOTH
     }
 }
 
@@ -107,19 +101,13 @@ enum class PlayerStyle(val displayName: String) {
 }
 
 enum class LyricsSourceMode(val displayName: String) {
-    BOTH("Both"),
-    ONLINE_ONLY("Online"),
+    BOTH("Online + Server"),
     SERVER_ONLY("Server"),
     DISABLED("No lyrics");
 
     companion object {
-        fun fromString(value: String?): LyricsSourceMode = when (value) {
-            "BOTH", "SERVER_AND_LRCLIB" -> BOTH
-            "ONLINE_ONLY", "ONLINE" -> ONLINE_ONLY
-            "SERVER_ONLY", "SERVER" -> SERVER_ONLY
-            "DISABLED", "NO_LYRICS" -> DISABLED
-            else -> BOTH
-        }
+        fun fromString(value: String?): LyricsSourceMode =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: BOTH
     }
 }
 
@@ -256,34 +244,18 @@ class AppPreferences @Inject constructor(
         private const val KEY_BLUR_INACTIVE_LYRICS = "blur_inactive_lyrics"
     }
 
-    private val _fontPreference = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_FONT_PREFERENCE, AppFont.SYSTEM_DEFAULT.name)
-            AppFont.valueOf(name ?: AppFont.SYSTEM_DEFAULT.name)
-        } catch (_: Exception) {
-            AppFont.SYSTEM_DEFAULT
-        }
-    )
+    private inline fun <reified T : Enum<T>> getEnumPreference(key: String, defaultValue: T): T {
+        val name = prefs.getString(key, defaultValue.name) ?: return defaultValue
+        return enumValues<T>().find { it.name.equals(name, ignoreCase = true) } ?: defaultValue
+    }
+
+    private val _fontPreference = MutableStateFlow(getEnumPreference(KEY_FONT_PREFERENCE, AppFont.SYSTEM_DEFAULT))
     val fontPreference: StateFlow<AppFont> = _fontPreference.asStateFlow()
 
-    private val _miniPlayerStyle = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_MINI_PLAYER_STYLE, MiniPlayerStyle.DEFAULT.name)
-            MiniPlayerStyle.valueOf(name ?: MiniPlayerStyle.DEFAULT.name)
-        } catch (_: Exception) {
-            MiniPlayerStyle.DEFAULT
-        }
-    )
+    private val _miniPlayerStyle = MutableStateFlow(getEnumPreference(KEY_MINI_PLAYER_STYLE, MiniPlayerStyle.DEFAULT))
     val miniPlayerStyle: StateFlow<MiniPlayerStyle> = _miniPlayerStyle.asStateFlow()
 
-    private val _miniPlayerPlacement = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_MINI_PLAYER_PLACEMENT, MiniPlayerPlacement.ISOLATED.name)
-            MiniPlayerPlacement.valueOf(name ?: MiniPlayerPlacement.ISOLATED.name)
-        } catch (_: Exception) {
-            MiniPlayerPlacement.ISOLATED
-        }
-    )
+    private val _miniPlayerPlacement = MutableStateFlow(getEnumPreference(KEY_MINI_PLAYER_PLACEMENT, MiniPlayerPlacement.ISOLATED))
     val miniPlayerPlacement: StateFlow<MiniPlayerPlacement> = _miniPlayerPlacement.asStateFlow()
 
     private val _tintMiniPlayerAccent = MutableStateFlow(
@@ -316,19 +288,10 @@ class AppPreferences @Inject constructor(
     )
     val isOfflineModeManual: StateFlow<Boolean> = _isOfflineModeManual.asStateFlow()
 
-    private val _themeMode = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_THEME_MODE, AppThemeMode.SYSTEM.name)
-            AppThemeMode.valueOf(name ?: AppThemeMode.SYSTEM.name)
-        } catch (_: Exception) {
-            AppThemeMode.SYSTEM
-        }
-    )
+    private val _themeMode = MutableStateFlow(getEnumPreference(KEY_THEME_MODE, AppThemeMode.SYSTEM))
     val themeMode: StateFlow<AppThemeMode> = _themeMode.asStateFlow()
 
-    private val _dynamicColorSource = MutableStateFlow(
-        DynamicColorSource.fromString(prefs.getString(KEY_DYNAMIC_COLOR_SOURCE, DynamicColorSource.BOTH.name))
-    )
+    private val _dynamicColorSource = MutableStateFlow(getEnumPreference(KEY_DYNAMIC_COLOR_SOURCE, DynamicColorSource.BOTH))
     val dynamicColorSource: StateFlow<DynamicColorSource> = _dynamicColorSource.asStateFlow()
 
     private val _customAccentColor = MutableStateFlow<Int?>(
@@ -336,49 +299,19 @@ class AppPreferences @Inject constructor(
     )
     val customAccentColor: StateFlow<Int?> = _customAccentColor.asStateFlow()
 
-    private val _albumViewMode = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_ALBUM_VIEW_MODE, com.notmugil.uta.domain.model.ViewDisplayMode.TEXT_ONLY.name)
-            com.notmugil.uta.domain.model.ViewDisplayMode.valueOf(name ?: com.notmugil.uta.domain.model.ViewDisplayMode.TEXT_ONLY.name)
-        } catch (_: Exception) {
-            com.notmugil.uta.domain.model.ViewDisplayMode.TEXT_ONLY
-        }
-    )
+    private val _albumViewMode = MutableStateFlow(getEnumPreference(KEY_ALBUM_VIEW_MODE, com.notmugil.uta.domain.model.ViewDisplayMode.TEXT_ONLY))
     val albumViewMode: StateFlow<com.notmugil.uta.domain.model.ViewDisplayMode> = _albumViewMode.asStateFlow()
 
-    private val _playlistViewMode = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_PLAYLIST_VIEW_MODE, com.notmugil.uta.domain.model.ViewDisplayMode.LIST.name)
-            com.notmugil.uta.domain.model.ViewDisplayMode.valueOf(name ?: com.notmugil.uta.domain.model.ViewDisplayMode.LIST.name)
-        } catch (_: Exception) {
-            com.notmugil.uta.domain.model.ViewDisplayMode.LIST
-        }
-    )
+    private val _playlistViewMode = MutableStateFlow(getEnumPreference(KEY_PLAYLIST_VIEW_MODE, com.notmugil.uta.domain.model.ViewDisplayMode.LIST))
     val playlistViewMode: StateFlow<com.notmugil.uta.domain.model.ViewDisplayMode> = _playlistViewMode.asStateFlow()
 
-    private val _playerStyle = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_PLAYER_STYLE, PlayerStyle.DEFAULT.name)
-            PlayerStyle.valueOf(name ?: PlayerStyle.DEFAULT.name)
-        } catch (_: Exception) {
-            PlayerStyle.DEFAULT
-        }
-    )
+    private val _playerStyle = MutableStateFlow(getEnumPreference(KEY_PLAYER_STYLE, PlayerStyle.DEFAULT))
     val playerStyle: StateFlow<PlayerStyle> = _playerStyle.asStateFlow()
 
-    private val _seekBarStyle = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_SEEK_BAR_STYLE, SeekBarStyle.WAVY.name)
-            SeekBarStyle.valueOf(name ?: SeekBarStyle.WAVY.name)
-        } catch (_: Exception) {
-            SeekBarStyle.WAVY
-        }
-    )
+    private val _seekBarStyle = MutableStateFlow(getEnumPreference(KEY_SEEK_BAR_STYLE, SeekBarStyle.WAVY))
     val seekBarStyle: StateFlow<SeekBarStyle> = _seekBarStyle.asStateFlow()
 
-    private val _lyricsSourceMode = MutableStateFlow(
-        LyricsSourceMode.fromString(prefs.getString(KEY_LYRICS_SOURCE_MODE, LyricsSourceMode.BOTH.name))
-    )
+    private val _lyricsSourceMode = MutableStateFlow(getEnumPreference(KEY_LYRICS_SOURCE_MODE, LyricsSourceMode.BOTH))
     val lyricsSourceMode: StateFlow<LyricsSourceMode> = _lyricsSourceMode.asStateFlow()
 
     private val _onlineLyricsProviders = MutableStateFlow(
@@ -393,16 +326,12 @@ class AppPreferences @Inject constructor(
             LyricsProviderConfig(LyricsProvider.PAXSENIX, true)
         )
         if (raw.isNullOrBlank()) return defaultList
-        return try {
-            raw.split(";").mapNotNull { entry ->
-                val parts = entry.split(":")
-                val provider = LyricsProvider.valueOf(parts[0])
-                val enabled = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
-                LyricsProviderConfig(provider, enabled)
-            }
-        } catch (_: Exception) {
-            defaultList
-        }
+        return raw.split(";").mapNotNull { entry ->
+            val parts = entry.split(":")
+            val provider = LyricsProvider.entries.find { it.name.equals(parts.getOrNull(0), ignoreCase = true) } ?: return@mapNotNull null
+            val enabled = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
+            LyricsProviderConfig(provider, enabled)
+        }.ifEmpty { defaultList }
     }
 
     private fun saveOnlineLyricsProviders(configs: List<LyricsProviderConfig>) {
@@ -410,34 +339,13 @@ class AppPreferences @Inject constructor(
         prefs.edit().putString(KEY_ONLINE_LYRICS_PROVIDERS, str).apply()
     }
 
-    private val _wifiStreamingBitrate = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_WIFI_STREAMING_BITRATE, StreamingBitrate.AUTO.name)
-            StreamingBitrate.valueOf(name ?: StreamingBitrate.AUTO.name)
-        } catch (_: Exception) {
-            StreamingBitrate.AUTO
-        }
-    )
+    private val _wifiStreamingBitrate = MutableStateFlow(getEnumPreference(KEY_WIFI_STREAMING_BITRATE, StreamingBitrate.AUTO))
     val wifiStreamingBitrate: StateFlow<StreamingBitrate> = _wifiStreamingBitrate.asStateFlow()
 
-    private val _cellularStreamingBitrate = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_CELLULAR_STREAMING_BITRATE, StreamingBitrate.BITRATE_192.name)
-            StreamingBitrate.valueOf(name ?: StreamingBitrate.BITRATE_192.name)
-        } catch (_: Exception) {
-            StreamingBitrate.BITRATE_192
-        }
-    )
+    private val _cellularStreamingBitrate = MutableStateFlow(getEnumPreference(KEY_CELLULAR_STREAMING_BITRATE, StreamingBitrate.BITRATE_192))
     val cellularStreamingBitrate: StateFlow<StreamingBitrate> = _cellularStreamingBitrate.asStateFlow()
 
-    private val _transcodingFormat = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_TRANSCODING_FORMAT, TranscodingFormat.RAW.name)
-            TranscodingFormat.valueOf(name ?: TranscodingFormat.RAW.name)
-        } catch (_: Exception) {
-            TranscodingFormat.RAW
-        }
-    )
+    private val _transcodingFormat = MutableStateFlow(getEnumPreference(KEY_TRANSCODING_FORMAT, TranscodingFormat.RAW))
     val transcodingFormat: StateFlow<TranscodingFormat> = _transcodingFormat.asStateFlow()
 
     private val _autoNextEnabled = MutableStateFlow(
@@ -455,24 +363,10 @@ class AppPreferences @Inject constructor(
     )
     val autoResume: StateFlow<Boolean> = _autoResume.asStateFlow()
 
-    private val _downloadQuality = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_DOWNLOAD_QUALITY, DownloadQualityPreference.BITRATE_192.name)
-            DownloadQualityPreference.valueOf(name ?: DownloadQualityPreference.BITRATE_192.name)
-        } catch (_: Exception) {
-            DownloadQualityPreference.BITRATE_192
-        }
-    )
+    private val _downloadQuality = MutableStateFlow(getEnumPreference(KEY_DOWNLOAD_QUALITY, DownloadQualityPreference.BITRATE_192))
     val downloadQuality: StateFlow<DownloadQualityPreference> = _downloadQuality.asStateFlow()
 
-    private val _downloadFormat = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_DOWNLOAD_FORMAT, DownloadFormatPreference.ORIGINAL.name)
-            DownloadFormatPreference.valueOf(name ?: DownloadFormatPreference.ORIGINAL.name)
-        } catch (_: Exception) {
-            DownloadFormatPreference.ORIGINAL
-        }
-    )
+    private val _downloadFormat = MutableStateFlow(getEnumPreference(KEY_DOWNLOAD_FORMAT, DownloadFormatPreference.ORIGINAL))
     val downloadFormat: StateFlow<DownloadFormatPreference> = _downloadFormat.asStateFlow()
 
     private val _prefetchUpcomingEnabled = MutableStateFlow(
@@ -505,44 +399,16 @@ class AppPreferences @Inject constructor(
     )
     val appLanguage: StateFlow<AppLanguage> = _appLanguage.asStateFlow()
 
-    private val _bottomNavIndicatorStyle = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_BOTTOM_NAV_INDICATOR_STYLE, BottomNavIndicatorStyle.PILL.name)
-            BottomNavIndicatorStyle.valueOf(name ?: BottomNavIndicatorStyle.PILL.name)
-        } catch (_: Exception) {
-            BottomNavIndicatorStyle.PILL
-        }
-    )
+    private val _bottomNavIndicatorStyle = MutableStateFlow(getEnumPreference(KEY_BOTTOM_NAV_INDICATOR_STYLE, BottomNavIndicatorStyle.PILL))
     val bottomNavIndicatorStyle: StateFlow<BottomNavIndicatorStyle> = _bottomNavIndicatorStyle.asStateFlow()
 
-    private val _playlistCoverStyle = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_PLAYLIST_COVER_STYLE, PlaylistCoverStyle.GRID.name)
-            PlaylistCoverStyle.valueOf(name ?: PlaylistCoverStyle.GRID.name)
-        } catch (_: Exception) {
-            PlaylistCoverStyle.GRID
-        }
-    )
+    private val _playlistCoverStyle = MutableStateFlow(getEnumPreference(KEY_PLAYLIST_COVER_STYLE, PlaylistCoverStyle.GRID))
     val playlistCoverStyle: StateFlow<PlaylistCoverStyle> = _playlistCoverStyle.asStateFlow()
 
-    private val _swipeRightAction = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_SWIPE_RIGHT_ACTION, TrackSwipeAction.PLAY_NEXT.name)
-            TrackSwipeAction.valueOf(name ?: TrackSwipeAction.PLAY_NEXT.name)
-        } catch (_: Exception) {
-            TrackSwipeAction.PLAY_NEXT
-        }
-    )
+    private val _swipeRightAction = MutableStateFlow(getEnumPreference(KEY_SWIPE_RIGHT_ACTION, TrackSwipeAction.PLAY_NEXT))
     val swipeRightAction: StateFlow<TrackSwipeAction> = _swipeRightAction.asStateFlow()
 
-    private val _swipeLeftAction = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_SWIPE_LEFT_ACTION, TrackSwipeAction.ADD_TO_QUEUE.name)
-            TrackSwipeAction.valueOf(name ?: TrackSwipeAction.ADD_TO_QUEUE.name)
-        } catch (_: Exception) {
-            TrackSwipeAction.ADD_TO_QUEUE
-        }
-    )
+    private val _swipeLeftAction = MutableStateFlow(getEnumPreference(KEY_SWIPE_LEFT_ACTION, TrackSwipeAction.ADD_TO_QUEUE))
     val swipeLeftAction: StateFlow<TrackSwipeAction> = _swipeLeftAction.asStateFlow()
 
     private val _alwaysShowNavBar = MutableStateFlow(
@@ -575,14 +441,7 @@ class AppPreferences @Inject constructor(
     )
     val showMusicBrainzLinks: StateFlow<Boolean> = _showMusicBrainzLinks.asStateFlow()
 
-    private val _coverArtQuality = MutableStateFlow(
-        try {
-            val name = prefs.getString(KEY_COVER_ART_QUALITY, CoverArtQuality.HIGH.name)
-            CoverArtQuality.valueOf(name ?: CoverArtQuality.HIGH.name)
-        } catch (_: Exception) {
-            CoverArtQuality.HIGH
-        }
-    )
+    private val _coverArtQuality = MutableStateFlow(getEnumPreference(KEY_COVER_ART_QUALITY, CoverArtQuality.HIGH))
     val coverArtQuality: StateFlow<CoverArtQuality> = _coverArtQuality.asStateFlow()
 
     private val _keepScreenOnLyrics = MutableStateFlow(

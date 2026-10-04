@@ -271,7 +271,7 @@ fun UtaApp() {
                     })
                 ) { backStackEntry ->
                     val tabArg = backStackEntry.arguments?.getString("tab")
-                    val initialTab = tabArg?.let { runCatching { LibraryTab.valueOf(it) }.getOrNull() }
+                    val initialTab = LibraryTab.entries.find { it.name.equals(tabArg, ignoreCase = true) }
                     LibraryScreen(
                         initialTab = initialTab,
                         onNavigateToAlbum = { albumId -> navController.navigate("album/$albumId") },

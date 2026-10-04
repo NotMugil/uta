@@ -55,11 +55,7 @@ object CanvasCache {
             if (file.exists() && file.length() > 0) {
                 val text = file.readText(Charsets.UTF_8)
                 val meta = json.decodeFromString<CachedCanvasMetadata>(text)
-                val source = try {
-                    CanvasSource.valueOf(meta.source)
-                } catch (_: Exception) {
-                    CanvasSource.COMMUNITY
-                }
+                val source = CanvasSource.entries.find { it.name.equals(meta.source, ignoreCase = true) } ?: CanvasSource.COMMUNITY
                 val artwork = CanvasArtwork(
                     url = meta.url,
                     fallbackUrl = meta.fallbackUrl,
