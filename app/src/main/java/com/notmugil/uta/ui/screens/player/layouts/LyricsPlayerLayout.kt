@@ -51,6 +51,8 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.notmugil.uta.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -133,6 +135,11 @@ fun LyricsPlayerLayout(
     val keepScreenOnLyrics by (appPreferences?.keepScreenOnLyrics?.collectAsState() ?: remember { mutableStateOf(false) })
     val blurInactiveLyrics by (appPreferences?.blurInactiveLyrics?.collectAsState() ?: remember { mutableStateOf(true) })
 
+    val networkMonitor = com.notmugil.uta.data.LocalNetworkMonitor.current
+    val isOnline by (networkMonitor?.isOnline?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isOnline) })
+    val isManualOffline by (appPreferences?.isOfflineModeManual?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isManualOffline) })
+    val isOffline = isManualOffline || !isOnline
+
     val currentView = LocalView.current
     DisposableEffect(keepScreenOnLyrics) {
         if (keepScreenOnLyrics) {
@@ -146,17 +153,21 @@ fun LyricsPlayerLayout(
     val enabledOnlineProviders = remember(onlineProvidersConfig) {
         onlineProvidersConfig.filter { it.enabled }.map { it.provider }
     }
-    val availableProviderEntries = remember(lyricsSourceMode, enabledOnlineProviders) {
-        when (lyricsSourceMode) {
-            LyricsSourceMode.DISABLED -> emptyList()
-            LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
-            LyricsSourceMode.ONLINE_ONLY -> listOf(LyricsProvider.AUTO) + enabledOnlineProviders
-            LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnlineProviders
+    val availableProviderEntries = remember(lyricsSourceMode, enabledOnlineProviders, isOffline) {
+        if (isOffline) {
+            if (lyricsSourceMode == LyricsSourceMode.DISABLED) emptyList() else listOf(LyricsProvider.SUBSONIC)
+        } else {
+            when (lyricsSourceMode) {
+                LyricsSourceMode.DISABLED -> emptyList()
+                LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
+                LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnlineProviders
+            }
         }
     }
 
     var lyricsData by remember { mutableStateOf<LyricsData?>(null) }
     var selectedProvider by remember { mutableStateOf(LyricsProvider.AUTO) }
+    val effectiveSelectedProvider = if (isOffline) LyricsProvider.SUBSONIC else selectedProvider
     var availableProvidersMap by remember(track?.id) { mutableStateOf<Map<LyricsProvider, String>>(emptyMap()) }
     var showProviderMenu by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
@@ -171,11 +182,11 @@ fun LyricsPlayerLayout(
         }
     }
 
-    LaunchedEffect(track?.id, selectedProvider) {
+    LaunchedEffect(track?.id, effectiveSelectedProvider) {
         userScrolledAway = false
     }
 
-    LaunchedEffect(track?.id, lyricsSourceMode) {
+    LaunchedEffect(track?.id, lyricsSourceMode, isOffline) {
         if (track != null && !isLyricsDisabled) {
             try {
                 availableProvidersMap = LyricsRepository.checkAvailableProviders(context, track)
@@ -183,7 +194,7 @@ fun LyricsPlayerLayout(
         }
     }
 
-    LaunchedEffect(track?.id, selectedProvider, lyricsSourceMode) {
+    LaunchedEffect(track?.id, effectiveSelectedProvider, lyricsSourceMode, isOffline) {
         if (isLyricsDisabled) {
             lyricsData = null
             isLoading = false
@@ -192,7 +203,7 @@ fun LyricsPlayerLayout(
         if (track != null) {
             isLoading = true
             try {
-                lyricsData = LyricsRepository.getLyrics(context, track, provider = selectedProvider)
+                lyricsData = LyricsRepository.getLyrics(context, track, provider = effectiveSelectedProvider)
             } catch (_: Exception) {
                 lyricsData = null
             } finally {
@@ -228,6 +239,27 @@ fun LyricsPlayerLayout(
         lines.indexOfLast { it.startMs <= smoothPositionMs }.coerceAtLeast(0)
     } else {
         0
+    }
+
+    val focusedLineIndex by remember(lines, userScrolledAway, isDragged, currentLineIndex) {
+        derivedStateOf {
+            if (!userScrolledAway && !isDragged) {
+                currentLineIndex
+            } else {
+                val layoutInfo = listState.layoutInfo
+                val visibleItems = layoutInfo.visibleItemsInfo
+                if (visibleItems.isEmpty()) {
+                    currentLineIndex
+                } else {
+                    val focalY = layoutInfo.viewportSize.height * 0.35f
+                    val closestItem = visibleItems.minByOrNull { item ->
+                        val itemCenter = item.offset + item.size / 2f
+                        kotlin.math.abs(itemCenter - focalY)
+                    }
+                    closestItem?.index ?: currentLineIndex
+                }
+            }
+        }
     }
 
     LaunchedEffect(currentLineIndex, userScrolledAway, lyricsData) {
@@ -351,17 +383,18 @@ fun LyricsPlayerLayout(
                 ) {
                     itemsIndexed(lines) { index, line ->
                         val isCurrent = index == currentLineIndex
-                        val dist = kotlin.math.abs(index - currentLineIndex)
-                        val targetLineAlpha = if (isBrowsing) {
-                            if (isCurrent) 1.0f else 0.78f
-                        } else {
-                            when (dist) {
+                        val isFocused = index == focusedLineIndex
+                        val focusDist = kotlin.math.abs(index - focusedLineIndex)
+                        val targetLineAlpha = if (blurInactiveLyrics || !isBrowsing) {
+                            when (focusDist) {
                                 0 -> 1.0f
                                 1 -> 0.75f
                                 2 -> 0.55f
                                 3 -> 0.40f
                                 else -> 0.28f
                             }
+                        } else {
+                            if (isCurrent || isFocused) 1.0f else 0.78f
                         }
                         val lineAlpha by animateFloatAsState(
                             targetValue = targetLineAlpha,
@@ -372,8 +405,8 @@ fun LyricsPlayerLayout(
                         val textColor = MaterialTheme.colorScheme.onBackground
                         val dimColor = textColor.copy(alpha = lineAlpha)
 
-                        val targetBlurDp = if (blurInactiveLyrics && !isCurrent && !isBrowsing) {
-                            when (dist) {
+                        val targetBlurDp = if (blurInactiveLyrics && !isFocused) {
+                            when (focusDist) {
                                 1 -> 0.8.dp
                                 2 -> 1.8.dp
                                 3 -> 2.6.dp
@@ -435,7 +468,7 @@ fun LyricsPlayerLayout(
                             }
                         } else {
                             val lineColor = if (isCurrent) accentColor else dimColor
-                            val lineFontWeight = if (isCurrent) FontWeight.ExtraBold else (if (dist == 1) FontWeight.Medium else FontWeight.Normal)
+                            val lineFontWeight = if (isCurrent) FontWeight.ExtraBold else (if (focusDist <= 1) FontWeight.SemiBold else FontWeight.Normal)
                             val lineFontSize = if (isCurrent) 24.sp else 18.sp
                             val lineLineHeight = if (isCurrent) 34.sp else 26.sp
 
@@ -506,7 +539,7 @@ fun LyricsPlayerLayout(
                         }
                     }
                 }
-            } else if (!plainLyrics.isNullOrBlank()) {
+            } else if (!plainLyrics.isNullOrBlank() && !plainLyrics.trim().equals("null", ignoreCase = true)) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -526,11 +559,22 @@ fun LyricsPlayerLayout(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = stringResource(R.string.lyrics_not_found),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Tabler.Outline.Music,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.lyrics_not_found),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
@@ -606,13 +650,13 @@ fun LyricsPlayerLayout(
                 )
             }
 
-            if (track != null && !isLyricsDisabled && availableProviderEntries.isNotEmpty()) {
+            if (!isOffline && track != null && !isLyricsDisabled && availableProviderEntries.size > 1) {
                 Box {
                     IconButton(onClick = { showProviderMenu = true }) {
                         Icon(
                             imageVector = Tabler.Outline.Refresh,
                             contentDescription = stringResource(R.string.lyrics_switch_provider_cd),
-                            tint = if (selectedProvider != LyricsProvider.AUTO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (effectiveSelectedProvider != LyricsProvider.AUTO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -635,7 +679,7 @@ fun LyricsPlayerLayout(
                                     thickness = 0.5.dp
                                 )
                             }
-                            val isSelected = provider == selectedProvider
+                            val isSelected = provider == effectiveSelectedProvider
                             DropdownMenuItem(
                                 text = {
                                     Row(

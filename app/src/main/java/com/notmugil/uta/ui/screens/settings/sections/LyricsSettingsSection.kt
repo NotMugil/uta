@@ -25,7 +25,7 @@ fun LyricsProvidersSubPage(
 ) {
     val lyricsSourceMode by viewModel.lyricsSourceMode.collectAsStateWithLifecycle()
     val onlineProviders by viewModel.onlineLyricsProviders.collectAsStateWithLifecycle()
-    val isOnlineSourceActive = lyricsSourceMode == LyricsSourceMode.BOTH || lyricsSourceMode == LyricsSourceMode.ONLINE_ONLY
+    val isOnlineSourceActive = lyricsSourceMode == LyricsSourceMode.BOTH
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -37,7 +37,6 @@ fun LyricsProvidersSubPage(
             val isSelected = lyricsSourceMode == mode
             val titleRes = when (mode) {
                 LyricsSourceMode.BOTH -> R.string.setting_lyrics_source_both
-                LyricsSourceMode.ONLINE_ONLY -> R.string.setting_lyrics_source_online
                 LyricsSourceMode.SERVER_ONLY -> R.string.setting_lyrics_source_server
                 LyricsSourceMode.DISABLED -> R.string.setting_lyrics_source_disabled
             }

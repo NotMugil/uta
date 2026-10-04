@@ -207,14 +207,6 @@ fun GeneralSubPage(
                     stringResource(R.string.setting_lyrics_source_both)
                 }
             }
-            LyricsSourceMode.ONLINE_ONLY -> {
-                val enabledList = onlineLyricsProviders.filter { it.enabled }.map { it.provider.displayName }
-                if (enabledList.isNotEmpty()) {
-                    "${stringResource(R.string.setting_lyrics_source_online)} (${enabledList.joinToString()})"
-                } else {
-                    stringResource(R.string.setting_lyrics_source_online)
-                }
-            }
             LyricsSourceMode.SERVER_ONLY -> stringResource(R.string.setting_lyrics_source_server)
             LyricsSourceMode.DISABLED -> stringResource(R.string.setting_lyrics_source_disabled)
         }

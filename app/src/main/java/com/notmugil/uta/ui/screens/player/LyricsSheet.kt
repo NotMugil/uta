@@ -58,6 +58,8 @@ import androidx.compose.ui.res.stringResource
 import com.notmugil.uta.R
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -118,6 +120,11 @@ fun LyricsSheet(
     val keepScreenOnLyrics by (appPreferences?.keepScreenOnLyrics?.collectAsState() ?: remember { mutableStateOf(false) })
     val blurInactiveLyrics by (appPreferences?.blurInactiveLyrics?.collectAsState() ?: remember { mutableStateOf(true) })
 
+    val networkMonitor = com.notmugil.uta.data.LocalNetworkMonitor.current
+    val isOnline by (networkMonitor?.isOnline?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isOnline) })
+    val isManualOffline by (appPreferences?.isOfflineModeManual?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isManualOffline) })
+    val isOffline = isManualOffline || !isOnline
+
     val currentView = LocalView.current
     DisposableEffect(keepScreenOnLyrics) {
         if (keepScreenOnLyrics) {
@@ -128,18 +135,22 @@ fun LyricsSheet(
         }
     }
 
-    val availableProviderEntries = remember(onlineLyricsProviders, lyricsSourceMode) {
-        val enabledOnline = onlineLyricsProviders.filter { it.enabled }.map { it.provider }
-        when (lyricsSourceMode) {
-            LyricsSourceMode.DISABLED -> emptyList()
-            LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
-            LyricsSourceMode.ONLINE_ONLY -> listOf(LyricsProvider.AUTO) + enabledOnline
-            LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnline
+    val availableProviderEntries = remember(onlineLyricsProviders, lyricsSourceMode, isOffline) {
+        if (isOffline) {
+            if (lyricsSourceMode == LyricsSourceMode.DISABLED) emptyList() else listOf(LyricsProvider.SUBSONIC)
+        } else {
+            val enabledOnline = onlineLyricsProviders.filter { it.enabled }.map { it.provider }
+            when (lyricsSourceMode) {
+                LyricsSourceMode.DISABLED -> emptyList()
+                LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
+                LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnline
+            }
         }
     }
 
     var lyricsData by remember { mutableStateOf<LyricsData?>(null) }
     var selectedProvider by remember { mutableStateOf(LyricsProvider.AUTO) }
+    val effectiveSelectedProvider = if (isOffline) LyricsProvider.SUBSONIC else selectedProvider
     var availableProvidersMap by remember(track.id) { mutableStateOf<Map<LyricsProvider, String>>(emptyMap()) }
     var showProviderMenu by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
@@ -157,21 +168,21 @@ fun LyricsSheet(
     }
 
     // Reset user scroll state on new song or provider change
-    LaunchedEffect(track.id, selectedProvider) {
+    LaunchedEffect(track.id, effectiveSelectedProvider) {
         userScrolledAway = false
     }
 
     // Check available providers
-    LaunchedEffect(track.id) {
+    LaunchedEffect(track.id, lyricsSourceMode, isOffline) {
         try {
             availableProvidersMap = LyricsRepository.checkAvailableProviders(context, track)
         } catch (_: Exception) {}
     }
 
-    LaunchedEffect(track.id, selectedProvider) {
+    LaunchedEffect(track.id, effectiveSelectedProvider, lyricsSourceMode, isOffline) {
         isLoading = true
         try {
-            lyricsData = LyricsRepository.getLyrics(context, track, provider = selectedProvider)
+            lyricsData = LyricsRepository.getLyrics(context, track, provider = effectiveSelectedProvider)
         } catch (_: Exception) {
             lyricsData = null
         } finally {
@@ -203,6 +214,27 @@ fun LyricsSheet(
         lines.indexOfLast { it.startMs <= smoothPositionMs }.coerceAtLeast(0)
     } else {
         0
+    }
+
+    val focusedLineIndex by remember(lines, userScrolledAway, isDragged, currentLineIndex) {
+        derivedStateOf {
+            if (!userScrolledAway && !isDragged) {
+                currentLineIndex
+            } else {
+                val layoutInfo = listState.layoutInfo
+                val visibleItems = layoutInfo.visibleItemsInfo
+                if (visibleItems.isEmpty()) {
+                    currentLineIndex
+                } else {
+                    val focalY = layoutInfo.viewportSize.height * 0.35f
+                    val closestItem = visibleItems.minByOrNull { item ->
+                        val itemCenter = item.offset + item.size / 2f
+                        kotlin.math.abs(itemCenter - focalY)
+                    }
+                    closestItem?.index ?: currentLineIndex
+                }
+            }
+        }
     }
 
     LaunchedEffect(currentLineIndex, userScrolledAway, lyricsData) {
@@ -290,39 +322,40 @@ fun LyricsSheet(
                         )
                     }
 
-                    Box {
-                        IconButton(
-                            onClick = { showProviderMenu = true },
-                            modifier = Modifier.size(42.dp)
-                        ) {
-                            Icon(
-                                imageVector = Tabler.Outline.RotateClockwise,
-                                contentDescription = stringResource(R.string.lyrics_switch_provider_cd),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
+                    if (!isOffline && availableProviderEntries.size > 1) {
+                        Box {
+                            IconButton(
+                                onClick = { showProviderMenu = true },
+                                modifier = Modifier.size(42.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Tabler.Outline.Refresh,
+                                    contentDescription = stringResource(R.string.lyrics_switch_provider_cd),
+                                    tint = if (effectiveSelectedProvider != LyricsProvider.AUTO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                            }
 
-                        DropdownMenu(
-                            expanded = showProviderMenu,
-                            onDismissRequest = { showProviderMenu = false },
-                            shape = RoundedCornerShape(12.dp),
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-                            modifier = Modifier
-                                .widthIn(min = 180.dp, max = 260.dp)
-                                .heightIn(max = 320.dp)
-                        ) {
-                            availableProviderEntries.forEachIndexed { index, provider ->
-                                val syncTag = availableProvidersMap[provider]
-                                val isAvailable = availableProvidersMap.isEmpty() || syncTag != null || provider == LyricsProvider.AUTO
-                                if (index > 0) {
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
-                                        thickness = 0.5.dp
-                                    )
-                                }
-                                val isSelected = provider == selectedProvider
+                            DropdownMenu(
+                                expanded = showProviderMenu,
+                                onDismissRequest = { showProviderMenu = false },
+                                shape = RoundedCornerShape(12.dp),
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                                modifier = Modifier
+                                    .widthIn(min = 180.dp, max = 260.dp)
+                                    .heightIn(max = 320.dp)
+                            ) {
+                                availableProviderEntries.forEachIndexed { index, provider ->
+                                    val syncTag = availableProvidersMap[provider]
+                                    val isAvailable = availableProvidersMap.isEmpty() || syncTag != null || provider == LyricsProvider.AUTO
+                                    if (index > 0) {
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f),
+                                            thickness = 0.5.dp
+                                        )
+                                    }
+                                    val isSelected = provider == effectiveSelectedProvider
                                 DropdownMenuItem(
                                     text = {
                                         Row(
@@ -391,8 +424,9 @@ fun LyricsSheet(
                         }
                     }
                 }
+            }
 
-                Box(
+            Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
@@ -435,17 +469,18 @@ fun LyricsSheet(
                         ) {
                             itemsIndexed(lines) { index, line ->
                                 val isCurrent = index == currentLineIndex
-                                val dist = kotlin.math.abs(index - currentLineIndex)
-                                val targetLineAlpha = if (isBrowsing) {
-                                    if (isCurrent) 1.0f else 0.78f
-                                } else {
-                                    when (dist) {
+                                val isFocused = index == focusedLineIndex
+                                val focusDist = kotlin.math.abs(index - focusedLineIndex)
+                                val targetLineAlpha = if (blurInactiveLyrics || !isBrowsing) {
+                                    when (focusDist) {
                                         0 -> 1.0f
                                         1 -> 0.75f
                                         2 -> 0.55f
                                         3 -> 0.40f
                                         else -> 0.28f
                                     }
+                                } else {
+                                    if (isCurrent || isFocused) 1.0f else 0.78f
                                 }
                                 val lineAlpha by animateFloatAsState(
                                     targetValue = targetLineAlpha,
@@ -455,8 +490,8 @@ fun LyricsSheet(
                                 val textColor = MaterialTheme.colorScheme.onBackground
                                 val dimColor = textColor.copy(alpha = lineAlpha)
 
-                                val targetBlurDp = if (blurInactiveLyrics && !isCurrent && !isBrowsing) {
-                                    when (dist) {
+                                val targetBlurDp = if (blurInactiveLyrics && !isFocused) {
+                                    when (focusDist) {
                                         1 -> 0.8.dp
                                         2 -> 1.8.dp
                                         3 -> 2.6.dp
@@ -518,7 +553,7 @@ fun LyricsSheet(
                                     }
                                 } else {
                                     val lineColor = if (isCurrent) accentColor else dimColor
-                                    val lineFontWeight = if (isCurrent) FontWeight.ExtraBold else (if (dist == 1) FontWeight.Medium else FontWeight.Normal)
+                                    val lineFontWeight = if (isCurrent) FontWeight.ExtraBold else (if (focusDist <= 1) FontWeight.SemiBold else FontWeight.Normal)
                                     val lineFontSize = if (isCurrent) 28.sp else 20.sp
                                     val lineLineHeight = if (isCurrent) 38.sp else 28.sp
 
@@ -589,7 +624,7 @@ fun LyricsSheet(
                                 }
                             }
                         }
-                    } else if (!plainLyrics.isNullOrBlank()) {
+                    } else if (!plainLyrics.isNullOrBlank() && !plainLyrics.trim().equals("null", ignoreCase = true)) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -609,11 +644,22 @@ fun LyricsSheet(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = stringResource(R.string.lyrics_not_found),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Tabler.Outline.Music,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.lyrics_not_found),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                )
+                            }
                         }
                     }
                 }

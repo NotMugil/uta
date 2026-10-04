@@ -412,8 +412,7 @@
     <string name="setting_lyrics_header">Paroles</string>
     <string name="setting_lyrics_provider">Fournisseur de paroles</string>
     <string name="setting_lyrics_source_header">Source des paroles</string>
-    <string name="setting_lyrics_source_both">Les deux</string>
-    <string name="setting_lyrics_source_online">En ligne</string>
+    <string name="setting_lyrics_source_both">En ligne + Serveur</string>
     <string name="setting_lyrics_source_server">Serveur</string>
     <string name="setting_lyrics_source_disabled">Aucune parole</string>
     <string name="setting_online_lyrics_inactive_notice">Désactivé car la source sélectionnée n\'utilise pas les fournisseurs en ligne</string>

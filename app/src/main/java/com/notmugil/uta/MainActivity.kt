@@ -40,6 +40,7 @@ interface MainActivityEntryPoint {
     fun appPreferences(): com.notmugil.uta.data.preferences.AppPreferences
     fun dynamicThemeManager(): com.notmugil.uta.ui.theme.DynamicThemeManager
     fun lyricsRepository(): com.notmugil.uta.data.repository.LyricsRepository
+    fun networkMonitor(): com.notmugil.uta.data.NetworkMonitor
 }
 
 @AndroidEntryPoint
@@ -78,6 +79,7 @@ class MainActivity : ComponentActivity(), GeneratedComponentManagerHolder {
         val appPreferences = entryPoint.appPreferences()
         val dynamicThemeManager = entryPoint.dynamicThemeManager()
         val lyricsRepository = entryPoint.lyricsRepository()
+        val networkMonitor = entryPoint.networkMonitor()
         com.notmugil.uta.data.repository.LyricsRepository.init(lyricsRepository)
 
         setContent {
@@ -97,6 +99,7 @@ class MainActivity : ComponentActivity(), GeneratedComponentManagerHolder {
 
             androidx.compose.runtime.CompositionLocalProvider(
                 com.notmugil.uta.data.preferences.LocalAppPreferences provides appPreferences,
+                com.notmugil.uta.data.LocalNetworkMonitor provides networkMonitor,
                 com.notmugil.uta.ui.theme.LocalDynamicThemeManager provides dynamicThemeManager,
                 androidx.compose.ui.platform.LocalConfiguration provides localizedConfig,
                 androidx.compose.ui.platform.LocalContext provides localizedContext

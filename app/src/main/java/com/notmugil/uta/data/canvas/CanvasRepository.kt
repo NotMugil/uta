@@ -39,7 +39,7 @@ object CanvasRepository {
             return@withContext diskCached
         }
 
-        if (SubsonicSession.isOfflineModeActive) {
+        if (SubsonicSession.isManualOffline || !SubsonicSession.isOnline) {
             return@withContext null
         }
 
@@ -92,7 +92,7 @@ object CanvasRepository {
             return@withContext diskCached
         }
 
-        if (SubsonicSession.isOfflineModeActive) {
+        if (SubsonicSession.isManualOffline || !SubsonicSession.isOnline) {
             return@withContext null
         }
 

@@ -214,7 +214,7 @@ fun CoverPlayerLayout(
                                 )
                             }
                         }
-                    } else if (!plainLyrics.isNullOrBlank()) {
+                    } else if (!plainLyrics.isNullOrBlank() && !plainLyrics.trim().equals("null", ignoreCase = true)) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -233,11 +233,22 @@ fun CoverPlayerLayout(
                         }
                     } else {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = stringResource(R.string.lyrics_not_found),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.65f)
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Tabler.Outline.Music,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.lyrics_not_found),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = 0.65f)
+                                )
+                            }
                         }
                     }
                 }

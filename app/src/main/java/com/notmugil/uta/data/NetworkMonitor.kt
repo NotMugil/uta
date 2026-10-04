@@ -23,10 +23,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.staticCompositionLocalOf
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
+
+val LocalNetworkMonitor = staticCompositionLocalOf<NetworkMonitor?> { null }
 
 enum class OfflineReason {
     ONLINE,
@@ -138,9 +141,23 @@ class NetworkMonitor @Inject constructor(
     private fun observeOfflineTransitions() {
         scope.launch {
             SubsonicSession.isOfflineModeActive = isOfflineModeActive.value
+            SubsonicSession.isOnline = _isOnline.value
+            SubsonicSession.isManualOffline = appPreferences.isOfflineModeManual.value
+            SubsonicSession.isServerUnreachable = _isServerUnreachable.value
+
             var previousOffline = isOfflineModeActive.value
-            isOfflineModeActive.collect { offline ->
+            combine(
+                appPreferences.isOfflineModeManual,
+                _isOnline,
+                _isServerUnreachable,
+                isOfflineModeActive
+            ) { manual, online, unreachable, offline ->
                 SubsonicSession.isOfflineModeActive = offline
+                SubsonicSession.isOnline = online
+                SubsonicSession.isManualOffline = manual
+                SubsonicSession.isServerUnreachable = unreachable
+                offline
+            }.distinctUntilChanged().collect { offline ->
                 if (previousOffline && !offline) {
                     Timber.i("[NetworkMonitor] Reconnected to online mode! Flushing outboxes...")
                     try {

@@ -64,7 +64,7 @@ data class LyricsData(
         get() = syncedLines.isNotEmpty()
 
     val isEmpty: Boolean
-        get() = syncedLines.isEmpty() && plainLyrics.isNullOrBlank()
+        get() = syncedLines.isEmpty() && (plainLyrics.isNullOrBlank() || plainLyrics.trim().equals("null", ignoreCase = true))
 
     val syncTypeTag: String?
         get() = when {
@@ -438,17 +438,19 @@ object GenericLyricsHelper {
                         parseTtml(ttmlContent, defaultSource)?.let { return it }
                     }
 
-                    val syncedText = element["syncedLyrics"]?.jsonPrimitive?.content
+                    val syncedText = (element["syncedLyrics"]?.jsonPrimitive?.content
                         ?: element["synced"]?.jsonPrimitive?.content
                         ?: element["lrc"]?.jsonPrimitive?.content
                         ?: element["lrc"]?.jsonObject?.get("lyric")?.jsonPrimitive?.content
                         ?: element["yrc"]?.jsonObject?.get("lyric")?.jsonPrimitive?.content
-                        ?: element["klyric"]?.jsonObject?.get("lyric")?.jsonPrimitive?.content
+                        ?: element["klyric"]?.jsonObject?.get("lyric")?.jsonPrimitive?.content)
+                        ?.takeIf { !it.trim().equals("null", ignoreCase = true) }
 
-                    val plainText = element["plainLyrics"]?.jsonPrimitive?.content
+                    val plainText = (element["plainLyrics"]?.jsonPrimitive?.content
                         ?: element["lyrics"]?.jsonPrimitive?.content
                         ?: element["text"]?.jsonPrimitive?.content
-                        ?: element["plain"]?.jsonPrimitive?.content
+                        ?: element["plain"]?.jsonPrimitive?.content)
+                        ?.takeIf { !it.trim().equals("null", ignoreCase = true) }
 
                     if (syncedText == null && plainText == null && element.containsKey("data")) {
                         val nested = element["data"]
@@ -557,11 +559,11 @@ object GenericLyricsHelper {
         val parsedLines = LrcParser.parse(trimmed)
         if (parsedLines.isNotEmpty()) {
             return LyricsData(
-                plainLyrics = trimmed,
+                plainLyrics = trimmed.takeUnless { it.equals("null", ignoreCase = true) },
                 syncedLines = parsedLines,
                 source = defaultSource
             )
-        } else if (trimmed.isNotBlank()) {
+        } else if (trimmed.isNotBlank() && !trimmed.equals("null", ignoreCase = true)) {
             return LyricsData(
                 plainLyrics = trimmed,
                 syncedLines = emptyList(),
@@ -615,8 +617,8 @@ object LrclibService {
                 val array = json.parseToJsonElement(body).jsonArray
                 for (item in array) {
                     val obj = item.jsonObject
-                    val synced = obj["syncedLyrics"]?.jsonPrimitive?.content
-                    val plain = obj["plainLyrics"]?.jsonPrimitive?.content
+                    val synced = obj["syncedLyrics"]?.jsonPrimitive?.content?.takeIf { !it.trim().equals("null", ignoreCase = true) }
+                    val plain = obj["plainLyrics"]?.jsonPrimitive?.content?.takeIf { !it.trim().equals("null", ignoreCase = true) }
                     val isInstrumental = obj["instrumental"]?.jsonPrimitive?.booleanOrNull == true
 
                     if (!synced.isNullOrBlank()) {
@@ -654,8 +656,8 @@ object LrclibService {
 
     private fun parseLrclibJson(jsonString: String): LyricsData? = try {
         val root = json.parseToJsonElement(jsonString).jsonObject
-        val synced = root["syncedLyrics"]?.jsonPrimitive?.content
-        val plain = root["plainLyrics"]?.jsonPrimitive?.content
+        val synced = root["syncedLyrics"]?.jsonPrimitive?.content?.takeIf { !it.trim().equals("null", ignoreCase = true) }
+        val plain = root["plainLyrics"]?.jsonPrimitive?.content?.takeIf { !it.trim().equals("null", ignoreCase = true) }
         val isInstrumental = root["instrumental"]?.jsonPrimitive?.booleanOrNull == true
 
         if (!synced.isNullOrBlank()) {
@@ -859,7 +861,8 @@ object PaxsenixService {
 class LyricsRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appPreferences: AppPreferences,
-    private val subsonicRepository: SubsonicRepository
+    private val subsonicRepository: SubsonicRepository,
+    private val networkMonitor: com.notmugil.uta.data.NetworkMonitor
 ) {
     private val availabilityCache = LruCache<String, Map<LyricsProvider, String>>(100)
 
@@ -873,28 +876,33 @@ class LyricsRepository @Inject constructor(
             return@withContext LyricsData()
         }
 
-        val isOffline = com.notmugil.uta.data.SubsonicSession.isOfflineModeActive || appPreferences.isOfflineModeManual.value
-        val cacheKey = "${track.id}_${provider.name}"
+        val isManualOffline = appPreferences.isOfflineModeManual.value
+        val isOnline = networkMonitor.isOnline.value
+        val isTrueOffline = isManualOffline || !isOnline
 
-        // Always return cached lyrics if present
+        val effectiveProvider = if (isTrueOffline && (mode == LyricsSourceMode.SERVER_ONLY || mode == LyricsSourceMode.BOTH)) {
+            LyricsProvider.SUBSONIC
+        } else {
+            provider
+        }
+
+        val cacheKey = "${track.id}_${effectiveProvider.name}"
+
         val cached = LyricsCache.get(context, cacheKey)
-        if (cached != null && (!forceRefresh || isOffline)) {
+        if (cached != null && (!forceRefresh || isTrueOffline)) {
             return@withContext cached
         }
 
-        // In offline mode: never make any outgoing network requests
-        if (isOffline) {
-            return@withContext LyricsData()
+        if (isTrueOffline) {
+            return@withContext fetchSubsonicLyrics(track)?.also {
+                LyricsCache.put(context, cacheKey, it)
+            } ?: LyricsData()
         }
 
-        val result = when (provider) {
+        val result = when (effectiveProvider) {
             LyricsProvider.SUBSONIC -> {
-                if (mode == LyricsSourceMode.ONLINE_ONLY) {
-                    null
-                } else {
-                    fetchSubsonicLyrics(track)?.also {
-                        LyricsCache.put(context, cacheKey, it)
-                    }
+                fetchSubsonicLyrics(track)?.also {
+                    LyricsCache.put(context, cacheKey, it)
                 }
             }
             LyricsProvider.LRCLIB -> {
@@ -931,7 +939,6 @@ class LyricsRepository @Inject constructor(
 
                 val allEnabledProviders = when (mode) {
                     LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.SUBSONIC)
-                    LyricsSourceMode.ONLINE_ONLY -> enabledOnlineProviders
                     LyricsSourceMode.BOTH -> enabledOnlineProviders + listOf(LyricsProvider.SUBSONIC)
                     LyricsSourceMode.DISABLED -> emptyList()
                 }
@@ -1055,12 +1062,23 @@ class LyricsRepository @Inject constructor(
             return@withContext emptyMap()
         }
 
+        val isManualOffline = appPreferences.isOfflineModeManual.value
+        val isOnline = networkMonitor.isOnline.value
+        val isTrueOffline = isManualOffline || !isOnline
+
+        if (isTrueOffline) {
+            val data = getLyrics(track, provider = LyricsProvider.SUBSONIC)
+            val tag = data.syncTypeTag
+            val map = if (tag != null) mapOf(LyricsProvider.SUBSONIC to tag) else emptyMap()
+            availabilityCache.put(track.id, map)
+            return@withContext map
+        }
+
         val enabledOnline = appPreferences.onlineLyricsProviders.value
             .filter { it.enabled }
             .map { it.provider }
         val providers = when (mode) {
             LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.SUBSONIC)
-            LyricsSourceMode.ONLINE_ONLY -> enabledOnline
             LyricsSourceMode.BOTH -> listOf(LyricsProvider.SUBSONIC) + enabledOnline
             LyricsSourceMode.DISABLED -> emptyList()
         }

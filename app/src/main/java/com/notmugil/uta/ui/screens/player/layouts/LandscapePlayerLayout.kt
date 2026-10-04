@@ -51,6 +51,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.notmugil.uta.R
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -135,15 +136,24 @@ fun LandscapePlayerLayout(
     val lyricsSourceMode by (appPreferences?.lyricsSourceMode?.collectAsState() ?: remember { mutableStateOf(LyricsSourceMode.BOTH) })
     val isLyricsDisabled = lyricsSourceMode == LyricsSourceMode.DISABLED
     val onlineProvidersConfig by (appPreferences?.onlineLyricsProviders?.collectAsState() ?: remember { mutableStateOf(emptyList()) })
+
+    val networkMonitor = com.notmugil.uta.data.LocalNetworkMonitor.current
+    val isOnline by (networkMonitor?.isOnline?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isOnline) })
+    val isManualOffline by (appPreferences?.isOfflineModeManual?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isManualOffline) })
+    val isOffline = isManualOffline || !isOnline
+
     val enabledOnlineProviders = remember(onlineProvidersConfig) {
         onlineProvidersConfig.filter { it.enabled }.map { it.provider }
     }
-    val availableProviderEntries = remember(lyricsSourceMode, enabledOnlineProviders) {
-        when (lyricsSourceMode) {
-            LyricsSourceMode.DISABLED -> emptyList()
-            LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
-            LyricsSourceMode.ONLINE_ONLY -> listOf(LyricsProvider.AUTO) + enabledOnlineProviders
-            LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnlineProviders
+    val availableProviderEntries = remember(lyricsSourceMode, enabledOnlineProviders, isOffline) {
+        if (isOffline) {
+            if (lyricsSourceMode == LyricsSourceMode.DISABLED) emptyList() else listOf(LyricsProvider.SUBSONIC)
+        } else {
+            when (lyricsSourceMode) {
+                LyricsSourceMode.DISABLED -> emptyList()
+                LyricsSourceMode.SERVER_ONLY -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC)
+                LyricsSourceMode.BOTH -> listOf(LyricsProvider.AUTO, LyricsProvider.SUBSONIC) + enabledOnlineProviders
+            }
         }
     }
 
@@ -164,6 +174,7 @@ fun LandscapePlayerLayout(
 
     var lyricsData by remember { mutableStateOf<LyricsData?>(null) }
     var selectedProvider by remember { mutableStateOf(LyricsProvider.AUTO) }
+    val effectiveSelectedProvider = if (isOffline) LyricsProvider.SUBSONIC else selectedProvider
     var availableProvidersMap by remember(track?.id) { mutableStateOf<Map<LyricsProvider, String>>(emptyMap()) }
     var showProviderMenu by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(true) }
@@ -178,11 +189,11 @@ fun LandscapePlayerLayout(
         }
     }
 
-    LaunchedEffect(track?.id, selectedProvider) {
+    LaunchedEffect(track?.id, effectiveSelectedProvider) {
         userScrolledAway = false
     }
 
-    LaunchedEffect(track?.id, lyricsSourceMode) {
+    LaunchedEffect(track?.id, lyricsSourceMode, isOffline) {
         if (track != null && !isLyricsDisabled) {
             try {
                 availableProvidersMap = LyricsRepository.checkAvailableProviders(context, track)
@@ -190,7 +201,7 @@ fun LandscapePlayerLayout(
         }
     }
 
-    LaunchedEffect(track?.id, selectedProvider, lyricsSourceMode) {
+    LaunchedEffect(track?.id, effectiveSelectedProvider, lyricsSourceMode, isOffline) {
         if (isLyricsDisabled) {
             lyricsData = null
             isLoading = false
@@ -199,7 +210,7 @@ fun LandscapePlayerLayout(
         if (track != null) {
             isLoading = true
             try {
-                lyricsData = LyricsRepository.getLyrics(context, track, provider = selectedProvider)
+                lyricsData = LyricsRepository.getLyrics(context, track, provider = effectiveSelectedProvider)
             } catch (_: Exception) {
                 lyricsData = null
             } finally {
@@ -657,7 +668,7 @@ fun LandscapePlayerLayout(
                                 }
                             }
                         }
-                    } else if (!plainLyrics.isNullOrBlank()) {
+                    } else if (!plainLyrics.isNullOrBlank() && !plainLyrics.trim().equals("null", ignoreCase = true)) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -677,12 +688,23 @@ fun LandscapePlayerLayout(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = stringResource(R.string.lyrics_not_found),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Tabler.Outline.Music,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.lyrics_not_found),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
@@ -708,7 +730,7 @@ fun LandscapePlayerLayout(
                 )
             }
 
-            if (!showQueue && track != null && !isLyricsDisabled && availableProviderEntries.isNotEmpty()) {
+            if (!isOffline && !showQueue && track != null && !isLyricsDisabled && availableProviderEntries.size > 1) {
                 Box {
                     IconButton(
                         onClick = { showProviderMenu = true },
@@ -717,7 +739,7 @@ fun LandscapePlayerLayout(
                         Icon(
                             imageVector = Tabler.Outline.Refresh,
                             contentDescription = stringResource(R.string.lyrics_switch_provider_cd),
-                            tint = if (selectedProvider != LyricsProvider.AUTO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (effectiveSelectedProvider != LyricsProvider.AUTO) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -741,7 +763,7 @@ fun LandscapePlayerLayout(
                                     thickness = 0.5.dp
                                 )
                             }
-                            val isSelected = provider == selectedProvider
+                            val isSelected = provider == effectiveSelectedProvider
 
                             DropdownMenuItem(
                                 text = {

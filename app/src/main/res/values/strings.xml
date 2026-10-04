@@ -412,8 +412,7 @@
     <string name="setting_lyrics_header">Lyrics</string>
     <string name="setting_lyrics_provider">Song Lyrics Provider</string>
     <string name="setting_lyrics_source_header">Lyrics Source</string>
-    <string name="setting_lyrics_source_both">Both</string>
-    <string name="setting_lyrics_source_online">Online</string>
+    <string name="setting_lyrics_source_both">Online + Server</string>
     <string name="setting_lyrics_source_server">Server</string>
     <string name="setting_lyrics_source_disabled">No lyrics</string>
     <string name="setting_online_lyrics_inactive_notice">Disabled because lyrics source does not use online providers</string>
