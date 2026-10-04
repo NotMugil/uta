@@ -104,6 +104,20 @@
     <string name="setting_home_sections_subtitle">Customize and reorder sections on the home screen</string>
     <string name="setting_home_sections_reset">Reset to default</string>
 
+    <!-- Navigation Bar Sections Settings -->
+    <string name="setting_navbar_sections_title">Navigation bar sections</string>
+    <string name="setting_navbar_sections_subtitle">Customize and reorder navigation bar buttons</string>
+    <string name="setting_navbar_sections_reset">Reset to default</string>
+
+    <!-- Mini Player Buttons Settings -->
+    <string name="setting_miniplayer_buttons_title">Mini player buttons</string>
+    <string name="setting_miniplayer_buttons_subtitle">Customize and reorder buttons in the mini player</string>
+    <string name="setting_miniplayer_buttons_reset">Reset to default</string>
+    <string name="action_play_pause">Play / Pause</string>
+    <string name="action_previous">Previous</string>
+    <string name="action_next">Next</string>
+    <string name="action_favorite">Favorite</string>
+
     <!-- Search Screen -->
     <string name="search_placeholder">Search songs, albums, artists…</string>
     <string name="search_tracks">Tracks</string>

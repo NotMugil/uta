@@ -11,6 +11,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.composables.icons.tabler.Tabler
+import com.composables.icons.tabler.outline.*
+import com.composables.icons.tabler.filled.*
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import javax.inject.Inject
@@ -216,6 +220,63 @@ enum class HomeSection(val titleRes: Int) {
     }
 }
 
+data class NavBarItemConfig(
+    val item: NavBarItem,
+    val enabled: Boolean = true
+)
+
+enum class NavBarItem(
+    @androidx.annotation.StringRes val titleRes: Int,
+    val icon: ImageVector,
+    val activeIcon: ImageVector = icon
+) {
+    HOME(com.notmugil.uta.R.string.nav_home, Tabler.Outline.Home, Tabler.Filled.Home),
+    SEARCH(com.notmugil.uta.R.string.nav_search, Tabler.Outline.Search),
+    DOWNLOADS(com.notmugil.uta.R.string.nav_downloads, Tabler.Outline.Download),
+    LIBRARY(com.notmugil.uta.R.string.nav_library, Tabler.Outline.Books),
+    SETTINGS(com.notmugil.uta.R.string.nav_settings, Tabler.Outline.Settings, Tabler.Filled.Settings);
+
+    companion object {
+        val defaultItems: List<NavBarItemConfig> = listOf(
+            NavBarItemConfig(HOME, true),
+            NavBarItemConfig(SEARCH, true),
+            NavBarItemConfig(DOWNLOADS, true),
+            NavBarItemConfig(LIBRARY, true),
+            NavBarItemConfig(SETTINGS, true)
+        )
+
+        fun fromString(name: String): NavBarItem? =
+            entries.find { it.name.equals(name, ignoreCase = true) }
+    }
+}
+
+data class MiniPlayerButtonConfig(
+    val button: MiniPlayerButton,
+    val enabled: Boolean = true
+)
+
+enum class MiniPlayerButton(
+    @androidx.annotation.StringRes val titleRes: Int,
+    val icon: ImageVector
+) {
+    FAVORITE(com.notmugil.uta.R.string.action_favorite, Tabler.Filled.Heart),
+    PAUSE_PLAY(com.notmugil.uta.R.string.action_play_pause, Tabler.Filled.PlayerPlay),
+    SKIP_PREV(com.notmugil.uta.R.string.action_previous, Tabler.Filled.PlayerSkipBack),
+    SKIP_NEXT(com.notmugil.uta.R.string.action_next, Tabler.Filled.PlayerSkipForward);
+
+    companion object {
+        val defaultButtons: List<MiniPlayerButtonConfig> = listOf(
+            MiniPlayerButtonConfig(FAVORITE, true),
+            MiniPlayerButtonConfig(PAUSE_PLAY, true),
+            MiniPlayerButtonConfig(SKIP_PREV, false),
+            MiniPlayerButtonConfig(SKIP_NEXT, false)
+        )
+
+        fun fromString(name: String): MiniPlayerButton? =
+            entries.find { it.name.equals(name, ignoreCase = true) }
+    }
+}
+
 val LocalAppPreferences = staticCompositionLocalOf<AppPreferences?> {
     null
 }
@@ -275,6 +336,8 @@ class AppPreferences @Inject constructor(
         private const val KEY_KEEP_SCREEN_ON_LYRICS = "keep_screen_on_lyrics"
         private const val KEY_BLUR_INACTIVE_LYRICS = "blur_inactive_lyrics"
         private const val KEY_HOME_SECTIONS = "home_sections_config"
+        private const val KEY_NAVBAR_SECTIONS = "navbar_sections_config"
+        private const val KEY_MINIPLAYER_BUTTONS = "miniplayer_buttons_config"
     }
 
     private inline fun <reified T : Enum<T>> getEnumPreference(key: String, defaultValue: T): T {
@@ -772,12 +835,85 @@ class AppPreferences @Inject constructor(
     }
 
     fun setHomeSectionConfigs(configs: List<HomeSectionConfig>) {
-        _homeSectionConfigs.value = configs
-        val str = configs.joinToString(";") { "${it.section.name}:${it.enabled}" }
+        val safeConfigs = if (configs.none { it.enabled }) {
+            configs.mapIndexed { idx, cfg -> if (idx == 0) cfg.copy(enabled = true) else cfg }
+        } else {
+            configs
+        }
+        _homeSectionConfigs.value = safeConfigs
+        val str = safeConfigs.joinToString(";") { "${it.section.name}:${it.enabled}" }
         prefs.edit().putString(KEY_HOME_SECTIONS, str).apply()
     }
 
     fun resetHomeSections() {
         setHomeSectionConfigs(HomeSection.defaultSections)
+    }
+
+    private val _navBarItemConfigs = MutableStateFlow(loadNavBarItemConfigs())
+    val navBarItemConfigs: StateFlow<List<NavBarItemConfig>> = _navBarItemConfigs.asStateFlow()
+
+    private fun loadNavBarItemConfigs(): List<NavBarItemConfig> {
+        val raw = prefs.getString(KEY_NAVBAR_SECTIONS, null)
+        val defaultList = NavBarItem.defaultItems
+        if (raw.isNullOrBlank()) return defaultList
+        val parsed = raw.split(";").mapNotNull { entry ->
+            val parts = entry.split(":")
+            val item = NavBarItem.fromString(parts.getOrNull(0).orEmpty()) ?: return@mapNotNull null
+            val enabled = if (item == NavBarItem.HOME) true else (parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true)
+            NavBarItemConfig(item, enabled)
+        }
+        val presentItems = parsed.map { it.item }.toSet()
+        val missingItems = defaultList.filter { it.item !in presentItems }
+        val combined = (parsed + missingItems).map {
+            if (it.item == NavBarItem.HOME) it.copy(enabled = true) else it
+        }
+        return combined.ifEmpty { defaultList }
+    }
+
+    fun setNavBarItemConfigs(configs: List<NavBarItemConfig>) {
+        val safeConfigs = configs.map {
+            if (it.item == NavBarItem.HOME) it.copy(enabled = true) else it
+        }
+        _navBarItemConfigs.value = safeConfigs
+        val str = safeConfigs.joinToString(";") { "${it.item.name}:${it.enabled}" }
+        prefs.edit().putString(KEY_NAVBAR_SECTIONS, str).apply()
+    }
+
+    fun resetNavBarItems() {
+        setNavBarItemConfigs(NavBarItem.defaultItems)
+    }
+
+    private val _miniPlayerButtonConfigs = MutableStateFlow(loadMiniPlayerButtonConfigs())
+    val miniPlayerButtonConfigs: StateFlow<List<MiniPlayerButtonConfig>> = _miniPlayerButtonConfigs.asStateFlow()
+
+    private fun loadMiniPlayerButtonConfigs(): List<MiniPlayerButtonConfig> {
+        val raw = prefs.getString(KEY_MINIPLAYER_BUTTONS, null)
+        val defaultList = MiniPlayerButton.defaultButtons
+        if (raw.isNullOrBlank()) return defaultList
+        val parsed = raw.split(";").mapNotNull { entry ->
+            val parts = entry.split(":")
+            val button = MiniPlayerButton.fromString(parts.getOrNull(0).orEmpty()) ?: return@mapNotNull null
+            val enabled = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: true
+            MiniPlayerButtonConfig(button, enabled)
+        }
+        val presentButtons = parsed.map { it.button }.toSet()
+        val missingButtons = defaultList.filter { it.button !in presentButtons }
+        val combined = parsed + missingButtons
+        return combined.ifEmpty { defaultList }
+    }
+
+    fun setMiniPlayerButtonConfigs(configs: List<MiniPlayerButtonConfig>) {
+        val safeConfigs = if (configs.none { it.enabled }) {
+            configs.mapIndexed { idx, cfg -> if (cfg.button == MiniPlayerButton.PAUSE_PLAY) cfg.copy(enabled = true) else cfg }
+        } else {
+            configs
+        }
+        _miniPlayerButtonConfigs.value = safeConfigs
+        val str = safeConfigs.joinToString(";") { "${it.button.name}:${it.enabled}" }
+        prefs.edit().putString(KEY_MINIPLAYER_BUTTONS, str).apply()
+    }
+
+    fun resetMiniPlayerButtons() {
+        setMiniPlayerButtonConfigs(MiniPlayerButton.defaultButtons)
     }
 }

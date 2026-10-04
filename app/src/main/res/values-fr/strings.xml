@@ -104,6 +104,20 @@
     <string name="setting_home_sections_subtitle">Personnaliser et réorganiser les sections de l\'accueil</string>
     <string name="setting_home_sections_reset">Rétablir par défaut</string>
 
+    <!-- Navigation Bar Sections Settings -->
+    <string name="setting_navbar_sections_title">Sections de la barre de navigation</string>
+    <string name="setting_navbar_sections_subtitle">Personnaliser et réorganiser les boutons de navigation</string>
+    <string name="setting_navbar_sections_reset">Rétablir par défaut</string>
+
+    <!-- Mini Player Buttons Settings -->
+    <string name="setting_miniplayer_buttons_title">Boutons du mini-lecteur</string>
+    <string name="setting_miniplayer_buttons_subtitle">Personnaliser et réorganiser les boutons du mini-lecteur</string>
+    <string name="setting_miniplayer_buttons_reset">Rétablir par défaut</string>
+    <string name="action_play_pause">Lecture / Pause</string>
+    <string name="action_previous">Précédent</string>
+    <string name="action_next">Suivant</string>
+    <string name="action_favorite">Favori</string>
+
     <!-- Search Screen -->
     <string name="search_placeholder">Titres, albums, artistes…</string>
     <string name="search_tracks">Titres</string>

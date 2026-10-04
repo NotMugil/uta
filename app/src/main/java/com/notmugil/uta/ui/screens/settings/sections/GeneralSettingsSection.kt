@@ -118,6 +118,14 @@ fun GeneralSubPage(
             onClick = { onNavigate(SettingsSubPage.HOME_SECTIONS) }
         )
 
+        SettingsItemRow(
+            icon = null,
+            title = stringResource(R.string.setting_navbar_sections_title),
+            subtitle = stringResource(R.string.setting_navbar_sections_subtitle),
+            verticalPadding = 14.dp,
+            onClick = { onNavigate(SettingsSubPage.NAVBAR_SECTIONS) }
+        )
+
         SettingsDropdownRow(
             icon = null,
             title = stringResource(R.string.setting_player_style),
@@ -143,6 +151,14 @@ fun GeneralSubPage(
         )
 
         SettingsSectionHeader(stringResource(R.string.setting_miniplayer_header))
+
+        SettingsItemRow(
+            icon = null,
+            title = stringResource(R.string.setting_miniplayer_buttons_title),
+            subtitle = stringResource(R.string.setting_miniplayer_buttons_subtitle),
+            verticalPadding = 14.dp,
+            onClick = { onNavigate(SettingsSubPage.MINIPLAYER_BUTTONS) }
+        )
 
         SettingsDropdownRow(
             icon = null,

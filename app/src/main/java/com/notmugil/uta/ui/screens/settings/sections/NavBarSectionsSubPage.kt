@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.tabler.Tabler
 import com.composables.icons.tabler.outline.*
 import com.notmugil.uta.R
+import com.notmugil.uta.data.preferences.NavBarItem
 import com.notmugil.uta.ui.screens.settings.SettingsViewModel
 import com.notmugil.uta.ui.screens.settings.components.UtaSwitch
 import com.notmugil.uta.util.HapticFeedbackHelper
@@ -46,14 +48,14 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
-fun HomeSectionsSubPage(
+fun NavBarSectionsSubPage(
     viewModel: SettingsViewModel,
     listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
 ) {
-    val sectionConfigs by viewModel.homeSectionConfigs.collectAsStateWithLifecycle()
+    val navBarConfigs by viewModel.navBarItemConfigs.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var currentConfigs by remember(sectionConfigs) { mutableStateOf(sectionConfigs) }
+    var currentConfigs by remember(navBarConfigs) { mutableStateOf(navBarConfigs) }
     val reorderableLazyListState = rememberReorderableLazyListState(
         lazyListState = listState,
         scrollThreshold = 48.dp
@@ -65,7 +67,7 @@ fun HomeSectionsSubPage(
                 add(toIdx, removeAt(fromIdx))
             }
             currentConfigs = updated
-            viewModel.setHomeSectionConfigs(updated)
+            viewModel.setNavBarItemConfigs(updated)
             HapticFeedbackHelper.perform(context, HapticFeedbackHelper.HapticType.LIGHT)
         }
     }
@@ -81,15 +83,15 @@ fun HomeSectionsSubPage(
         ) {
             items(
                 items = currentConfigs,
-                key = { it.section.name }
+                key = { it.item.name }
             ) { config ->
                 ReorderableItem(
                     state = reorderableLazyListState,
-                    key = config.section.name
+                    key = config.item.name
                 ) { isDragging ->
                     val elevation by animateDpAsState(
                         targetValue = if (isDragging) 8.dp else 0.dp,
-                        label = "home_section_drag_elevation"
+                        label = "navbar_section_drag_elevation"
                     )
 
                     Surface(
@@ -97,7 +99,7 @@ fun HomeSectionsSubPage(
                         color = if (isDragging) {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         } else {
-                            androidx.compose.ui.graphics.Color.Transparent
+                            Color.Transparent
                         },
                         shadowElevation = elevation,
                         modifier = Modifier
@@ -135,8 +137,21 @@ fun HomeSectionsSubPage(
 
                                 Spacer(modifier = Modifier.width(8.dp))
 
+                                Icon(
+                                    imageVector = config.item.icon,
+                                    contentDescription = null,
+                                    tint = if (config.enabled) {
+                                        MaterialTheme.colorScheme.onBackground
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                    },
+                                    modifier = Modifier.size(20.dp)
+                                )
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
                                 Text(
-                                    text = stringResource(config.section.titleRes),
+                                    text = stringResource(config.item.titleRes),
                                     style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
                                     fontWeight = FontWeight.Medium,
                                     color = if (config.enabled) {
@@ -147,19 +162,17 @@ fun HomeSectionsSubPage(
                                 )
                             }
 
-                            val enabledCount = currentConfigs.count { it.enabled }
-                            val canToggle = !config.enabled || enabledCount > 1
-
+                            val isHomeItem = config.item == NavBarItem.HOME
                             UtaSwitch(
-                                checked = config.enabled,
-                                enabled = canToggle,
+                                checked = if (isHomeItem) true else config.enabled,
+                                enabled = !isHomeItem,
                                 onCheckedChange = { isChecked ->
-                                    if (!isChecked && enabledCount <= 1) return@UtaSwitch
+                                    if (isHomeItem) return@UtaSwitch
                                     val updated = currentConfigs.map {
-                                        if (it.section == config.section) it.copy(enabled = isChecked) else it
+                                        if (it.item == config.item) it.copy(enabled = isChecked) else it
                                     }
                                     currentConfigs = updated
-                                    viewModel.setHomeSectionConfigs(updated)
+                                    viewModel.setNavBarItemConfigs(updated)
                                 }
                             )
                         }
@@ -175,7 +188,7 @@ fun HomeSectionsSubPage(
                 ) {
                     TextButton(
                         onClick = {
-                            viewModel.resetHomeSections()
+                            viewModel.resetNavBarItems()
                             HapticFeedbackHelper.perform(context, HapticFeedbackHelper.HapticType.CLICK)
                         },
                         colors = ButtonDefaults.textButtonColors(
@@ -189,7 +202,7 @@ fun HomeSectionsSubPage(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.setting_home_sections_reset),
+                            text = stringResource(R.string.setting_navbar_sections_reset),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }

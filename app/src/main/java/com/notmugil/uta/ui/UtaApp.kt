@@ -51,6 +51,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.preferences.MiniPlayerPlacement
+import com.notmugil.uta.data.preferences.NavBarItem
 import com.notmugil.uta.player.PlaybackController
 import com.notmugil.uta.ui.screens.album.AlbumDetailScreen
 import com.notmugil.uta.ui.screens.artist.ArtistDetailScreen
@@ -173,6 +174,8 @@ fun UtaApp() {
     val dynamicThemeManager = LocalDynamicThemeManager.current
 
     val miniPlayerPlacement by prefs?.miniPlayerPlacement?.collectAsState() ?: remember { mutableStateOf(MiniPlayerPlacement.ISOLATED) }
+    val navBarConfigs by prefs?.navBarItemConfigs?.collectAsState() ?: remember { mutableStateOf(NavBarItem.defaultItems) }
+    val visibleNavItems = remember(navBarConfigs) { navBarConfigs.filter { it.enabled }.map { it.item } }
 
     val accentColor = MaterialTheme.colorScheme.primary
     val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
@@ -201,7 +204,7 @@ fun UtaApp() {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val rootRoutes = listOf(NavItems.HOME.name, NavItems.SEARCH.name, NavItems.DOWNLOADS.name, NavItems.LIBRARY.name, NavItems.SETTINGS.name)
+        val rootRoutes = listOf(NavBarItem.HOME.name, NavBarItem.SEARCH.name, NavBarItem.DOWNLOADS.name, NavBarItem.LIBRARY.name, NavBarItem.SETTINGS.name)
         val shouldShowNavBar = currentRoute != null && currentRoute != "LOGIN"
 
         // Determine which root tab is active by finding the nearest root route in the back stack.
@@ -211,15 +214,15 @@ fun UtaApp() {
             if (entry != null) {
                 val route = entry.destination.route
                 if (route in rootRoutes) route
-                else if (route?.startsWith(NavItems.LIBRARY.name) == true) NavItems.LIBRARY.name
+                else if (route?.startsWith(NavBarItem.LIBRARY.name) == true) NavBarItem.LIBRARY.name
                 else {
                     // Walk up the back stack to find the parent root tab
                     entry.destination.parent?.route
                         ?.takeIf { it in rootRoutes }
-                        ?: NavItems.HOME.name
+                        ?: NavBarItem.HOME.name
                 }
             } else {
-                NavItems.HOME.name
+                NavBarItem.HOME.name
             }
         }
 
@@ -230,30 +233,30 @@ fun UtaApp() {
 
             NavHost(
                 navController = navController,
-                startDestination = NavItems.HOME.name,
+                startDestination = NavBarItem.HOME.name,
                 enterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)) },
                 exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(150)) },
                 popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(180)) },
                 popExitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(150)) },
                 modifier = Modifier.fillMaxSize()
             ) {
-                composable(NavItems.HOME.name) {
+                composable(NavBarItem.HOME.name) {
                     HomeScreen(
                         onNavigateToAlbum = { albumId -> navController.navigate("album/$albumId") },
                         onNavigateToArtist = { artistId -> navController.navigate("artist/$artistId") },
                         onNavigateToPlaylist = { playlistId -> navController.navigate("playlist/$playlistId") },
-                        onNavigateToLibraryTab = { tab -> navController.navigate("${NavItems.LIBRARY.name}?tab=${tab.name}") },
+                        onNavigateToLibraryTab = { tab -> navController.navigate("${NavBarItem.LIBRARY.name}?tab=${tab.name}") },
                         onNavigateToHistory = { navController.navigate("history") }
                     )
                 }
-                composable(route = NavItems.SEARCH.name) {
+                composable(route = NavBarItem.SEARCH.name) {
                     SearchScreen(
                         onNavigateToAlbum = { albumId -> navController.navigate("album/$albumId") },
                         onNavigateToArtist = { artistId -> navController.navigate("artist/$artistId") },
                         onNavigateToGenre = { genreName -> navController.navigate("genre/$genreName") }
                     )
                 }
-                composable(route = NavItems.DOWNLOADS.name) {
+                composable(route = NavBarItem.DOWNLOADS.name) {
                     DownloadsScreen(
                         onNavigateToAlbum = { albumId -> navController.navigate("album/$albumId") },
                         onNavigateToPlaylist = { playlistId -> navController.navigate("playlist/$playlistId") },
@@ -263,7 +266,7 @@ fun UtaApp() {
                     )
                 }
                 composable(
-                    route = "${NavItems.LIBRARY.name}?tab={tab}",
+                    route = "${NavBarItem.LIBRARY.name}?tab={tab}",
                     arguments = listOf(navArgument("tab") {
                         nullable = true
                         defaultValue = null
@@ -277,13 +280,13 @@ fun UtaApp() {
                         onNavigateToAlbum = { albumId -> navController.navigate("album/$albumId") },
                         onNavigateToArtist = { artistId -> navController.navigate("artist/$artistId") },
                         onNavigateToPlaylist = { playlistId -> navController.navigate("playlist/$playlistId") },
-                        onNavigateToDownloads = { navController.navigate(NavItems.DOWNLOADS.name) },
+                        onNavigateToDownloads = { navController.navigate(NavBarItem.DOWNLOADS.name) },
                         onNavigateToHistory = { navController.navigate("history") }
                     )
                 }
-                composable(NavItems.SETTINGS.name) {
+                composable(NavBarItem.SETTINGS.name) {
                     SettingsScreen(
-                        onNavigateToDownloads = { navController.navigate(NavItems.DOWNLOADS.name) }
+                        onNavigateToDownloads = { navController.navigate(NavBarItem.DOWNLOADS.name) }
                     )
                 }
                 composable(route = "downloads") {
@@ -297,7 +300,7 @@ fun UtaApp() {
                 }
                 composable(route = "LOGIN") {
                     LoginScreen(onLoginSuccess = {
-                        navController.navigate(NavItems.HOME.name) {
+                        navController.navigate(NavBarItem.HOME.name) {
                             popUpTo("LOGIN") { inclusive = true }
                         }
                     })
@@ -418,6 +421,8 @@ fun UtaApp() {
                         onDismiss = { playbackController.stopAndClearQueue() },
                         isStarred = currentTrack?.isStarred == true,
                         onToggleFavorite = { playbackController.toggleFavorite() },
+                        onSkipNext = { playbackController.skipToNext() },
+                        onSkipPrev = { playbackController.skipToPrevious() },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -441,6 +446,8 @@ fun UtaApp() {
                                 onDismiss = { playbackController.stopAndClearQueue() },
                                 isStarred = currentTrack?.isStarred == true,
                                 onToggleFavorite = { playbackController.toggleFavorite() },
+                                onSkipNext = { playbackController.skipToNext() },
+                                onSkipPrev = { playbackController.skipToPrevious() },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         }
@@ -454,15 +461,15 @@ fun UtaApp() {
                                     .fillMaxWidth()
                                     .height(56.dp)
                             ) {
-                                NavItems.entries.forEach { navItem ->
+                                visibleNavItems.forEach { navItem ->
                                     val isSelected = selectedRootTab == navItem.name
                                     NavigationBarItem(
                                         selected = isSelected,
                                         onClick = {
                                             com.notmugil.uta.util.HapticFeedbackHelper.perform(context, com.notmugil.uta.util.HapticFeedbackHelper.HapticType.LIGHT)
-                                            if (navItem == NavItems.HOME) {
+                                            if (navItem == NavBarItem.HOME) {
                                                 // Always navigate to HOME, clearing any detail pages
-                                                navController.navigate(NavItems.HOME.name) {
+                                                navController.navigate(NavBarItem.HOME.name) {
                                                     popUpTo(navController.graph.findStartDestination().id) {
                                                         saveState = false
                                                     }
@@ -482,7 +489,7 @@ fun UtaApp() {
                                         icon = {
                                             Icon(
                                                 imageVector = if (isSelected) navItem.activeIcon else navItem.icon,
-                                                contentDescription = androidx.compose.ui.res.stringResource(navItem.labelResId),
+                                                contentDescription = androidx.compose.ui.res.stringResource(navItem.titleRes),
                                                 tint = if (isSelected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         },
@@ -621,16 +628,4 @@ fun UtaApp() {
         ToastHost(hostState = toastHostState)
         }
     }
-}
-
-enum class NavItems(
-    @androidx.annotation.StringRes val labelResId: Int,
-    val icon: ImageVector,
-    val activeIcon: ImageVector = icon,
-) {
-    HOME(com.notmugil.uta.R.string.nav_home, Tabler.Outline.Home, Tabler.Filled.Home),
-    SEARCH(com.notmugil.uta.R.string.nav_search, Tabler.Outline.Search),
-    DOWNLOADS(com.notmugil.uta.R.string.nav_downloads, Tabler.Outline.Download),
-    LIBRARY(com.notmugil.uta.R.string.nav_library, Tabler.Outline.Books),
-    SETTINGS(com.notmugil.uta.R.string.nav_settings, Tabler.Outline.Settings, Tabler.Filled.Settings),
 }

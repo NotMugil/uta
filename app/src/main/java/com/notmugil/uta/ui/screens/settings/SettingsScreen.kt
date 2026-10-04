@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -81,8 +83,11 @@ fun SettingsScreen(
     val downloadsScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
     val networkScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
     val lyricsProvidersScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
-    val homeSectionsScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
     val aboutScrollState = rememberSaveable(saver = ScrollState.Saver) { ScrollState(initial = 0) }
+
+    val homeSectionsListState = rememberLazyListState()
+    val navBarSectionsListState = rememberLazyListState()
+    val miniPlayerButtonsListState = rememberLazyListState()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
 
@@ -112,9 +117,8 @@ fun SettingsScreen(
         SettingsSubPage.NETWORK -> networkScrollState
         SettingsSubPage.LYRICS_PROVIDERS,
         SettingsSubPage.ONLINE_LYRICS_PROVIDERS -> lyricsProvidersScrollState
-        SettingsSubPage.HOME_SECTIONS -> homeSectionsScrollState
         SettingsSubPage.ABOUT -> aboutScrollState
-        null -> mainScrollState
+        else -> generalScrollState
     }
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -131,6 +135,9 @@ fun SettingsScreen(
                 subPage = currentSubPage!!,
                 viewModel = viewModel,
                 scrollState = subPageScrollState,
+                homeSectionsListState = homeSectionsListState,
+                navBarSectionsListState = navBarSectionsListState,
+                miniPlayerButtonsListState = miniPlayerButtonsListState,
                 onNavigateToSubPage = { viewModel.navigateToSubPage(it) },
                 onBack = {
                     viewModel.navigateBackFromSubPage()
@@ -335,12 +342,30 @@ private fun SettingsSubPageView(
     subPage: SettingsSubPage,
     viewModel: SettingsViewModel,
     scrollState: ScrollState,
+    homeSectionsListState: LazyListState,
+    navBarSectionsListState: LazyListState,
+    miniPlayerButtonsListState: LazyListState,
     onNavigateToSubPage: (SettingsSubPage) -> Unit,
     onBack: () -> Unit,
     onRequestLogout: () -> Unit
 ) {
-    val isScrolled by remember {
-        derivedStateOf { scrollState.value > 10 }
+    val isScrolled by remember(subPage, scrollState, homeSectionsListState, navBarSectionsListState, miniPlayerButtonsListState) {
+        derivedStateOf {
+            when (subPage) {
+                SettingsSubPage.HOME_SECTIONS -> {
+                    homeSectionsListState.firstVisibleItemIndex > 0 || homeSectionsListState.firstVisibleItemScrollOffset > 10
+                }
+                SettingsSubPage.NAVBAR_SECTIONS -> {
+                    navBarSectionsListState.firstVisibleItemIndex > 0 || navBarSectionsListState.firstVisibleItemScrollOffset > 10
+                }
+                SettingsSubPage.MINIPLAYER_BUTTONS -> {
+                    miniPlayerButtonsListState.firstVisibleItemIndex > 0 || miniPlayerButtonsListState.firstVisibleItemScrollOffset > 10
+                }
+                else -> {
+                    scrollState.value > 10
+                }
+            }
+        }
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -351,7 +376,34 @@ private fun SettingsSubPageView(
                     .statusBarsPadding()
                     .padding(top = 60.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
             ) {
-                HomeSectionsSubPage(viewModel = viewModel)
+                com.notmugil.uta.ui.screens.settings.sections.HomeSectionsSubPage(
+                    viewModel = viewModel,
+                    listState = homeSectionsListState
+                )
+            }
+        } else if (subPage == SettingsSubPage.NAVBAR_SECTIONS) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(top = 60.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
+            ) {
+                com.notmugil.uta.ui.screens.settings.sections.NavBarSectionsSubPage(
+                    viewModel = viewModel,
+                    listState = navBarSectionsListState
+                )
+            }
+        } else if (subPage == SettingsSubPage.MINIPLAYER_BUTTONS) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .padding(top = 60.dp, start = 16.dp, end = 16.dp, bottom = 12.dp)
+            ) {
+                com.notmugil.uta.ui.screens.settings.sections.MiniPlayerButtonsSubPage(
+                    viewModel = viewModel,
+                    listState = miniPlayerButtonsListState
+                )
             }
         } else {
             Column(
@@ -387,7 +439,9 @@ private fun SettingsSubPageView(
                     SettingsSubPage.ABOUT -> {
                         AboutSubPage()
                     }
-                    SettingsSubPage.HOME_SECTIONS -> {}
+                    SettingsSubPage.HOME_SECTIONS,
+                    SettingsSubPage.NAVBAR_SECTIONS,
+                    SettingsSubPage.MINIPLAYER_BUTTONS -> {}
                 }
 
                 Spacer(modifier = Modifier.height(168.dp))

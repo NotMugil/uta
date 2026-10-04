@@ -77,6 +77,8 @@ import androidx.compose.ui.unit.dp
 import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.preferences.MiniPlayerPlacement
 import com.notmugil.uta.data.preferences.MiniPlayerStyle
+import com.notmugil.uta.data.preferences.MiniPlayerButton
+import com.notmugil.uta.data.preferences.MiniPlayerButtonConfig
 import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.ui.theme.LocalDynamicThemeManager
 import kotlinx.coroutines.isActive
@@ -95,6 +97,7 @@ fun MiniPlayer(
     modifier: Modifier = Modifier,
     isBuffering: Boolean = false,
     onSkipNext: (() -> Unit)? = null,
+    onSkipPrev: (() -> Unit)? = null,
     onDismiss: () -> Unit = {},
     isStarred: Boolean = false,
     onToggleFavorite: () -> Unit = {}
@@ -105,6 +108,7 @@ fun MiniPlayer(
     val miniPlayerStyle by prefs?.miniPlayerStyle?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(MiniPlayerStyle.DEFAULT) }
     val miniPlayerPlacement by prefs?.miniPlayerPlacement?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(MiniPlayerPlacement.ISOLATED) }
     val tintMiniPlayerAccent by prefs?.tintMiniPlayerAccent?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(true) }
+    val miniPlayerButtonConfigs by prefs?.miniPlayerButtonConfigs?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(MiniPlayerButton.defaultButtons) }
 
     val dynamicDarkBg by dynamicThemeManager?.dynamicDarkBgColor?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(null) }
 
@@ -301,31 +305,17 @@ fun MiniPlayer(
                                     )
                                 }
 
-                                IconButton(onClick = onToggleFavorite) {
-                                    Icon(
-                                        imageVector = if (isStarred || track.isStarred) Tabler.Filled.Heart else Tabler.Outline.Heart,
-                                        contentDescription = if (isStarred || track.isStarred) stringResource(R.string.action_unstar) else stringResource(R.string.action_star),
-                                        tint = if (isStarred || track.isStarred) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-
-                                IconButton(onClick = onTogglePlayPause) {
-                                    if (isBuffering) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.5.dp,
-                                            color = accentColor
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = if (isPlaying) Tabler.Filled.PlayerPause else Tabler.Filled.PlayerPlay,
-                                            contentDescription = if (isPlaying) stringResource(R.string.action_pause) else stringResource(R.string.action_play),
-                                            tint = accentColor,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                    }
-                                }
+                                MiniPlayerActionButtons(
+                                    buttonConfigs = miniPlayerButtonConfigs,
+                                    isPlaying = isPlaying,
+                                    isBuffering = isBuffering,
+                                    isStarred = isStarred || track.isStarred,
+                                    accentColor = accentColor,
+                                    onTogglePlayPause = onTogglePlayPause,
+                                    onToggleFavorite = onToggleFavorite,
+                                    onSkipNext = onSkipNext,
+                                    onSkipPrev = onSkipPrev
+                                )
                             }
                         }
                     }
@@ -393,31 +383,17 @@ fun MiniPlayer(
                                     )
                                 }
 
-                                IconButton(onClick = onToggleFavorite) {
-                                    Icon(
-                                        imageVector = if (isStarred || track.isStarred) Tabler.Filled.Heart else Tabler.Outline.Heart,
-                                        contentDescription = if (isStarred || track.isStarred) stringResource(R.string.action_unstar) else stringResource(R.string.action_star),
-                                        tint = if (isStarred || track.isStarred) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-
-                                IconButton(onClick = onTogglePlayPause) {
-                                    if (isBuffering) {
-                                        CircularProgressIndicator(
-                                            modifier = Modifier.size(24.dp),
-                                            strokeWidth = 2.5.dp,
-                                            color = accentColor
-                                        )
-                                    } else {
-                                        Icon(
-                                            imageVector = if (isPlaying) Tabler.Filled.PlayerPause else Tabler.Filled.PlayerPlay,
-                                            contentDescription = if (isPlaying) stringResource(R.string.action_pause) else stringResource(R.string.action_play),
-                                            tint = accentColor,
-                                            modifier = Modifier.size(28.dp)
-                                        )
-                                    }
-                                }
+                                MiniPlayerActionButtons(
+                                    buttonConfigs = miniPlayerButtonConfigs,
+                                    isPlaying = isPlaying,
+                                    isBuffering = isBuffering,
+                                    isStarred = isStarred || track.isStarred,
+                                    accentColor = accentColor,
+                                    onTogglePlayPause = onTogglePlayPause,
+                                    onToggleFavorite = onToggleFavorite,
+                                    onSkipNext = onSkipNext,
+                                    onSkipPrev = onSkipPrev
+                                )
                             }
 
                             LinearProgressIndicator(
@@ -523,31 +499,17 @@ fun MiniPlayer(
                             )
                         }
 
-                        IconButton(onClick = onToggleFavorite) {
-                            Icon(
-                                imageVector = if (isStarred || track.isStarred) Tabler.Filled.Heart else Tabler.Outline.Heart,
-                                contentDescription = if (isStarred || track.isStarred) stringResource(R.string.action_unstar) else stringResource(R.string.action_star),
-                                tint = if (isStarred || track.isStarred) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        IconButton(onClick = onTogglePlayPause) {
-                            if (isBuffering) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.5.dp,
-                                    color = accentColor
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = if (isPlaying) Tabler.Filled.PlayerPause else Tabler.Filled.PlayerPlay,
-                                    contentDescription = if (isPlaying) stringResource(R.string.action_pause) else stringResource(R.string.action_play),
-                                    tint = accentColor,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-                        }
+                        MiniPlayerActionButtons(
+                            buttonConfigs = miniPlayerButtonConfigs,
+                            isPlaying = isPlaying,
+                            isBuffering = isBuffering,
+                            isStarred = isStarred || track.isStarred,
+                            accentColor = accentColor,
+                            onTogglePlayPause = onTogglePlayPause,
+                            onToggleFavorite = onToggleFavorite,
+                            onSkipNext = onSkipNext,
+                            onSkipPrev = onSkipPrev
+                        )
                     }
                 }
 
@@ -696,31 +658,17 @@ fun MiniPlayer(
                                 )
                             }
 
-                            IconButton(onClick = onToggleFavorite) {
-                                Icon(
-                                    imageVector = if (isStarred || track.isStarred) Tabler.Filled.Heart else Tabler.Outline.Heart,
-                                    contentDescription = if (isStarred || track.isStarred) stringResource(R.string.action_unstar) else stringResource(R.string.action_star),
-                                    tint = if (isStarred || track.isStarred) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-
-                            IconButton(onClick = onTogglePlayPause) {
-                                if (isBuffering) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        strokeWidth = 2.5.dp,
-                                        color = accentColor
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = if (isPlaying) Tabler.Filled.PlayerPause else Tabler.Filled.PlayerPlay,
-                                        contentDescription = if (isPlaying) stringResource(R.string.action_pause) else stringResource(R.string.action_play),
-                                        tint = accentColor,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                }
-                            }
+                            MiniPlayerActionButtons(
+                                buttonConfigs = miniPlayerButtonConfigs,
+                                isPlaying = isPlaying,
+                                isBuffering = isBuffering,
+                                isStarred = isStarred || track.isStarred,
+                                accentColor = accentColor,
+                                onTogglePlayPause = onTogglePlayPause,
+                                onToggleFavorite = onToggleFavorite,
+                                onSkipNext = onSkipNext,
+                                onSkipPrev = onSkipPrev
+                            )
                         }
 
                         LinearProgressIndicator(
@@ -730,6 +678,93 @@ fun MiniPlayer(
                                 .height(3.dp),
                             color = accentColor,
                             trackColor = accentColor.copy(alpha = 0.2f)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MiniPlayerActionButtons(
+    buttonConfigs: List<MiniPlayerButtonConfig>,
+    isPlaying: Boolean,
+    isBuffering: Boolean,
+    isStarred: Boolean,
+    accentColor: Color,
+    onTogglePlayPause: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onSkipNext: (() -> Unit)? = null,
+    onSkipPrev: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    val enabledButtons = buttonConfigs.filter { it.enabled }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        enabledButtons.forEach { config ->
+            when (config.button) {
+                MiniPlayerButton.FAVORITE -> {
+                    IconButton(
+                        onClick = onToggleFavorite,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isStarred) Tabler.Filled.Heart else Tabler.Outline.Heart,
+                            contentDescription = if (isStarred) stringResource(R.string.action_unstar) else stringResource(R.string.action_star),
+                            tint = if (isStarred) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+                MiniPlayerButton.PAUSE_PLAY -> {
+                    IconButton(
+                        onClick = onTogglePlayPause,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        if (isBuffering) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(22.dp),
+                                strokeWidth = 2.5.dp,
+                                color = accentColor
+                            )
+                        } else {
+                            Icon(
+                                imageVector = if (isPlaying) Tabler.Filled.PlayerPause else Tabler.Filled.PlayerPlay,
+                                contentDescription = if (isPlaying) stringResource(R.string.action_pause) else stringResource(R.string.action_play),
+                                tint = accentColor,
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
+                    }
+                }
+                MiniPlayerButton.SKIP_PREV -> {
+                    IconButton(
+                        onClick = { onSkipPrev?.invoke() },
+                        enabled = onSkipPrev != null,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Tabler.Filled.PlayerSkipBack,
+                            contentDescription = stringResource(R.string.action_previous),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+                MiniPlayerButton.SKIP_NEXT -> {
+                    IconButton(
+                        onClick = { onSkipNext?.invoke() },
+                        enabled = onSkipNext != null,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Tabler.Filled.PlayerSkipForward,
+                            contentDescription = stringResource(R.string.action_next),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }

@@ -14,11 +14,14 @@ import com.notmugil.uta.data.preferences.CoverArtQuality
 import com.notmugil.uta.data.preferences.DownloadFormatPreference
 import com.notmugil.uta.data.preferences.DownloadQualityPreference
 import com.notmugil.uta.data.preferences.DynamicColorSource
+import com.notmugil.uta.data.preferences.HomeSectionConfig
 import com.notmugil.uta.data.preferences.LyricsProvider
 import com.notmugil.uta.data.preferences.LyricsProviderConfig
 import com.notmugil.uta.data.preferences.LyricsSourceMode
+import com.notmugil.uta.data.preferences.MiniPlayerButtonConfig
 import com.notmugil.uta.data.preferences.MiniPlayerPlacement
 import com.notmugil.uta.data.preferences.MiniPlayerStyle
+import com.notmugil.uta.data.preferences.NavBarItemConfig
 import com.notmugil.uta.data.preferences.PlayerStyle
 import com.notmugil.uta.data.preferences.PlaylistCoverStyle
 import com.notmugil.uta.data.preferences.SeekBarStyle
@@ -63,14 +66,12 @@ class SettingsViewModel @Inject constructor(
         _currentSubPage.value = when (_currentSubPage.value) {
             SettingsSubPage.LYRICS_PROVIDERS,
             SettingsSubPage.ONLINE_LYRICS_PROVIDERS,
-            SettingsSubPage.HOME_SECTIONS -> SettingsSubPage.GENERAL
+            SettingsSubPage.HOME_SECTIONS,
+            SettingsSubPage.NAVBAR_SECTIONS,
+            SettingsSubPage.MINIPLAYER_BUTTONS -> SettingsSubPage.GENERAL
             else -> null
         }
     }
-
-    val homeSectionConfigs: StateFlow<List<com.notmugil.uta.data.preferences.HomeSectionConfig>> = appPreferences.homeSectionConfigs
-    fun setHomeSectionConfigs(configs: List<com.notmugil.uta.data.preferences.HomeSectionConfig>) = appPreferences.setHomeSectionConfigs(configs)
-    fun resetHomeSections() = appPreferences.resetHomeSections()
 
     val authState: StateFlow<AuthState> = subsonicRepository.authState
     val syncState: StateFlow<SyncState> = syncEngine.syncState
@@ -93,6 +94,9 @@ class SettingsViewModel @Inject constructor(
     val swipeRightAction: StateFlow<TrackSwipeAction> = appPreferences.swipeRightAction
     val swipeLeftAction: StateFlow<TrackSwipeAction> = appPreferences.swipeLeftAction
     val alwaysShowNavBar: StateFlow<Boolean> = appPreferences.alwaysShowNavBar
+    val homeSectionConfigs: StateFlow<List<HomeSectionConfig>> = appPreferences.homeSectionConfigs
+    val navBarItemConfigs: StateFlow<List<NavBarItemConfig>> = appPreferences.navBarItemConfigs
+    val miniPlayerButtonConfigs: StateFlow<List<MiniPlayerButtonConfig>> = appPreferences.miniPlayerButtonConfigs
 
     // Player
     val playerStyle: StateFlow<PlayerStyle> = appPreferences.playerStyle
@@ -159,6 +163,12 @@ class SettingsViewModel @Inject constructor(
     fun setSwipeRightAction(action: TrackSwipeAction) = appPreferences.setSwipeRightAction(action)
     fun setSwipeLeftAction(action: TrackSwipeAction) = appPreferences.setSwipeLeftAction(action)
     fun setAlwaysShowNavBar(enabled: Boolean) = appPreferences.setAlwaysShowNavBar(enabled)
+    fun setHomeSectionConfigs(configs: List<HomeSectionConfig>) = appPreferences.setHomeSectionConfigs(configs)
+    fun resetHomeSections() = appPreferences.resetHomeSections()
+    fun setNavBarItemConfigs(configs: List<NavBarItemConfig>) = appPreferences.setNavBarItemConfigs(configs)
+    fun resetNavBarItems() = appPreferences.resetNavBarItems()
+    fun setMiniPlayerButtonConfigs(configs: List<MiniPlayerButtonConfig>) = appPreferences.setMiniPlayerButtonConfigs(configs)
+    fun resetMiniPlayerButtons() = appPreferences.resetMiniPlayerButtons()
 
     fun setPlayerStyle(style: PlayerStyle) = appPreferences.setPlayerStyle(style)
     fun setSeekBarStyle(style: SeekBarStyle) = appPreferences.setSeekBarStyle(style)

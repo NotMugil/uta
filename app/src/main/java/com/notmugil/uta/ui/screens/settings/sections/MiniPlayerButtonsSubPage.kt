@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,14 +47,14 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
-fun HomeSectionsSubPage(
+fun MiniPlayerButtonsSubPage(
     viewModel: SettingsViewModel,
     listState: androidx.compose.foundation.lazy.LazyListState = rememberLazyListState()
 ) {
-    val sectionConfigs by viewModel.homeSectionConfigs.collectAsStateWithLifecycle()
+    val buttonConfigs by viewModel.miniPlayerButtonConfigs.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var currentConfigs by remember(sectionConfigs) { mutableStateOf(sectionConfigs) }
+    var currentConfigs by remember(buttonConfigs) { mutableStateOf(buttonConfigs) }
     val reorderableLazyListState = rememberReorderableLazyListState(
         lazyListState = listState,
         scrollThreshold = 48.dp
@@ -65,10 +66,12 @@ fun HomeSectionsSubPage(
                 add(toIdx, removeAt(fromIdx))
             }
             currentConfigs = updated
-            viewModel.setHomeSectionConfigs(updated)
+            viewModel.setMiniPlayerButtonConfigs(updated)
             HapticFeedbackHelper.perform(context, HapticFeedbackHelper.HapticType.LIGHT)
         }
     }
+
+    val enabledCount = currentConfigs.count { it.enabled }
 
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -81,15 +84,15 @@ fun HomeSectionsSubPage(
         ) {
             items(
                 items = currentConfigs,
-                key = { it.section.name }
+                key = { it.button.name }
             ) { config ->
                 ReorderableItem(
                     state = reorderableLazyListState,
-                    key = config.section.name
+                    key = config.button.name
                 ) { isDragging ->
                     val elevation by animateDpAsState(
                         targetValue = if (isDragging) 8.dp else 0.dp,
-                        label = "home_section_drag_elevation"
+                        label = "miniplayer_button_drag_elevation"
                     )
 
                     Surface(
@@ -97,7 +100,7 @@ fun HomeSectionsSubPage(
                         color = if (isDragging) {
                             MaterialTheme.colorScheme.surfaceContainerHigh
                         } else {
-                            androidx.compose.ui.graphics.Color.Transparent
+                            Color.Transparent
                         },
                         shadowElevation = elevation,
                         modifier = Modifier
@@ -135,8 +138,21 @@ fun HomeSectionsSubPage(
 
                                 Spacer(modifier = Modifier.width(8.dp))
 
+                                Icon(
+                                    imageVector = config.button.icon,
+                                    contentDescription = null,
+                                    tint = if (config.enabled) {
+                                        MaterialTheme.colorScheme.onBackground
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                                    },
+                                    modifier = Modifier.size(20.dp)
+                                )
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
                                 Text(
-                                    text = stringResource(config.section.titleRes),
+                                    text = stringResource(config.button.titleRes),
                                     style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
                                     fontWeight = FontWeight.Medium,
                                     color = if (config.enabled) {
@@ -147,19 +163,17 @@ fun HomeSectionsSubPage(
                                 )
                             }
 
-                            val enabledCount = currentConfigs.count { it.enabled }
                             val canToggle = !config.enabled || enabledCount > 1
-
                             UtaSwitch(
                                 checked = config.enabled,
                                 enabled = canToggle,
                                 onCheckedChange = { isChecked ->
                                     if (!isChecked && enabledCount <= 1) return@UtaSwitch
                                     val updated = currentConfigs.map {
-                                        if (it.section == config.section) it.copy(enabled = isChecked) else it
+                                        if (it.button == config.button) it.copy(enabled = isChecked) else it
                                     }
                                     currentConfigs = updated
-                                    viewModel.setHomeSectionConfigs(updated)
+                                    viewModel.setMiniPlayerButtonConfigs(updated)
                                 }
                             )
                         }
@@ -175,7 +189,7 @@ fun HomeSectionsSubPage(
                 ) {
                     TextButton(
                         onClick = {
-                            viewModel.resetHomeSections()
+                            viewModel.resetMiniPlayerButtons()
                             HapticFeedbackHelper.perform(context, HapticFeedbackHelper.HapticType.CLICK)
                         },
                         colors = ButtonDefaults.textButtonColors(
@@ -189,7 +203,7 @@ fun HomeSectionsSubPage(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.setting_home_sections_reset),
+                            text = stringResource(R.string.setting_miniplayer_buttons_reset),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
