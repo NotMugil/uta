@@ -463,39 +463,44 @@ class SubsonicRepository @Inject constructor(
         val client = currentClient
         val validMaxBitRate = if (maxBitRate != null && maxBitRate > 0) maxBitRate else 0
         val validFormat = if (!format.isNullOrBlank() && format != "raw" && format != "original") format else null
-        if (client != null) {
-            return client.getStreamUrl(
+        val url = if (client != null) {
+            client.getStreamUrl(
                 id = id,
                 maxBitRate = validMaxBitRate,
-                format = validFormat
+                format = validFormat,
+                estimateContentLength = true
             )
+        } else {
+            val baseUrl = currentServerUrl ?: return null
+            val creds = credentialStore.load() ?: return null
+            val salt = UUID.randomUUID().toString().replace("-", "").take(12)
+            val md5 = MessageDigest.getInstance("MD5")
+            val token = md5.digest((creds.password + salt).toByteArray(Charsets.UTF_8))
+                .joinToString("") { "%02x".format(it) }
+
+            val builder = "${baseUrl.trimEnd('/')}/rest/stream.view".toHttpUrlOrNull()
+                ?.newBuilder()
+                ?.addQueryParameter("u", creds.username)
+                ?.addQueryParameter("t", token)
+                ?.addQueryParameter("s", salt)
+                ?.addQueryParameter("v", "1.16.1")
+                ?.addQueryParameter("c", "Uta")
+                ?.addQueryParameter("id", id)
+
+            if (validMaxBitRate > 0) {
+                builder?.addQueryParameter("maxBitRate", validMaxBitRate.toString())
+            }
+            if (validFormat != null) {
+                builder?.addQueryParameter("format", validFormat)
+                builder?.addQueryParameter("estimateContentLength", "true")
+            }
+
+            builder?.build()?.toString()
         }
 
-        val baseUrl = currentServerUrl ?: return null
-        val creds = credentialStore.load() ?: return null
-        val salt = UUID.randomUUID().toString().replace("-", "").take(12)
-        val md5 = MessageDigest.getInstance("MD5")
-        val token = md5.digest((creds.password + salt).toByteArray(Charsets.UTF_8))
-            .joinToString("") { "%02x".format(it) }
-
-        val builder = "${baseUrl.trimEnd('/')}/rest/stream.view".toHttpUrlOrNull()
-            ?.newBuilder()
-            ?.addQueryParameter("u", creds.username)
-            ?.addQueryParameter("t", token)
-            ?.addQueryParameter("s", salt)
-            ?.addQueryParameter("v", "1.16.1")
-            ?.addQueryParameter("c", "Uta")
-            ?.addQueryParameter("id", id)
-
-        if (validMaxBitRate > 0) {
-            builder?.addQueryParameter("maxBitRate", validMaxBitRate.toString())
-        }
-        if (validFormat != null) {
-            builder?.addQueryParameter("format", validFormat)
-            builder?.addQueryParameter("estimateContentLength", "true")
-        }
-
-        return builder?.build()?.toString()
+        val sanitizedUrl = url?.replace(Regex("([?&])(p|t|s)=[^&]+"), "$1$2=[REDACTED]")
+        timber.log.Timber.d("[SubsonicRepository] Stream URL resolved for id=$id (format=$validFormat, maxBitRate=$validMaxBitRate): $sanitizedUrl")
+        return url
     }
 
     suspend fun getAlbumRaw(albumId: String): Album = withContext(Dispatchers.IO) {

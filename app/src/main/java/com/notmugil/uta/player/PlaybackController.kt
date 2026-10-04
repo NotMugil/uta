@@ -25,6 +25,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,28 +76,59 @@ class PlaybackController @Inject constructor(
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager ?: return false
         val activeNetwork = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(activeNetwork) ?: return false
+
+        // If network is metered (e.g. mobile hotspot), treat as cellular to preserve user data
+        if (!caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_NOT_METERED)) {
+            return false
+        }
+
         return caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
                 caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
     }
 
-    private suspend fun resolveStreamUrl(trackId: String): String? {
-        val localUri = offlineDownloadManager.getLocalUriForTrack(trackId)
+    private suspend fun resolveStreamUrl(track: TrackItem): String? {
+        val localUri = offlineDownloadManager.getLocalUriForTrack(track.id)
         if (localUri != null) return localUri
-        val prefetchedUri = queuePrefetchManager.getPrefetchedAudioUri(trackId)
+        val prefetchedUri = queuePrefetchManager.getPrefetchedAudioUri(track.id)
         if (prefetchedUri != null) return prefetchedUri.toString()
         if (isOffline) return null
 
         val isWifi = isConnectedToWifi()
         val bitratePref = if (isWifi) appPreferences.wifiStreamingBitrate.value else appPreferences.cellularStreamingBitrate.value
-        val maxBitRate = if (bitratePref.kbps > 0) bitratePref.kbps else null
         val formatPref = appPreferences.transcodingFormat.value
-        val format = if (formatPref.format != "raw") formatPref.format else null
+
+        val params = StreamParamsResolver.resolve(
+            bitrateSetting = bitratePref,
+            formatSetting = formatPref,
+            sourceSuffix = track.suffix,
+            sourceBitRate = track.bitRate
+        )
 
         return subsonicRepository.getStreamUrl(
-            id = trackId,
-            maxBitRate = maxBitRate,
-            format = format
+            id = track.id,
+            maxBitRate = params.maxBitRate,
+            format = params.format
         )
+    }
+
+    private suspend fun resolveStreamUrl(trackId: String): String? {
+        val serverId = subsonicRepository.currentServerId
+        val track = if (serverId.isNotBlank()) trackDao.getTrack(trackId, serverId)?.toDomain() else null
+        return if (track != null) {
+            resolveStreamUrl(track)
+        } else {
+            val localUri = offlineDownloadManager.getLocalUriForTrack(trackId)
+            if (localUri != null) return localUri
+            val prefetchedUri = queuePrefetchManager.getPrefetchedAudioUri(trackId)
+            if (prefetchedUri != null) return prefetchedUri.toString()
+            if (isOffline) return null
+
+            val isWifi = isConnectedToWifi()
+            val bitratePref = if (isWifi) appPreferences.wifiStreamingBitrate.value else appPreferences.cellularStreamingBitrate.value
+            val formatPref = appPreferences.transcodingFormat.value
+            val params = StreamParamsResolver.resolve(bitratePref, formatPref)
+            subsonicRepository.getStreamUrl(trackId, params.maxBitRate, params.format)
+        }
     }
 
     private var controllerFuture: ListenableFuture<MediaController>? = null
@@ -153,6 +186,60 @@ class PlaybackController @Inject constructor(
         initController()
         observeAuthState()
         observeOfflineState()
+        observeStreamingPreferences()
+    }
+
+    private fun observeStreamingPreferences() {
+        scope.launch {
+            kotlinx.coroutines.flow.combine(
+                appPreferences.transcodingFormat,
+                appPreferences.wifiStreamingBitrate,
+                appPreferences.cellularStreamingBitrate
+            ) { format, wifiBitrate, cellBitrate ->
+                Triple(format, wifiBitrate, cellBitrate)
+            }.drop(1).collect { (format, wifiBitrate, cellBitrate) ->
+                Timber.d("[PlaybackController] Streaming preferences changed: format=${format.displayName}, wifi=${wifiBitrate.displayName}, cell=${cellBitrate.displayName}")
+                queuePrefetchManager.clearCache()
+                MediaCacheManager.clearCache()
+                refreshQueueStreamUrls()
+            }
+        }
+    }
+
+    private fun refreshQueueStreamUrls() {
+        scope.launch {
+            val ctrl = getConnectedController() ?: return@launch
+            val count = ctrl.mediaItemCount
+            if (count == 0) return@launch
+
+            val currentIndex = ctrl.currentMediaItemIndex
+
+            // Read items safely on Main thread
+            val currentItems = (0 until count).map { i -> ctrl.getMediaItemAt(i) }
+
+            // Resolve updated stream URLs for upcoming items on IO thread
+            val updatedItems = withContext(Dispatchers.IO) {
+                currentItems.mapIndexed { i, item ->
+                    if (i <= currentIndex) {
+                        item // keep active and preceding tracks untouched so current playback is not interrupted
+                    } else {
+                        val track = MediaItemMapper.toTrackItem(item) ?: return@mapIndexed item
+                        val entryId = MediaItemMapper.getEntryId(item)
+                        val streamUrl = resolveStreamUrl(track) ?: return@mapIndexed item
+                        val coverUrl = if (isOffline) null else subsonicRepository.getCoverArtUrl(track.coverArtId)
+                        MediaItemMapper.toMediaItem(track, streamUrl, coverUrl, entryId = entryId)
+                    }
+                }
+            }
+
+            if (updatedItems.size == count && count > currentIndex + 1) {
+                for (i in (currentIndex + 1) until count) {
+                    ctrl.replaceMediaItem(i, updatedItems[i])
+                }
+                syncState(ctrl)
+                debouncePersistQueue()
+            }
+        }
     }
 
     private fun observeAuthState() {

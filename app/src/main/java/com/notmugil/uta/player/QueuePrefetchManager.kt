@@ -74,7 +74,13 @@ class QueuePrefetchManager @Inject constructor(
 
     fun getPrefetchedAudioUri(trackId: String): Uri? {
         val dir = getPrefetchDir()
-        val file = File(dir, "$trackId.media")
+        val formatPref = appPreferences.transcodingFormat.value
+        val isWifi = isConnectedToWifi()
+        val bitratePref = if (isWifi) appPreferences.wifiStreamingBitrate.value else appPreferences.cellularStreamingBitrate.value
+        val params = StreamParamsResolver.resolve(bitratePref, formatPref)
+        val formatKey = params.format ?: "raw"
+        val bitrateKey = params.maxBitRate ?: 0
+        val file = File(dir, "${trackId}_${formatKey}_${bitrateKey}.media")
         if (file.exists() && file.length() >= MIN_VALID_AUDIO_BYTES) {
             return Uri.fromFile(file)
         }
@@ -87,6 +93,12 @@ class QueuePrefetchManager @Inject constructor(
         val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
         val activeNetwork = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(activeNetwork) ?: return false
+
+        // If network is metered (e.g. mobile hotspot), treat as cellular to save data
+        if (!caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)) {
+            return false
+        }
+
         return caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                 caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
     }
@@ -163,19 +175,25 @@ class QueuePrefetchManager @Inject constructor(
 
         val isWifi = isConnectedToWifi()
         val bitratePref = if (isWifi) appPreferences.wifiStreamingBitrate.value else appPreferences.cellularStreamingBitrate.value
-        val maxBitRate = if (bitratePref.kbps > 0) bitratePref.kbps else null
         val formatPref = appPreferences.transcodingFormat.value
-        val format = if (formatPref.format != "raw") formatPref.format else null
+        val params = StreamParamsResolver.resolve(
+            bitrateSetting = bitratePref,
+            formatSetting = formatPref,
+            sourceSuffix = track.suffix,
+            sourceBitRate = track.bitRate
+        )
 
         val streamUrl = subsonicRepository.getStreamUrl(
             id = track.id,
-            maxBitRate = maxBitRate,
-            format = format
+            maxBitRate = params.maxBitRate,
+            format = params.format
         ) ?: return
 
+        val formatKey = params.format ?: "raw"
+        val bitrateKey = params.maxBitRate ?: 0
         val prefetchDir = getPrefetchDir()
-        val destFile = File(prefetchDir, "${track.id}.media")
-        val tempFile = File(prefetchDir, "${track.id}_${System.currentTimeMillis()}.tmp")
+        val destFile = File(prefetchDir, "${track.id}_${formatKey}_${bitrateKey}.media")
+        val tempFile = File(prefetchDir, "${track.id}_${formatKey}_${bitrateKey}_${System.currentTimeMillis()}.tmp")
 
         var conn: HttpURLConnection? = null
         try {
@@ -234,7 +252,7 @@ class QueuePrefetchManager @Inject constructor(
             if (totalBytes > MAX_PREFETCH_CACHE_BYTES || files.size > 25) {
                 val sortedFiles = files.sortedBy { it.lastModified() }
                 for (file in sortedFiles) {
-                    val trackId = file.nameWithoutExtension
+                    val trackId = file.nameWithoutExtension.substringBefore('_')
                     if (trackId !in protectedTrackIds) {
                         val fileLength = file.length()
                         if (file.delete()) {

@@ -62,10 +62,20 @@ fun PlaybackAudioSubPage(
     ) {
         SettingsSectionHeader(stringResource(R.string.setting_streaming_quality_header))
 
+        val isFlac = transcodingFormat == TranscodingFormat.FLAC
+
         SettingsDropdownRow(
             icon = null,
             title = stringResource(R.string.setting_wifi_quality),
-            subtitle = stringResource(R.string.setting_wifi_quality_subtitle),
+            subtitle = if (isFlac) {
+                "Lossless audio (FLAC ignores bitrate caps)"
+            } else if (wifiBitrate == StreamingBitrate.UNLIMITED) {
+                "Direct stream without transcoding"
+            } else if (wifiBitrate == StreamingBitrate.AUTO) {
+                "Original quality unless transcoding format is set"
+            } else {
+                stringResource(R.string.setting_wifi_quality_subtitle)
+            },
             selectedValue = wifiBitrate,
             options = StreamingBitrate.entries,
             getDisplayName = { it.displayName },
@@ -75,7 +85,15 @@ fun PlaybackAudioSubPage(
         SettingsDropdownRow(
             icon = null,
             title = stringResource(R.string.setting_cellular_quality),
-            subtitle = stringResource(R.string.setting_cellular_quality_subtitle),
+            subtitle = if (isFlac) {
+                "Lossless audio (FLAC ignores bitrate caps)"
+            } else if (cellularBitrate == StreamingBitrate.UNLIMITED) {
+                "Direct stream without transcoding"
+            } else if (cellularBitrate == StreamingBitrate.AUTO) {
+                "Original quality unless transcoding format is set"
+            } else {
+                stringResource(R.string.setting_cellular_quality_subtitle)
+            },
             selectedValue = cellularBitrate,
             options = StreamingBitrate.entries,
             getDisplayName = { it.displayName },

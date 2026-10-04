@@ -86,6 +86,19 @@ class SubsonicRepositoryTest {
     }
 
     @Test
+    fun `getStreamUrl includes format and maxBitRate`() {
+        io.mockk.every { credentialStore.load() } returns StoredCredentials(
+            serverUrl = "https://music.example.com",
+            username = "testuser",
+            password = "testpassword"
+        )
+        val url = repository.getStreamUrl("track-123", maxBitRate = 192, format = "mp3")
+        assertTrue(url != null)
+        assertTrue(url!!.contains("format=mp3"))
+        assertTrue(url.contains("maxBitRate=192"))
+    }
+
+    @Test
     fun `isUsingFallback detects when active server matches fallback URL`() {
         val appPreferences = mockk<com.notmugil.uta.data.preferences.AppPreferences>(relaxed = true)
         io.mockk.every { appPreferences.fallbackServerUrl } returns kotlinx.coroutines.flow.MutableStateFlow("https://fallback.example.com")
