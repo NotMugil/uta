@@ -23,11 +23,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.notmugil.uta.data.PlaylistCoverManager
 import com.notmugil.uta.data.SubsonicSession
 import com.notmugil.uta.data.download.OfflineDownloadManager
 import com.notmugil.uta.data.preferences.CoverArtQuality
@@ -47,11 +47,11 @@ fun CoverArtImage(
 ) {
     val context = LocalContext.current
     val appPreferences = LocalAppPreferences.current
-    val coverArtQuality = appPreferences?.coverArtQuality?.collectAsStateWithLifecycle()?.value ?: CoverArtQuality.HIGH
+    val coverArtQuality = appPreferences?.coverArtQuality?.value ?: CoverArtQuality.HIGH
 
     val standardSizePx = remember(size, coverArtQuality) {
         val base = when {
-            size == Dp.Unspecified -> 1000
+            size == Dp.Unspecified -> 450
             size <= 64.dp -> 180
             size <= 160.dp -> 450
             size <= 320.dp -> 900
@@ -66,7 +66,7 @@ fun CoverArtImage(
 
     val customPlaylistCover = remember(playlistId) {
         if (!playlistId.isNullOrBlank()) {
-            com.notmugil.uta.data.PlaylistCoverManager.getCustomCoverFile(context, playlistId)
+            PlaylistCoverManager.getCustomCoverFile(context, playlistId)
         } else {
             null
         }
@@ -89,25 +89,21 @@ fun CoverArtImage(
     val imageData: Any? = remember(customModel, customPlaylistCover, effectiveCoverId, localCoverFile, isOffline, standardSizePx) {
         when {
             customModel != null -> customModel
-            customPlaylistCover != null && customPlaylistCover.exists() -> customPlaylistCover
-            localCoverFile != null && localCoverFile.exists() -> localCoverFile
+            customPlaylistCover != null -> customPlaylistCover
+            localCoverFile != null -> localCoverFile
             isOffline -> null
             !effectiveCoverId.isNullOrBlank() -> SubsonicSession.client?.getCoverArtUrl(effectiveCoverId, size = standardSizePx.toString())
             else -> null
         }
     }
 
-    val stableCacheKey = remember(customModel, customPlaylistCover, customPlaylistCover?.lastModified(), effectiveCoverId, standardSizePx, localCoverFile) {
-        if (customModel != null) {
-            "custom_${customModel.hashCode()}"
-        } else if (customPlaylistCover != null) {
-            "${customPlaylistCover.absolutePath}_${customPlaylistCover.lastModified()}"
-        } else if (localCoverFile != null) {
-            localCoverFile.absolutePath
-        } else if (effectiveCoverId.isNullOrBlank()) {
-            null
-        } else {
-            "cover_${effectiveCoverId}_$standardSizePx"
+    val stableCacheKey = remember(customModel, customPlaylistCover, effectiveCoverId, standardSizePx, localCoverFile) {
+        when {
+            customModel != null -> "custom_${customModel.hashCode()}"
+            customPlaylistCover != null -> customPlaylistCover.absolutePath
+            localCoverFile != null -> localCoverFile.absolutePath
+            !effectiveCoverId.isNullOrBlank() -> "cover_${effectiveCoverId}_$standardSizePx"
+            else -> null
         }
     }
 
@@ -129,14 +125,15 @@ fun CoverArtImage(
         contentAlignment = Alignment.Center
     ) {
         if (imageData != null && stableCacheKey != null && !isError) {
-            val request = remember(imageData, stableCacheKey, isOffline) {
+            val request = remember(imageData, stableCacheKey, standardSizePx) {
                 ImageRequest.Builder(context)
                     .data(imageData)
+                    .size(standardSizePx)
                     .memoryCacheKey(stableCacheKey)
                     .diskCacheKey(stableCacheKey)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.ENABLED)
-                    .crossfade(200)
+                    .crossfade(150)
                     .build()
             }
 

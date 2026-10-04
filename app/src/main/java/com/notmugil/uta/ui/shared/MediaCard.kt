@@ -71,6 +71,7 @@ fun MediaCard(
             contentDescription = title,
             fallbackIcon = fallbackIcon,
             shape = shape,
+            size = cardWidth,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)

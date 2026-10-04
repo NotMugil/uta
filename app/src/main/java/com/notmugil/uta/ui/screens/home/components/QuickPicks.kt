@@ -34,7 +34,7 @@ fun QuickPicks(
     if (randomSongs.isEmpty()) return
 
     val quickMixPages = remember(randomSongs) { randomSongs.chunked(4) }
-    val quickMixPagerState = rememberPagerState(pageCount = { quickMixPages.size })
+    val quickMixPagerState = remember(quickMixPages.size) { androidx.compose.foundation.pager.PagerState(currentPage = 0) { quickMixPages.size } }
 
     val mediaActionHandler = com.notmugil.uta.ui.shared.actionsheet.LocalMediaActionHandler.current
 

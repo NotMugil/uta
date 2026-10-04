@@ -71,9 +71,9 @@ fun HomeAlbumSectionRow(
             }
         }
 
-        Spacer(modifier = Modifier.height(4.dp))
-
+        val listState = androidx.compose.runtime.remember { androidx.compose.foundation.lazy.LazyListState() }
         LazyRow(
+            state = listState,
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.fillMaxWidth()
@@ -137,7 +137,9 @@ fun HomePlaylistSectionRow(
 
         Spacer(modifier = Modifier.height(4.dp))
 
+        val listState = androidx.compose.runtime.remember { androidx.compose.foundation.lazy.LazyListState() }
         LazyRow(
+            state = listState,
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             modifier = Modifier.fillMaxWidth()

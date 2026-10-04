@@ -840,19 +840,34 @@ class OfflineDownloadManager @Inject constructor(
     }
 
     companion object {
+        private val localCoverCache = ConcurrentHashMap<String, File>()
+
         fun getLocalCoverArtFile(context: Context, coverArtId: String?): File? {
             if (coverArtId.isNullOrBlank()) return null
             val safeCoverId = coverArtId.replace(Regex("[^a-zA-Z0-9._-]"), "_").take(64)
+            val cached = localCoverCache[safeCoverId]
+            if (cached != null) return cached
+
             val rootDir = context.getExternalFilesDir("music") ?: File(context.filesDir, "music")
             val serverFolders = rootDir.listFiles() ?: return null
             for (serverDir in serverFolders) {
                 if (!serverDir.isDirectory) continue
                 val coverFile = File(serverDir, "covers/$safeCoverId.jpg")
                 if (coverFile.exists() && coverFile.length() > 0) {
+                    localCoverCache[safeCoverId] = coverFile
                     return coverFile
                 }
             }
             return null
+        }
+
+        fun invalidateCoverCache(coverArtId: String? = null) {
+            if (coverArtId == null) {
+                localCoverCache.clear()
+            } else {
+                val safeCoverId = coverArtId.replace(Regex("[^a-zA-Z0-9._-]"), "_").take(64)
+                localCoverCache.remove(safeCoverId)
+            }
         }
     }
 
