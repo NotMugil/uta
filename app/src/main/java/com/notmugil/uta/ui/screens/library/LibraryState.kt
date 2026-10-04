@@ -37,5 +37,6 @@ data class LibraryState(
     val isOfflineModeActive: Boolean = false,
     val isLoading: Boolean = false,
     val isSyncing: Boolean = false,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val syncMessage: String? = null
 )

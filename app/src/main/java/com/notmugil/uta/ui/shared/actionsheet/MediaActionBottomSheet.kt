@@ -552,7 +552,6 @@ fun MediaActionBottomSheet(
                             is MediaTarget.ArtistTarget -> {}
                         }
                         isDownloadedState = false
-                        toastHostState.showToast(context.getString(R.string.toast_removed_from_downloads), ToastType.SUCCESS, Tabler.Outline.DownloadOff)
                     } catch (e: Exception) {
                         toastHostState.showToast(context.getString(R.string.toast_download_failed, e.message.orEmpty()), ToastType.ERROR)
                     }

@@ -49,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import com.notmugil.uta.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -78,6 +79,7 @@ import com.notmugil.uta.data.preferences.MiniPlayerPlacement
 import com.notmugil.uta.data.preferences.MiniPlayerStyle
 import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.ui.theme.LocalDynamicThemeManager
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -431,17 +433,22 @@ fun MiniPlayer(
                 }
 
                 MiniPlayerStyle.ROTATING_VINYL -> {
-                    val infiniteTransition = rememberInfiniteTransition(label = "vinyl_rotation")
-                    val rotationAngle by infiniteTransition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = 360f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(durationMillis = 8000, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart
-                        ),
-                        label = "vinyl_angle"
-                    )
-                    val animatedRotation = if (isPlaying) rotationAngle else 0f
+                    val vinylRotation = remember { Animatable(0f) }
+
+                    LaunchedEffect(isPlaying) {
+                        if (isPlaying) {
+                            while (isActive) {
+                                val current = vinylRotation.value % 360f
+                                vinylRotation.snapTo(current)
+                                vinylRotation.animateTo(
+                                    targetValue = current + 360f,
+                                    animationSpec = tween(durationMillis = 8000, easing = LinearEasing)
+                                )
+                            }
+                        } else {
+                            vinylRotation.stop()
+                        }
+                    }
 
                     Row(
                         modifier = Modifier
@@ -465,7 +472,7 @@ fun MiniPlayer(
                             Box(
                                 modifier = Modifier
                                     .size(42.dp)
-                                    .graphicsLayer { rotationZ = animatedRotation }
+                                    .graphicsLayer { rotationZ = vinylRotation.value }
                                     .clip(CircleShape)
                                     .background(Color.Black),
                                 contentAlignment = Alignment.Center

@@ -84,7 +84,13 @@ data class ToastMessage(
 )
 
 object AppToastManager {
-    private val scope = CoroutineScope(Dispatchers.Main.immediate + Job())
+    private val scope: CoroutineScope by lazy {
+        try {
+            CoroutineScope(Dispatchers.Main.immediate + Job())
+        } catch (_: Throwable) {
+            CoroutineScope(Dispatchers.Default + Job())
+        }
+    }
     private var dismissJob: Job? = null
 
     private val _currentToast = MutableStateFlow<ToastMessage?>(null)

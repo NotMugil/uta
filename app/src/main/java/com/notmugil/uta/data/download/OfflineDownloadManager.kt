@@ -52,6 +52,11 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.notmugil.uta.R
+import com.notmugil.uta.ui.shared.AppToastManager
+import com.composables.icons.tabler.Tabler
+import com.composables.icons.tabler.outline.Download
+import com.composables.icons.tabler.outline.DownloadOff
 
 private data class DownloadPathInfo(
     val safeServerId: String,
@@ -62,6 +67,15 @@ private data class DownloadPathInfo(
     val tempFile: File,
     val targetFile: File,
     val relativePath: String
+)
+
+private data class ScopeDownloadTracker(
+    val scopeId: String,
+    val scopeType: String,
+    val serverId: String,
+    val totalCount: Int,
+    val pendingTrackIds: MutableSet<String>,
+    val coverArtId: String? = null
 )
 
 @Singleton
@@ -135,6 +149,7 @@ class OfflineDownloadManager @Inject constructor(
     private val batchCompleted = AtomicInteger(0)
     private val batchFailed = AtomicInteger(0)
     private var notificationLoopJob: Job? = null
+    private val activeScopeTrackers = ConcurrentHashMap<String, ScopeDownloadTracker>()
 
     val musicRootDir: File
         get() {
@@ -379,6 +394,51 @@ class OfflineDownloadManager @Inject constructor(
                 _downloadStates.update { it + (trackId to DownloadStatus.Queued) }
                 _activeQueue.update { q -> q + task }
                 newTasks.add(task)
+            }
+
+            val scopeTasksByGroup = tasks.groupBy { "${it.serverId}:${it.scopeType}:${it.scopeId}" }
+            for ((groupKey, groupTasks) in scopeTasksByGroup) {
+                val firstTask = groupTasks.first()
+                if (firstTask.scopeType in listOf("ALBUM", "PLAYLIST") && firstTask.scopeId.isNotBlank()) {
+                    val newTasksForGroup = newTasks.filter { it.scopeId == firstTask.scopeId && it.serverId == firstTask.serverId }
+                    if (newTasksForGroup.isNotEmpty()) {
+                        activeScopeTrackers.compute(groupKey) { _, existing ->
+                            if (existing != null) {
+                                existing.pendingTrackIds.addAll(newTasksForGroup.map { it.track.id })
+                                existing.copy(
+                                    totalCount = existing.totalCount + newTasksForGroup.size,
+                                    pendingTrackIds = existing.pendingTrackIds
+                                )
+                            } else {
+                                ScopeDownloadTracker(
+                                    scopeId = firstTask.scopeId,
+                                    scopeType = firstTask.scopeType,
+                                    serverId = firstTask.serverId,
+                                    totalCount = groupTasks.size,
+                                    pendingTrackIds = newTasksForGroup.map { it.track.id }.toMutableSet(),
+                                    coverArtId = groupTasks.firstOrNull()?.track?.coverArtId
+                                )
+                            }
+                        }
+                    } else if (existingDownloaded.containsAll(groupTasks.map { it.track.id })) {
+                        val count = groupTasks.size
+                        val songCountStr = if (count == 1) {
+                            context.getString(R.string.toast_song_downloaded_single)
+                        } else {
+                            context.getString(R.string.toast_songs_downloaded, count)
+                        }
+                        val title = if (firstTask.scopeType == "PLAYLIST") {
+                            context.getString(R.string.toast_playlist_download_complete)
+                        } else {
+                            context.getString(R.string.toast_album_download_complete)
+                        }
+                        AppToastManager.showSuccess(
+                            message = "$title ($songCountStr)",
+                            coverArtId = groupTasks.firstOrNull()?.track?.coverArtId,
+                            icon = Tabler.Outline.Download
+                        )
+                    }
+                }
             }
 
             if (newTasks.isNotEmpty()) {
@@ -698,8 +758,35 @@ class OfflineDownloadManager @Inject constructor(
             )
             localMediaDao.removeFromQueue(trackId, taskServerId)
             updateDownloadStatus(trackId, DownloadStatus.Completed(pathInfo.relativePath))
+            notifyScopeTrackCompleted(taskServerId, trackId)
         } else {
             pathInfo.targetFile.delete()
+        }
+    }
+
+    private fun notifyScopeTrackCompleted(serverId: String, trackId: String) {
+        activeScopeTrackers.forEach { (key, tracker) ->
+            if (tracker.serverId == serverId && tracker.pendingTrackIds.remove(trackId)) {
+                if (tracker.pendingTrackIds.isEmpty()) {
+                    activeScopeTrackers.remove(key)
+                    val count = tracker.totalCount
+                    val songCountStr = if (count == 1) {
+                        context.getString(R.string.toast_song_downloaded_single)
+                    } else {
+                        context.getString(R.string.toast_songs_downloaded, count)
+                    }
+                    val title = if (tracker.scopeType == "PLAYLIST") {
+                        context.getString(R.string.toast_playlist_download_complete)
+                    } else {
+                        context.getString(R.string.toast_album_download_complete)
+                    }
+                    AppToastManager.showSuccess(
+                        message = "$title ($songCountStr)",
+                        coverArtId = tracker.coverArtId,
+                        icon = Tabler.Outline.Download
+                    )
+                }
+            }
         }
     }
 
@@ -773,6 +860,7 @@ class OfflineDownloadManager @Inject constructor(
         val serverId = subsonicRepository.currentServerId
         downloadJobs[trackId]?.cancel()
         downloadJobs.remove(trackId)
+        activeScopeTrackers.values.forEach { it.pendingTrackIds.remove(trackId) }
         _downloadStates.update { it + (trackId to DownloadStatus.Idle) }
         _activeQueue.update { q -> q.filterNot { it.track.id == trackId } }
         scope.launch {
@@ -786,6 +874,7 @@ class OfflineDownloadManager @Inject constructor(
         val serverId = subsonicRepository.currentServerId
         downloadJobs.values.forEach { it.cancel() }
         downloadJobs.clear()
+        activeScopeTrackers.clear()
         _downloadStates.value = emptyMap()
         _activeQueue.value = emptyList()
         notificationLoopJob?.cancel()
@@ -824,6 +913,11 @@ class OfflineDownloadManager @Inject constructor(
 
         updateDownloadStatus(trackId, DownloadStatus.Idle)
         refreshStorageStats()
+
+        AppToastManager.showSuccess(
+            message = context.getString(R.string.toast_song_deleted_single),
+            icon = Tabler.Outline.DownloadOff
+        )
     }
 
     suspend fun deleteDownloadedScope(scopeId: String) = withContext(Dispatchers.IO) {
@@ -838,6 +932,7 @@ class OfflineDownloadManager @Inject constructor(
         val scopeTrackIds = scopes.map { it.trackId }
         val allTrackIds = (scopeTrackIds + albumTrackIds + playlistTrackIds).distinct()
 
+        var deletedCount = 0
         for (trackId in allTrackIds) {
             cancelTrack(trackId)
             val count = localMediaDao.countScopesForTrack(trackId, serverId)
@@ -846,6 +941,7 @@ class OfflineDownloadManager @Inject constructor(
                 if (record != null) {
                     val file = File(musicRootDir, record.relativePath)
                     if (file.exists()) file.delete()
+                    deletedCount++
                 }
                 localMediaDao.deleteLocalMedia(trackId, serverId)
                 _downloadStates.update { it + (trackId to DownloadStatus.Idle) }
@@ -853,6 +949,19 @@ class OfflineDownloadManager @Inject constructor(
         }
 
         refreshStorageStats()
+
+        val count = if (deletedCount > 0) deletedCount else (if (scopes.isNotEmpty()) scopes.size else allTrackIds.size)
+        if (count > 0) {
+            val msg = if (count == 1) {
+                context.getString(R.string.toast_song_deleted_single)
+            } else {
+                context.getString(R.string.toast_songs_deleted, count)
+            }
+            AppToastManager.showSuccess(
+                message = msg,
+                icon = Tabler.Outline.DownloadOff
+            )
+        }
     }
 
     suspend fun clearAllSessionDownloads() = withContext(Dispatchers.IO) {
@@ -860,6 +969,7 @@ class OfflineDownloadManager @Inject constructor(
         cancelAll()
         if (serverId.isNotBlank()) {
             val mediaList = localMediaDao.getLocalMediaForServer(serverId)
+            val count = mediaList.size
             for (item in mediaList) {
                 val file = File(musicRootDir, item.relativePath)
                 if (file.exists()) file.delete()
@@ -871,6 +981,17 @@ class OfflineDownloadManager @Inject constructor(
             localMediaDao.clearServerLocalMedia(serverId)
             localMediaDao.clearScopesForServer(serverId)
             localMediaDao.clearQueueForServer(serverId)
+            if (count > 0) {
+                val msg = if (count == 1) {
+                    context.getString(R.string.toast_song_deleted_single)
+                } else {
+                    context.getString(R.string.toast_songs_deleted, count)
+                }
+                AppToastManager.showSuccess(
+                    message = msg,
+                    icon = Tabler.Outline.DownloadOff
+                )
+            }
         }
         refreshStorageStats()
     }

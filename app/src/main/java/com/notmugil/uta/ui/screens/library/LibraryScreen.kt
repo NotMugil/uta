@@ -128,7 +128,9 @@ fun LibraryScreen(
     ) { innerPadding ->
         PullToRefreshRevealLayout(
             isRefreshing = state.isRefreshing,
-            onRefresh = { viewModel.refresh() },
+            onRefresh = { viewModel.refresh(force = false) },
+            onFullSync = { viewModel.refresh(force = true) },
+            syncProgressMessage = state.syncMessage,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

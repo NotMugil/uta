@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
 import timber.log.Timber
+import com.notmugil.uta.ui.shared.AppToastManager
 
 sealed interface SyncState {
     data object Idle : SyncState
@@ -403,6 +405,11 @@ class LibrarySyncEngine @Inject constructor(
 
             while (true) {
                 Timber.d("[Sync] Fetching album page offset=$offset, size=$pageSize")
+                _syncState.value = if (totalAlbums > 0) {
+                    SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_albums_count, totalAlbums))
+                } else {
+                    SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_albums))
+                }
                 val page = try {
                     client.getAlbums(
                         type = AlbumListType.AlphabeticalByArtist,
@@ -439,6 +446,7 @@ class LibrarySyncEngine @Inject constructor(
                 }
 
                 totalAlbums += page.size
+                _syncState.value = SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_albums_count, totalAlbums))
                 Timber.d("[Sync] Persisted page of ${page.size} albums to Room (total: $totalAlbums)")
                 if (page.size < pageSize) break
                 offset += pageSize
@@ -538,23 +546,39 @@ class LibrarySyncEngine @Inject constructor(
         val serverId = subsonicRepository.currentServerId
         val startTime = System.currentTimeMillis()
         Timber.i("[Sync] === Starting library sync (force=$force, serverId=$serverId) ===")
-        _syncState.value = SyncState.Syncing("Connecting to server...")
+        _syncState.value = SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_connecting))
 
         try {
-            _syncState.value = SyncState.Syncing("Syncing playlists...")
-            val playlistResult = refreshPlaylists()
+            val results: List<Result<Unit>> = if (force) {
+                _syncState.value = SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_playlists))
+                val playlistResult = refreshPlaylists()
 
-            _syncState.value = SyncState.Syncing("Syncing albums...")
-            val albumResult = refreshAlbums(force)
+                _syncState.value = SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_albums))
+                val albumResult = refreshAlbums(force = true)
 
-            _syncState.value = SyncState.Syncing("Syncing artists...")
-            val artistResult = refreshArtists()
+                _syncState.value = SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_artists))
+                val artistResult = refreshArtists()
 
-            _syncState.value = SyncState.Syncing("Syncing genres...")
-            val genreResult = refreshGenres()
+                _syncState.value = SyncState.Syncing(context.getString(com.notmugil.uta.R.string.sync_stage_genres))
+                val genreResult = refreshGenres()
 
-            val failures = listOf(playlistResult, albumResult, artistResult, genreResult)
-                .filter { it.isFailure }
+                listOf(playlistResult, albumResult, artistResult, genreResult)
+            } else {
+                coroutineScope {
+                    val playlistDeferred = async { refreshPlaylists() }
+                    val albumDeferred = async { refreshAlbums(force = false) }
+                    val artistDeferred = async { refreshArtists() }
+                    val genreDeferred = async { refreshGenres() }
+                    listOf(
+                        playlistDeferred.await(),
+                        albumDeferred.await(),
+                        artistDeferred.await(),
+                        genreDeferred.await()
+                    )
+                }
+            }
+
+            val failures = results.filter { it.isFailure }
 
             val status = when {
                 failures.isEmpty() -> "SUCCESS"
@@ -565,14 +589,16 @@ class LibrarySyncEngine @Inject constructor(
             val duration = System.currentTimeMillis() - startTime
             Timber.i("[Sync] === Finished library sync in ${duration}ms (status=$status, failures=${failures.size}) ===")
 
-            syncMetadataDao.upsertSyncMeta(
-                SyncMetadataEntity(
-                    syncKey = "full_catalog_sync",
-                    serverId = serverId,
-                    lastSyncedAt = System.currentTimeMillis(),
-                    status = status
+            if (force) {
+                syncMetadataDao.upsertSyncMeta(
+                    SyncMetadataEntity(
+                        syncKey = "full_catalog_sync",
+                        serverId = serverId,
+                        lastSyncedAt = System.currentTimeMillis(),
+                        status = status
+                    )
                 )
-            )
+            }
 
             if (failures.size == 4) {
                 val errorMsg = formatSyncError(failures.first().exceptionOrNull())
@@ -583,9 +609,15 @@ class LibrarySyncEngine @Inject constructor(
                 val errorMsg = formatSyncError(failures.first().exceptionOrNull())
                 Timber.w("[Sync] Some sync stages failed: $errorMsg")
                 _syncState.value = SyncState.Error("Partial sync: $errorMsg")
+                if (force) {
+                    AppToastManager.showSuccess(context.getString(com.notmugil.uta.R.string.full_sync_completed))
+                }
                 false
             } else {
                 _syncState.value = SyncState.Idle
+                if (force) {
+                    AppToastManager.showSuccess(context.getString(com.notmugil.uta.R.string.full_sync_completed))
+                }
                 true
             }
         } catch (e: CancellationException) {

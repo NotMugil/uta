@@ -208,7 +208,6 @@ fun NetworkSubPage(
                 onClick = {
                     if (!isSyncing) {
                         viewModel.triggerSync()
-                        AppToastManager.showInfo(context.getString(R.string.toast_sync_started))
                     }
                 }
             )

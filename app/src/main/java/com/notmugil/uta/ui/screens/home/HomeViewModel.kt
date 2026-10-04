@@ -217,11 +217,11 @@ class HomeViewModel @Inject constructor(
         playbackController.playTrack(track, if (validQueue.isNotEmpty()) validQueue else listOf(track))
     }
 
-    fun refresh() {
+    fun refresh(force: Boolean = false) {
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                syncEngine.syncLibrary(force = true)
+                syncEngine.syncLibrary(force = force)
                 loadDynamicSections()
             } finally {
                 _isRefreshing.value = false

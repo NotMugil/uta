@@ -101,7 +101,12 @@ class LibraryViewModel @Inject constructor(
             isOfflineModeActive = isOffline,
             isLoading = catalog.albums.isEmpty() && catalog.artists.isEmpty() && syncing,
             isSyncing = syncing,
-            isRefreshing = refreshing
+            isRefreshing = refreshing,
+            syncMessage = when (syncState) {
+                is SyncState.Syncing -> syncState.stage
+                is SyncState.Error -> syncState.message
+                is SyncState.Idle -> null
+            }
         )
     }.stateIn(
         scope = viewModelScope,
@@ -113,11 +118,11 @@ class LibraryViewModel @Inject constructor(
         _selectedTab.update { tab }
     }
 
-    fun refresh() {
+    fun refresh(force: Boolean = false) {
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                syncEngine.syncLibrary(force = true)
+                syncEngine.syncLibrary(force = force)
             } finally {
                 _isRefreshing.value = false
             }

@@ -248,6 +248,8 @@ class PlaybackController @Inject constructor(
                 if (state is AuthState.Unauthenticated) {
                     stopAndClearQueue()
                     playbackQueueStore.clearQueue(null)
+                    dismissedRemoteQueueTrackIds = null
+                    _remoteQueuePrompt.value = null
                     val serverId = subsonicRepository.currentServerId
                     if (serverId.isNotBlank()) {
                         scrobbleManager.clearOutbox(serverId)
@@ -587,14 +589,23 @@ class PlaybackController @Inject constructor(
         }
     }
 
+    private var remoteQueueCheckJob: Job? = null
+    private var dismissedRemoteQueueTrackIds: List<String>? = null
+
     private fun checkForRemoteQueue() {
         if (isOffline) return
         val serverId = subsonicRepository.currentServerId
         if (serverId.isBlank()) return
-        scope.launch(Dispatchers.IO) {
+        remoteQueueCheckJob?.cancel()
+        remoteQueueCheckJob = scope.launch(Dispatchers.IO) {
             try {
                 val remoteQueue = subsonicRepository.getServerPlayQueue() ?: return@launch
                 if (remoteQueue.trackIds.isEmpty()) return@launch
+
+                if (dismissedRemoteQueueTrackIds == remoteQueue.trackIds) {
+                    Timber.d("[PlaybackController] Remote queue matching dismissed trackIds, skipping prompt")
+                    return@launch
+                }
 
                 val localTracks = _queue.value.map { it.track.id }
                 if (localTracks == remoteQueue.trackIds) return@launch
@@ -604,10 +615,12 @@ class PlaybackController @Inject constructor(
                         changedBy = remoteQueue.changedBy ?: "another device",
                         trackCount = remoteQueue.trackIds.size,
                         onResume = {
-                            resumeRemoteQueue(remoteQueue)
+                            dismissedRemoteQueueTrackIds = null
                             _remoteQueuePrompt.value = null
+                            resumeRemoteQueue(remoteQueue)
                         },
                         onDismiss = {
+                            dismissedRemoteQueueTrackIds = remoteQueue.trackIds
                             _remoteQueuePrompt.value = null
                         }
                     )
@@ -1263,6 +1276,7 @@ class PlaybackController @Inject constructor(
         _currentQueueIndex.value = -1
         _currentPositionMs.value = 0L
         _durationMs.value = 0L
+        _remoteQueuePrompt.value = null
 
         val serverId = subsonicRepository.currentServerId
         playbackQueueStore.clearQueue(serverId)
