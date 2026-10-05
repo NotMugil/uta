@@ -9,11 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- High-resolution album artwork rendering for Cover and Cinematic player layouts.
+- Artist action modal sheet with actions like rate, favourites, add to playlist.
+- Snap fling behavior for horizontal carousel rows across Home screen sections.
+- Dynamic theme toggle in Display Settings with conditional Dynamic Color Source selection.
+
+### Changed
+
+- New & redesigned cinematic player page style
 
 ### Fixed
 
 - Fix animated album artwork resolution and playback on the album details page.
+- Fix duplicate back navigation button on the artist page during initial loading.
 
 ## [1.0.0-alpha.2] - 2026-10-04
 

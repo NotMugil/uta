@@ -27,6 +27,7 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import coil3.size.Size
 import com.notmugil.uta.data.PlaylistCoverManager
 import com.notmugil.uta.data.SubsonicSession
 import com.notmugil.uta.data.download.OfflineDownloadManager
@@ -52,7 +53,7 @@ fun CoverArtImage(
 
     val standardSizePx = remember(size, coverArtQuality, highRes) {
         val base = when {
-            highRes -> 1400
+            highRes -> 3000
             size == Dp.Unspecified -> 600
             size <= 64.dp -> 180
             size <= 160.dp -> 450
@@ -88,23 +89,26 @@ fun CoverArtImage(
 
     val isOffline = SubsonicSession.isOfflineModeActive
 
-    val imageData: Any? = remember(customModel, customPlaylistCover, effectiveCoverId, localCoverFile, isOffline, standardSizePx) {
+    val imageData: Any? = remember(customModel, customPlaylistCover, effectiveCoverId, localCoverFile, isOffline, standardSizePx, highRes, coverArtQuality) {
         when {
             customModel != null -> customModel
             customPlaylistCover != null -> customPlaylistCover
             localCoverFile != null -> localCoverFile
             isOffline -> null
-            !effectiveCoverId.isNullOrBlank() -> SubsonicSession.client?.getCoverArtUrl(effectiveCoverId, size = standardSizePx.toString())
+            !effectiveCoverId.isNullOrBlank() -> {
+                val reqSize = if (highRes && coverArtQuality == CoverArtQuality.HIGH) null else standardSizePx.toString()
+                SubsonicSession.client?.getCoverArtUrl(effectiveCoverId, size = reqSize)
+            }
             else -> null
         }
     }
 
-    val stableCacheKey = remember(customModel, customPlaylistCover, effectiveCoverId, standardSizePx, localCoverFile) {
+    val stableCacheKey = remember(customModel, customPlaylistCover, effectiveCoverId, standardSizePx, localCoverFile, highRes) {
         when {
             customModel != null -> "custom_${customModel.hashCode()}"
             customPlaylistCover != null -> customPlaylistCover.absolutePath
             localCoverFile != null -> localCoverFile.absolutePath
-            !effectiveCoverId.isNullOrBlank() -> "cover_${effectiveCoverId}_$standardSizePx"
+            !effectiveCoverId.isNullOrBlank() -> if (highRes) "cover_${effectiveCoverId}_highres" else "cover_${effectiveCoverId}_$standardSizePx"
             else -> null
         }
     }
@@ -127,16 +131,21 @@ fun CoverArtImage(
         contentAlignment = Alignment.Center
     ) {
         if (imageData != null && stableCacheKey != null && !isError) {
-            val request = remember(imageData, stableCacheKey, standardSizePx) {
-                ImageRequest.Builder(context)
+            val request = remember(imageData, stableCacheKey, standardSizePx, highRes) {
+                val builder = ImageRequest.Builder(context)
                     .data(imageData)
-                    .size(standardSizePx)
                     .memoryCacheKey(stableCacheKey)
                     .diskCacheKey(stableCacheKey)
                     .memoryCachePolicy(CachePolicy.ENABLED)
                     .diskCachePolicy(CachePolicy.ENABLED)
                     .crossfade(150)
-                    .build()
+
+                if (highRes) {
+                    builder.size(Size.ORIGINAL)
+                } else {
+                    builder.size(standardSizePx)
+                }
+                builder.build()
             }
 
             AsyncImage(

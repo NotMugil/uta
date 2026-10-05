@@ -7,6 +7,8 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
@@ -20,12 +22,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -72,6 +77,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -80,6 +86,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.notmugil.uta.domain.model.QueueItem
+import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.ui.UtaAppEntryPoint
 import com.notmugil.uta.ui.shared.ActionConfirmDialog
 import com.notmugil.uta.ui.shared.CoverArtImage
@@ -105,6 +112,8 @@ fun QueueSheet(
     onUndo: (() -> Unit)? = null,
     onSaveAsPlaylist: () -> Unit = {},
     onSaveQueueAsPlaylist: ((String) -> Unit)? = null,
+    currentTrack: TrackItem? = null,
+    currentEntryId: String? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -122,15 +131,20 @@ fun QueueSheet(
     }
 
     LaunchedEffect(currentIndex) {
-        if (currentIndex in queue.indices) {
+        if (!reorderableLazyListState.isAnyItemDragging && currentIndex in queue.indices) {
             try {
                 listState.animateScrollToItem((currentIndex - 1).coerceAtLeast(0))
             } catch (_: Exception) {}
         }
     }
 
-    val currentTrack = queue.getOrNull(currentIndex)?.track
-    val ambientCoverArtId = currentTrack?.coverArtId
+    val effectiveCurrentTrack = currentTrack ?: queue.getOrNull(currentIndex)?.track
+    val stableCurrentEntryId = currentEntryId
+        ?: currentTrack?.let { ct -> queue.firstOrNull { it.track.id == ct.id }?.entryId }
+        ?: queue.getOrNull(currentIndex)?.entryId
+
+    val ambientCoverArtId = effectiveCurrentTrack?.coverArtId
+        ?: queue.firstOrNull { it.entryId == stableCurrentEntryId }?.track?.coverArtId
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -184,72 +198,7 @@ fun QueueSheet(
                     .statusBarsPadding()
                     .navigationBarsPadding()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Tabler.Outline.ArrowLeft,
-                            contentDescription = stringResource(R.string.action_back),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.queue_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = if (queue.isEmpty()) stringResource(R.string.queue_empty) else stringResource(R.string.playlist_songs_count, queue.size),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    if (queue.isNotEmpty()) {
-                        IconButton(
-                            onClick = { showPlaylistPicker = true },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Tabler.Outline.PlaylistAdd,
-                                contentDescription = stringResource(R.string.action_add_queue_to_playlist),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(4.dp))
-
-                        IconButton(
-                            onClick = { showClearQueueConfirmDialog = true },
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Tabler.Outline.Trash,
-                                contentDescription = stringResource(R.string.action_clear_queue),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    } else {
-                        Spacer(modifier = Modifier.size(40.dp))
-                    }
-                }
+                Spacer(modifier = Modifier.height(56.dp))
 
                 if (queue.isEmpty()) {
                     Box(
@@ -283,14 +232,27 @@ fun QueueSheet(
                         ) {
                             itemsIndexed(queue, key = { _, item -> item.entryId }) { index, item ->
                                 ReorderableItem(reorderableLazyListState, key = item.entryId) { isDragging ->
-                                    val isCurrent = index == currentIndex
+                                    val isCurrent = if (stableCurrentEntryId != null) {
+                                        item.entryId == stableCurrentEntryId
+                                    } else if (effectiveCurrentTrack != null) {
+                                        item.track.id == effectiveCurrentTrack.id
+                                    } else {
+                                        index == currentIndex
+                                    }
                                     val accentColor = MaterialTheme.colorScheme.primary
 
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .animateItem(fadeInSpec = null, fadeOutSpec = null)
+                                            .animateItem(
+                                                fadeInSpec = null,
+                                                fadeOutSpec = null,
+                                                placementSpec = spring(
+                                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                                    stiffness = Spring.StiffnessMediumLow
+                                                )
+                                            )
                                             .clip(RoundedCornerShape(12.dp))
                                             .background(
                                                 if (isDragging) {
@@ -368,7 +330,7 @@ fun QueueSheet(
                                                 modifier = if (isCurrent) Modifier.basicMarquee() else Modifier
                                             )
                                             Text(
-                                                text = if (item.track.album.isNullOrBlank()) item.track.artist else "${item.track.artist} • ${item.track.album}",
+                                                text = item.track.artist,
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = if (isCurrent) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant,
                                                 maxLines = 1,
@@ -413,75 +375,155 @@ fun QueueSheet(
                             }
                         }
 
-                        val topScrollAlpha by animateFloatAsState(
-                            targetValue = if (reorderableLazyListState.isAnyItemDragging) 1f else 0f,
-                            animationSpec = tween(200),
-                            label = "top_scroll_gradient_alpha"
-                        )
-                        val bottomScrollAlpha by animateFloatAsState(
-                            targetValue = if (reorderableLazyListState.isAnyItemDragging) 1f else 0f,
-                            animationSpec = tween(200),
-                            label = "bottom_scroll_gradient_alpha"
-                        )
-
-                        if (topScrollAlpha > 0f) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.TopCenter)
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .graphicsLayer { alpha = topScrollAlpha }
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.55f),
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                                Color.Transparent
-                                            )
-                                        )
-                                    ),
-                                contentAlignment = Alignment.TopCenter
-                            ) {
-                                Icon(
-                                    imageVector = Tabler.Outline.ChevronUp,
-                                    contentDescription = stringResource(R.string.action_scroll_up),
-                                    tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.95f),
-                                    modifier = Modifier
-                                        .padding(top = 4.dp)
-                                        .size(22.dp)
-                                )
-                            }
-                        }
-
-                        if (bottomScrollAlpha > 0f) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .graphicsLayer { alpha = bottomScrollAlpha }
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)
-                                            )
-                                        )
-                                    ),
-                                contentAlignment = Alignment.BottomCenter
-                            ) {
-                                Icon(
-                                    imageVector = Tabler.Outline.ChevronDown,
-                                    contentDescription = stringResource(R.string.action_scroll_down),
-                                    tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.95f),
-                                    modifier = Modifier
-                                        .padding(bottom = 4.dp)
-                                        .size(22.dp)
-                                )
-                            }
-                        }
                     }
+                }
+            }
+
+            val topScrollAlpha by animateFloatAsState(
+                targetValue = if (reorderableLazyListState.isAnyItemDragging) 1f else 0f,
+                animationSpec = tween(200),
+                label = "top_scroll_gradient_alpha"
+            )
+            val bottomScrollAlpha by animateFloatAsState(
+                targetValue = if (reorderableLazyListState.isAnyItemDragging) 1f else 0f,
+                animationSpec = tween(200),
+                label = "bottom_scroll_gradient_alpha"
+            )
+
+            val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+            val dimColor = if (isDark) Color.Black else Color.White
+            val topBarPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+            val navBarPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+            if (topScrollAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .height(topBarPadding + 56.dp + 48.dp)
+                        .graphicsLayer { alpha = topScrollAlpha }
+                        .blur(16.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    dimColor.copy(alpha = 0.85f),
+                                    dimColor.copy(alpha = 0.70f),
+                                    dimColor.copy(alpha = 0.35f),
+                                    Color.Transparent
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Icon(
+                        imageVector = Tabler.Outline.ChevronUp,
+                        contentDescription = stringResource(R.string.action_scroll_up),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        modifier = Modifier
+                            .padding(bottom = 6.dp)
+                            .size(22.dp)
+                    )
+                }
+            }
+
+            if (bottomScrollAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(navBarPadding + 64.dp)
+                        .graphicsLayer { alpha = bottomScrollAlpha }
+                        .blur(16.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    dimColor.copy(alpha = 0.35f),
+                                    dimColor.copy(alpha = 0.70f),
+                                    dimColor.copy(alpha = 0.85f)
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Icon(
+                        imageVector = Tabler.Outline.ChevronDown,
+                        contentDescription = stringResource(R.string.action_scroll_down),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                        modifier = Modifier
+                            .padding(bottom = navBarPadding + 6.dp)
+                            .size(22.dp)
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .height(56.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Tabler.Outline.ArrowLeft,
+                        contentDescription = stringResource(R.string.action_back),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.queue_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        text = if (queue.isEmpty()) stringResource(R.string.queue_empty) else stringResource(R.string.playlist_songs_count, queue.size),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                if (queue.isNotEmpty()) {
+                    IconButton(
+                        onClick = { showPlaylistPicker = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Tabler.Outline.PlaylistAdd,
+                            contentDescription = stringResource(R.string.action_add_queue_to_playlist),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    IconButton(
+                        onClick = { showClearQueueConfirmDialog = true },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Tabler.Outline.Trash,
+                            contentDescription = stringResource(R.string.action_clear_queue),
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.size(40.dp))
                 }
             }
         }

@@ -38,6 +38,9 @@ fun AppAmbientBackground(
     val appPreferences = LocalAppPreferences.current
     val dynamicThemeManager = LocalDynamicThemeManager.current
 
+    val isDynamicThemeEnabled by (appPreferences?.isDynamicThemeEnabled?.collectAsStateWithLifecycle()
+        ?: remember { androidx.compose.runtime.mutableStateOf(true) })
+
     val dynamicColorSource by (appPreferences?.dynamicColorSource?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(DynamicColorSource.BOTH) })
 
@@ -53,11 +56,11 @@ fun AppAmbientBackground(
     val isPlaying by (playbackController?.isPlaying?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(false) })
 
-    val isCoverActive = !forceDefaultColors &&
+    val isCoverActive = !forceDefaultColors && isDynamicThemeEnabled &&
         (dynamicColorSource == DynamicColorSource.COVER_ONLY || dynamicColorSource == DynamicColorSource.BOTH) &&
         (currentTrack != null)
 
-    val isWallpaperActive = !forceDefaultColors && (
+    val isWallpaperActive = !forceDefaultColors && isDynamicThemeEnabled && (
         (dynamicColorSource == DynamicColorSource.WALLPAPER_ONLY) ||
             (dynamicColorSource == DynamicColorSource.BOTH && currentTrack == null)
     )

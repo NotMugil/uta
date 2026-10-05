@@ -1,7 +1,9 @@
 package com.notmugil.uta.ui.screens.player.layouts
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -128,6 +130,7 @@ fun LandscapePlayerLayout(
     downloadProgress: Float? = null,
     onToggleDownload: () -> Unit = {},
     trackStats: String? = null,
+    currentEntryId: String? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -397,7 +400,7 @@ fun LandscapePlayerLayout(
                             items = queue,
                             key = { _, s -> s.entryId }
                         ) { index, queueItem ->
-                            val isCurrent = queueItem.track.id == track?.id
+                            val isCurrent = if (currentEntryId != null) queueItem.entryId == currentEntryId else queueItem.track.id == track?.id
                             val accentColor = MaterialTheme.colorScheme.primary
 
                             ReorderableItem(queueReorderState, key = queueItem.entryId) { isDragging ->
@@ -405,6 +408,14 @@ fun LandscapePlayerLayout(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .animateItem(
+                                            fadeInSpec = null,
+                                            fadeOutSpec = null,
+                                            placementSpec = spring(
+                                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            )
+                                        )
                                         .background(
                                             if (isDragging) {
                                                 accentColor.copy(alpha = 0.35f)
@@ -462,7 +473,7 @@ fun LandscapePlayerLayout(
                                             overflow = TextOverflow.Ellipsis
                                         )
                                         Text(
-                                            text = "${queueItem.track.artist} • ${queueItem.track.album ?: ""}",
+                                            text = queueItem.track.artist,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = if (isCurrent) {
                                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)

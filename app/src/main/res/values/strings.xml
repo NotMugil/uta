@@ -419,6 +419,8 @@
     <string name="setting_font">Font</string>
     <string name="setting_theme">Theme</string>
     <string name="setting_theme_subtitle">Theme appearance mode (System, Dark, Light)</string>
+    <string name="setting_dynamic_theme">Dynamic Theme</string>
+    <string name="setting_dynamic_theme_subtitle">Match colors to current artwork or device wallpaper</string>
     <string name="setting_dynamic_color_source">Dynamic Color Source</string>
     <string name="setting_dynamic_color_source_subtitle">Source used for dynamic color extraction</string>
     <string name="setting_feedback_header">Feedback</string>

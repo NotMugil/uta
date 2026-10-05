@@ -42,13 +42,14 @@ fun LyricsAmbientBackground(
     modifier: Modifier = Modifier
 ) {
     val appPreferences = LocalAppPreferences.current
+    val isDynamicThemeEnabled by (appPreferences?.isDynamicThemeEnabled?.collectAsState() ?: remember { mutableStateOf(true) })
     val dynamicColorSource by (appPreferences?.dynamicColorSource?.collectAsState() ?: remember { mutableStateOf(DynamicColorSource.BOTH) })
     val dynamicThemeManager = LocalDynamicThemeManager.current
     val dynamicSeedColor by (dynamicThemeManager?.dynamicSeedColor?.collectAsState() ?: remember { mutableStateOf(null) })
     val dynamicSecondaryColor by (dynamicThemeManager?.dynamicSecondaryColor?.collectAsState() ?: remember { mutableStateOf(null) })
 
-    val isCoverActive = dynamicColorSource == DynamicColorSource.COVER_ONLY || dynamicColorSource == DynamicColorSource.BOTH
-    val isWallpaperActive = dynamicColorSource == DynamicColorSource.WALLPAPER_ONLY
+    val isCoverActive = isDynamicThemeEnabled && (dynamicColorSource == DynamicColorSource.COVER_ONLY || dynamicColorSource == DynamicColorSource.BOTH)
+    val isWallpaperActive = isDynamicThemeEnabled && (dynamicColorSource == DynamicColorSource.WALLPAPER_ONLY)
 
     val themePrimary = MaterialTheme.colorScheme.primary
     val themeSecondary = MaterialTheme.colorScheme.secondary.takeIf { it != themePrimary }

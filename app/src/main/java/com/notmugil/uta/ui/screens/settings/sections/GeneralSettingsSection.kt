@@ -34,6 +34,7 @@ fun GeneralSubPage(
 ) {
     val appLanguage by viewModel.appLanguage.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val isDynamicThemeEnabled by viewModel.isDynamicThemeEnabled.collectAsStateWithLifecycle()
     val dynamicColorSource by viewModel.dynamicColorSource.collectAsStateWithLifecycle()
     val fontPreference by viewModel.fontPreference.collectAsStateWithLifecycle()
     val hapticFeedback by viewModel.hapticFeedback.collectAsStateWithLifecycle()
@@ -98,15 +99,31 @@ fun GeneralSubPage(
             onValueChange = { viewModel.setThemeMode(it) }
         )
 
-        SettingsDropdownRow(
+        SettingsItemRow(
             icon = null,
-            title = stringResource(R.string.setting_dynamic_color_source),
-            subtitle = stringResource(R.string.setting_dynamic_color_source_subtitle),
-            selectedValue = dynamicColorSource,
-            options = DynamicColorSource.entries,
-            getDisplayName = { it.displayName },
-            onValueChange = { viewModel.setDynamicColorSource(it) }
+            title = stringResource(R.string.setting_dynamic_theme),
+            subtitle = stringResource(R.string.setting_dynamic_theme_subtitle),
+            showChevron = false,
+            verticalPadding = 16.dp,
+            trailing = {
+                UtaSwitch(
+                    checked = isDynamicThemeEnabled,
+                    onCheckedChange = { viewModel.setDynamicThemeEnabled(it) }
+                )
+            }
         )
+
+        if (isDynamicThemeEnabled) {
+            SettingsDropdownRow(
+                icon = null,
+                title = stringResource(R.string.setting_dynamic_color_source),
+                subtitle = stringResource(R.string.setting_dynamic_color_source_subtitle),
+                selectedValue = dynamicColorSource,
+                options = DynamicColorSource.entries,
+                getDisplayName = { it.displayName },
+                onValueChange = { viewModel.setDynamicColorSource(it) }
+            )
+        }
 
         SettingsSectionHeader(stringResource(R.string.setting_layout_style_header))
 

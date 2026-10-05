@@ -46,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.luminance
 import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.preferences.SeekBarStyle
 import kotlin.math.PI
@@ -61,7 +62,11 @@ fun PlaybackSeekBar(
     isPlaying: Boolean = false,
     songKey: String? = null,
     activeColor: Color = MaterialTheme.colorScheme.primary,
-    inactiveColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    inactiveColor: Color = if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
+        Color.White.copy(alpha = 0.20f)
+    } else {
+        Color.Black.copy(alpha = 0.18f)
+    },
     thumbColor: Color = activeColor,
     style: SeekBarStyle? = null,
     trackThickness: Dp = 4.dp,
@@ -248,7 +253,7 @@ fun PlaybackSeekBar(
 
                 if (playedStartX < needleX) {
                     drawLine(
-                        color = Color.White.copy(alpha = 0.22f),
+                        color = inactiveColor,
                         start = Offset(playedStartX, cy),
                         end = Offset(needleX, cy),
                         strokeWidth = needleTrackThickness,
@@ -299,7 +304,7 @@ fun PlaybackSeekBar(
                     val barHeight = (minBarHeightPx + (maxBarHeightPx - minBarHeightPx) * normalizedAmp * volumeScale)
 
                     drawLine(
-                        color = inactiveColor.copy(alpha = 0.35f),
+                        color = inactiveColor,
                         start = Offset(barCenterX, cy - barHeight / 2f),
                         end = Offset(barCenterX, cy + barHeight / 2f),
                         strokeWidth = barWidthPx,

@@ -527,7 +527,6 @@ class PlaybackController @Inject constructor(
 
             override fun onTimelineChanged(timeline: Timeline, reason: Int) {
                 syncQueue(mediaController)
-                _currentQueueIndex.value = mediaController.currentMediaItemIndex
                 debouncePersistQueue()
             }
 
@@ -792,9 +791,11 @@ class PlaybackController @Inject constructor(
                 MediaItemMapper.toQueueItem(item)?.let { items.add(it) }
             }
             _queue.value = items
-            val rawIndex = mediaController.currentMediaItemIndex
-            _currentQueueIndex.value = rawIndex
-            queuePrefetchManager.prefetchUpcomingTracks(items.map { it.track }, rawIndex)
+            val currentEntryId = _currentEntryId.value
+            val displayIndex = if (currentEntryId != null) items.indexOfFirst { it.entryId == currentEntryId } else -1
+            val resolvedIndex = if (displayIndex >= 0) displayIndex else mediaController.currentMediaItemIndex
+            _currentQueueIndex.value = resolvedIndex
+            queuePrefetchManager.prefetchUpcomingTracks(items.map { it.track }, resolvedIndex)
         }
     }
 
@@ -1109,14 +1110,27 @@ class PlaybackController @Inject constructor(
     }
 
     fun moveQueueItem(fromIndex: Int, toIndex: Int) {
+        val currentQueueList = _queue.value
+        if (fromIndex !in currentQueueList.indices || toIndex !in currentQueueList.indices || fromIndex == toIndex) return
+
+        val fromEntryId = currentQueueList[fromIndex].entryId
+        val toEntryId = currentQueueList[toIndex].entryId
+
+        val mutableList = currentQueueList.toMutableList()
+        val item = mutableList.removeAt(fromIndex)
+        mutableList.add(toIndex, item)
+        _queue.value = mutableList
+
+        val currentEntry = _currentEntryId.value
+        if (currentEntry != null) {
+            val newIdx = mutableList.indexOfFirst { it.entryId == currentEntry }
+            if (newIdx >= 0) {
+                _currentQueueIndex.value = newIdx
+            }
+        }
+
         scope.launch {
             val ctrl = getConnectedController() ?: return@launch
-            val currentQueueList = _queue.value
-            if (fromIndex !in currentQueueList.indices || toIndex !in currentQueueList.indices) return@launch
-
-            val fromEntryId = currentQueueList[fromIndex].entryId
-            val toEntryId = currentQueueList[toIndex].entryId
-
             val fromCtrlIndex = (0 until ctrl.mediaItemCount).firstOrNull { i ->
                 MediaItemMapper.getEntryId(ctrl.getMediaItemAt(i)) == fromEntryId
             } ?: fromIndex

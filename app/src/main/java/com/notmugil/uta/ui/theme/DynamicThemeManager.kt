@@ -154,7 +154,7 @@ class DynamicThemeManager @Inject constructor(
                     val palette = withContext(Dispatchers.Default) {
                         try {
                             Palette.from(softwareBitmap)
-                                .maximumColorCount(16)
+                                .maximumColorCount(24)
                                 .clearFilters()
                                 .generate()
                         } catch (_: Exception) {
@@ -163,52 +163,87 @@ class DynamicThemeManager @Inject constructor(
                     }
 
                     if (palette != null) {
-                        val swatch = palette.vibrantSwatch
-                            ?: palette.dominantSwatch
-                            ?: palette.lightVibrantSwatch
-                            ?: palette.darkVibrantSwatch
-                            ?: palette.mutedSwatch
-                            ?: palette.swatches.maxByOrNull { it.population }
+                        val swatches = palette.swatches
 
-                        val darkSwatch = palette.darkMutedSwatch
-                            ?: palette.darkVibrantSwatch
-                            ?: palette.mutedSwatch
-                            ?: palette.dominantSwatch
-
-                        val secondarySwatch = palette.lightVibrantSwatch?.takeIf { it != swatch }
-                            ?: palette.mutedSwatch?.takeIf { it != swatch }
-                            ?: palette.dominantSwatch?.takeIf { it != swatch }
-                            ?: palette.darkVibrantSwatch?.takeIf { it != swatch }
-                            ?: palette.lightMutedSwatch?.takeIf { it != swatch }
-                            ?: palette.swatches.firstOrNull { it != swatch }
-                            ?: swatch
-
-                        if (swatch != null) {
-                            val rgb = swatch.rgb
-                            colorCache[coverId] = rgb
-                            if (playbackController.currentTrack.value?.id == track.id) {
-                                _dynamicSeedColor.value = Color(rgb)
-                            }
+                        val chromaticSwatches = swatches.filter { s ->
+                            val hsl = s.hsl
+                            val sat = hsl[1]
+                            val light = hsl[2]
+                            sat >= 0.15f && light in 0.18f..0.75f && !(light > 0.68f && sat < 0.30f)
                         }
 
-                        if (secondarySwatch != null) {
-                            val rgbSec = secondarySwatch.rgb
-                            secondaryColorCache[coverId] = rgbSec
-                            if (playbackController.currentTrack.value?.id == track.id) {
-                                _dynamicSecondaryColor.value = Color(rgbSec)
+                        val bestSwatch = if (chromaticSwatches.isNotEmpty()) {
+                            chromaticSwatches.maxByOrNull { s ->
+                                val hsl = s.hsl
+                                val sat = hsl[1]
+                                val light = hsl[2]
+                                val popSqrt = kotlin.math.sqrt(s.population.toFloat()).coerceAtLeast(1f)
+                                val lightDist = kotlin.math.abs(light - 0.48f)
+                                val lightWeight = (1.0f - lightDist * 1.6f).coerceIn(0.20f, 1.0f)
+                                val satWeight = (sat * sat * 3.0f + 0.4f).coerceIn(0.4f, 3.5f)
+                                popSqrt * lightWeight * satWeight
                             }
+                        } else {
+                            swatches.filter { s ->
+                                val light = s.hsl[2]
+                                light in 0.20f..0.60f
+                            }.maxByOrNull { s ->
+                                val lightDist = kotlin.math.abs(s.hsl[2] - 0.40f)
+                                s.population.toFloat() * (1.0f - lightDist)
+                            } ?: palette.darkVibrantSwatch ?: palette.darkMutedSwatch ?: palette.mutedSwatch
                         }
 
-                        if (darkSwatch != null) {
-                            val hsv = FloatArray(3)
-                            android.graphics.Color.colorToHSV(darkSwatch.rgb, hsv)
-                            hsv[1] = (hsv[1] * 0.70f).coerceIn(0.20f, 0.60f)
-                            hsv[2] = 0.09f
-                            val darkRgb = android.graphics.Color.HSVToColor(hsv)
-                            darkColorCache[coverId] = darkRgb
-                            if (playbackController.currentTrack.value?.id == track.id) {
-                                _dynamicDarkBgColor.value = Color(darkRgb)
+                        val finalSeedRgb = if (bestSwatch != null) {
+                            val hsl = FloatArray(3)
+                            androidx.core.graphics.ColorUtils.colorToHSL(bestSwatch.rgb, hsl)
+                            if (hsl[2] > 0.70f) hsl[2] = 0.62f
+                            if (hsl[1] < 0.15f && hsl[2] > 0.50f) {
+                                hsl[2] = 0.42f
+                                hsl[1] = 0.25f
+                                hsl[0] = 215f
                             }
+                            androidx.core.graphics.ColorUtils.HSLToColor(hsl)
+                        } else {
+                            android.graphics.Color.rgb(63, 81, 181)
+                        }
+
+                        val seedHsl = FloatArray(3)
+                        androidx.core.graphics.ColorUtils.colorToHSL(finalSeedRgb, seedHsl)
+                        val bestHue = seedHsl[0]
+                        val seedLightness = seedHsl[2]
+
+                        val lighterCandidate = chromaticSwatches.filter { s ->
+                            val hsl = s.hsl
+                            val hueDiff = kotlin.math.abs(hsl[0] - bestHue).let { if (it > 180f) 360f - it else it }
+                            hueDiff <= 32f && hsl[2] in (seedLightness + 0.06f)..0.68f && hsl[1] >= 0.20f
+                        }.maxByOrNull { s ->
+                            s.population * (1.0f + s.hsl[1]) * s.hsl[2]
+                        }
+
+                        val secondaryRgb = if (lighterCandidate != null) {
+                            lighterCandidate.rgb
+                        } else {
+                            val hsl = FloatArray(3)
+                            androidx.core.graphics.ColorUtils.colorToHSL(finalSeedRgb, hsl)
+                            hsl[2] = (hsl[2] * 1.25f + 0.12f).coerceIn(0.48f, 0.68f)
+                            hsl[1] = (hsl[1] * 0.95f).coerceIn(0.35f, 0.85f)
+                            androidx.core.graphics.ColorUtils.HSLToColor(hsl)
+                        }
+
+                        val hsv = FloatArray(3)
+                        android.graphics.Color.colorToHSV(finalSeedRgb, hsv)
+                        hsv[1] = (hsv[1] * 0.65f).coerceIn(0.25f, 0.55f)
+                        hsv[2] = 0.08f
+                        val darkRgb = android.graphics.Color.HSVToColor(hsv)
+
+                        colorCache[coverId] = finalSeedRgb
+                        secondaryColorCache[coverId] = secondaryRgb
+                        darkColorCache[coverId] = darkRgb
+
+                        if (playbackController.currentTrack.value?.id == track.id) {
+                            _dynamicSeedColor.value = Color(finalSeedRgb)
+                            _dynamicSecondaryColor.value = Color(secondaryRgb)
+                            _dynamicDarkBgColor.value = Color(darkRgb)
                         }
                     }
                 }

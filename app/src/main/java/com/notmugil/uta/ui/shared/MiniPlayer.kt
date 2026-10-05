@@ -107,6 +107,7 @@ fun MiniPlayer(
 
     val miniPlayerStyle by prefs?.miniPlayerStyle?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(MiniPlayerStyle.DEFAULT) }
     val miniPlayerPlacement by prefs?.miniPlayerPlacement?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(MiniPlayerPlacement.ISOLATED) }
+    val isDynamicThemeEnabled by prefs?.isDynamicThemeEnabled?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(true) }
     val tintMiniPlayerAccent by prefs?.tintMiniPlayerAccent?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(true) }
     val miniPlayerButtonConfigs by prefs?.miniPlayerButtonConfigs?.collectAsState() ?: remember { androidx.compose.runtime.mutableStateOf(MiniPlayerButton.defaultButtons) }
 
@@ -118,7 +119,7 @@ fun MiniPlayer(
 
     val containerBgColor = if (miniPlayerStyle == MiniPlayerStyle.AMBIENT) {
         baseSurfaceColor
-    } else if (tintMiniPlayerAccent) {
+    } else if (tintMiniPlayerAccent && isDynamicThemeEnabled) {
         if (isDark) {
             val defaultBlackColor = Color.Black
             dynamicDarkBg?.let {

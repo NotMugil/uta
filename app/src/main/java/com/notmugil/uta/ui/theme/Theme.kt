@@ -112,6 +112,8 @@ fun UtaTheme(
 
     val customAccentColor by (appPreferences?.customAccentColor?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(null) })
+    val isDynamicThemeEnabled by (appPreferences?.isDynamicThemeEnabled?.collectAsStateWithLifecycle()
+        ?: remember { androidx.compose.runtime.mutableStateOf(true) })
     val dynamicColorSource by (appPreferences?.dynamicColorSource?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(DynamicColorSource.BOTH) })
     val dynamicSeedColor by (dynamicThemeManager?.dynamicSeedColor?.collectAsStateWithLifecycle()
@@ -128,7 +130,10 @@ fun UtaTheme(
         }
     }
 
-    val colorScheme = when (dynamicColorSource) {
+    val colorScheme = if (!isDynamicThemeEnabled) {
+        defaultScheme
+    } else {
+        when (dynamicColorSource) {
         DynamicColorSource.COVER_ONLY -> {
             if (dynamicSeedColor != null) {
                 val seed = dynamicSeedColor!!
@@ -163,6 +168,7 @@ fun UtaTheme(
             }
         }
     }
+}
 
     val fontPreference by (appPreferences?.fontPreference?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(com.notmugil.uta.data.preferences.AppFont.SYSTEM_DEFAULT) })

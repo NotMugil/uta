@@ -419,6 +419,8 @@
     <string name="setting_font">Police</string>
     <string name="setting_theme">Thème</string>
     <string name="setting_theme_subtitle">Mode d\'apparence (Système, Sombre, Clair)</string>
+    <string name="setting_dynamic_theme">Thème dynamique</string>
+    <string name="setting_dynamic_theme_subtitle">Adapter les couleurs selon la pochette ou le fond d\'écran</string>
     <string name="setting_dynamic_color_source">Source de couleur dynamique</string>
     <string name="setting_dynamic_color_source_subtitle">Source utilisée pour l\'extraction dynamique des couleurs</string>
     <string name="setting_feedback_header">Retour tactile</string>

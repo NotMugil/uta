@@ -105,6 +105,7 @@ fun PlayerSheet(
     offlineDownloadManager: OfflineDownloadManager? = null,
     sleepTimerManager: SleepTimerManager? = null,
     audioFormat: Format? = null,
+    currentEntryId: String? = null,
     modifier: Modifier = Modifier,
     isBuffering: Boolean = false
 ) {
@@ -414,7 +415,8 @@ fun PlayerSheet(
                         isDownloading = isDownloading,
                         downloadProgress = downloadProgress,
                         onToggleDownload = onToggleDownload,
-                        trackStats = trackStats
+                        trackStats = trackStats,
+                        currentEntryId = currentEntryId
                     )
                 } else {
                     when (effectivePlayerStyle) {
@@ -625,7 +627,9 @@ fun PlayerSheet(
                 onRemoveItem = { onRemoveQueueIndex(it) },
                 onMoveItem = { from, to -> onMoveQueueItem(from, to) },
                 onClearQueue = onClearQueue,
-                onUndo = onUndoQueueAction
+                onUndo = onUndoQueueAction,
+                currentTrack = track,
+                currentEntryId = currentEntryId
             )
         }
 

@@ -1,8 +1,10 @@
 package com.notmugil.uta.ui.screens.player.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -20,11 +22,12 @@ import androidx.compose.ui.unit.dp
 fun MiniWaveformEqualizer(
     isPlaying: Boolean,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    idleFraction: Float = 0.2f
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "waveform_anim")
 
-    val h1 by infiniteTransition.animateFloat(
+    val h1Anim by infiniteTransition.animateFloat(
         initialValue = 0.25f,
         targetValue = 0.95f,
         animationSpec = infiniteRepeatable(
@@ -33,7 +36,7 @@ fun MiniWaveformEqualizer(
         ),
         label = "h1"
     )
-    val h2 by infiniteTransition.animateFloat(
+    val h2Anim by infiniteTransition.animateFloat(
         initialValue = 0.85f,
         targetValue = 0.25f,
         animationSpec = infiniteRepeatable(
@@ -42,7 +45,7 @@ fun MiniWaveformEqualizer(
         ),
         label = "h2"
     )
-    val h3 by infiniteTransition.animateFloat(
+    val h3Anim by infiniteTransition.animateFloat(
         initialValue = 0.35f,
         targetValue = 1.0f,
         animationSpec = infiniteRepeatable(
@@ -51,6 +54,16 @@ fun MiniWaveformEqualizer(
         ),
         label = "h3"
     )
+
+    val playProgress by animateFloatAsState(
+        targetValue = if (isPlaying) 1f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "waveformPlayProgress"
+    )
+
+    val h1 = (idleFraction + (h1Anim - idleFraction) * playProgress).coerceIn(0.08f, 1f)
+    val h2 = (idleFraction + (h2Anim - idleFraction) * playProgress).coerceIn(0.08f, 1f)
+    val h3 = (idleFraction + (h3Anim - idleFraction) * playProgress).coerceIn(0.08f, 1f)
 
     Canvas(modifier = modifier) {
         val w = size.width
@@ -61,10 +74,10 @@ fun MiniWaveformEqualizer(
         val startX = (w - totalW) / 2f
         val cy = h / 2f
 
-        val heights = if (isPlaying) listOf(h1, h2, h3) else listOf(0.3f, 0.5f, 0.3f)
+        val heights = listOf(h1, h2, h3)
 
         heights.forEachIndexed { i, factor ->
-            val barH = (h * factor).coerceIn(4.dp.toPx(), h)
+            val barH = (h * factor).coerceIn(2.dp.toPx(), h)
             val bx = startX + i * (barW + spacing)
             drawRoundRect(
                 color = color,

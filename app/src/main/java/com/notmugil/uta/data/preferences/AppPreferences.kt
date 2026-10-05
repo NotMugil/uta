@@ -295,6 +295,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_AUTO_SYNC_ENABLED = "auto_sync_enabled"
         private const val KEY_OFFLINE_MODE = "offline_mode_manual"
         private const val KEY_THEME_MODE = "app_theme_mode"
+        private const val KEY_DYNAMIC_THEME_ENABLED = "dynamic_theme_enabled"
         private const val KEY_DYNAMIC_ACCENT_MODE = "dynamic_accent_mode"
         private const val KEY_CUSTOM_ACCENT_COLOR = "custom_accent_color"
         private const val KEY_ALBUM_VIEW_MODE = "album_view_mode"
@@ -386,6 +387,11 @@ class AppPreferences @Inject constructor(
 
     private val _themeMode = MutableStateFlow(getEnumPreference(KEY_THEME_MODE, AppThemeMode.SYSTEM))
     val themeMode: StateFlow<AppThemeMode> = _themeMode.asStateFlow()
+
+    private val _isDynamicThemeEnabled = MutableStateFlow(
+        prefs.getBoolean(KEY_DYNAMIC_THEME_ENABLED, true)
+    )
+    val isDynamicThemeEnabled: StateFlow<Boolean> = _isDynamicThemeEnabled.asStateFlow()
 
     private val _dynamicColorSource = MutableStateFlow(getEnumPreference(KEY_DYNAMIC_COLOR_SOURCE, DynamicColorSource.BOTH))
     val dynamicColorSource: StateFlow<DynamicColorSource> = _dynamicColorSource.asStateFlow()
@@ -642,6 +648,11 @@ class AppPreferences @Inject constructor(
     fun setThemeMode(mode: AppThemeMode) {
         _themeMode.value = mode
         prefs.edit().putString(KEY_THEME_MODE, mode.name).apply()
+    }
+
+    fun setDynamicThemeEnabled(enabled: Boolean) {
+        _isDynamicThemeEnabled.value = enabled
+        prefs.edit().putBoolean(KEY_DYNAMIC_THEME_ENABLED, enabled).apply()
     }
 
     fun setDynamicColorSource(source: DynamicColorSource) {

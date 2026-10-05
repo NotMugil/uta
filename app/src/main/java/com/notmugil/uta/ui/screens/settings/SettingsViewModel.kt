@@ -83,6 +83,7 @@ class SettingsViewModel @Inject constructor(
 
     // Appearance
     val themeMode: StateFlow<AppThemeMode> = appPreferences.themeMode
+    val isDynamicThemeEnabled: StateFlow<Boolean> = appPreferences.isDynamicThemeEnabled
     val dynamicColorSource: StateFlow<DynamicColorSource> = appPreferences.dynamicColorSource
     val customAccentColor: StateFlow<Int?> = appPreferences.customAccentColor
     val fontPreference: StateFlow<AppFont> = appPreferences.fontPreference
@@ -152,6 +153,7 @@ class SettingsViewModel @Inject constructor(
 
     fun setOfflineModeManual(enabled: Boolean) = appPreferences.setOfflineModeManual(enabled)
     fun setThemeMode(mode: AppThemeMode) = appPreferences.setThemeMode(mode)
+    fun setDynamicThemeEnabled(enabled: Boolean) = appPreferences.setDynamicThemeEnabled(enabled)
     fun setDynamicColorSource(source: DynamicColorSource) = appPreferences.setDynamicColorSource(source)
     fun setCustomAccentColor(color: Int?) = appPreferences.setCustomAccentColor(color)
     fun setFontPreference(font: AppFont) = appPreferences.setFontPreference(font)

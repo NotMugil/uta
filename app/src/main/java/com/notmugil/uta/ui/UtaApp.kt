@@ -141,6 +141,7 @@ fun UtaApp() {
     val coroutineScope = rememberCoroutineScope()
 
     val currentTrack by playbackController.currentTrack.collectAsStateWithLifecycle()
+    val currentEntryId by playbackController.currentEntryId.collectAsStateWithLifecycle()
     val isPlaying by playbackController.isPlaying.collectAsStateWithLifecycle()
     val isBuffering by playbackController.isBuffering.collectAsStateWithLifecycle()
     val queue by playbackController.queue.collectAsStateWithLifecycle()
@@ -551,7 +552,8 @@ fun UtaApp() {
                 },
                 offlineDownloadManager = offlineDownloadManager,
                 sleepTimerManager = sleepTimerManager,
-                audioFormat = audioFormat
+                audioFormat = audioFormat,
+                currentEntryId = currentEntryId
             )
         }
 
@@ -574,7 +576,9 @@ fun UtaApp() {
                     coroutineScope.launch {
                         libraryRepository.createPlaylist(name, queue.map { it.track.id })
                     }
-                }
+                },
+                currentTrack = currentTrack,
+                currentEntryId = currentEntryId
             )
         }
 
