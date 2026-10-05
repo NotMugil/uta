@@ -447,6 +447,8 @@
 
     <!-- Lyrics Settings -->
     <string name="setting_lyrics_header">Lyrics</string>
+    <string name="setting_lyrics_style">Lyrics page style</string>
+    <string name="setting_lyrics_style_subtitle">Visual style and animations for synced lyrics</string>
     <string name="setting_lyrics_provider">Song Lyrics Provider</string>
     <string name="setting_lyrics_source_header">Lyrics Source</string>
     <string name="setting_lyrics_source_both">Online + Server</string>

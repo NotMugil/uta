@@ -88,12 +88,20 @@ import androidx.compose.ui.unit.sp
 import com.notmugil.uta.data.preferences.LocalAppPreferences
 import com.notmugil.uta.data.preferences.LyricsProvider
 import com.notmugil.uta.data.preferences.LyricsSourceMode
+import com.notmugil.uta.data.preferences.LyricsStyle
 import com.notmugil.uta.data.repository.LyricsData
 import com.notmugil.uta.data.repository.LyricsRepository
 import com.notmugil.uta.domain.model.TrackItem
-import com.notmugil.uta.ui.screens.player.components.LyricsAmbientBackground
 import com.notmugil.uta.ui.screens.player.components.PlaybackSeekBar
 import com.notmugil.uta.ui.screens.player.lyrics.KaraokeWord
+import com.notmugil.uta.ui.screens.player.lyrics.LineSyncedLyricText
+import com.notmugil.uta.ui.screens.player.lyrics.parseWordSyncedLine
+import com.notmugil.uta.ui.screens.player.lyrics.buildLyricsItems
+import com.notmugil.uta.ui.screens.player.lyrics.InstrumentalGapItem
+import com.notmugil.uta.ui.screens.player.lyrics.LyricsItem
+import com.notmugil.uta.ui.shared.ColoredAmbientGlowBackground
+import com.notmugil.uta.ui.theme.LocalDynamicThemeManager
+import com.notmugil.uta.ui.theme.UtaTheme
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -119,6 +127,7 @@ fun LyricsSheet(
     val onlineLyricsProviders by (appPreferences?.onlineLyricsProviders?.collectAsState() ?: remember { mutableStateOf(emptyList()) })
     val keepScreenOnLyrics by (appPreferences?.keepScreenOnLyrics?.collectAsState() ?: remember { mutableStateOf(false) })
     val blurInactiveLyrics by (appPreferences?.blurInactiveLyrics?.collectAsState() ?: remember { mutableStateOf(true) })
+    val lyricsStyle by (appPreferences?.lyricsStyle?.collectAsState() ?: remember { mutableStateOf(LyricsStyle.DEFAULT) })
 
     val networkMonitor = com.notmugil.uta.data.LocalNetworkMonitor.current
     val isOnline by (networkMonitor?.isOnline?.collectAsStateWithLifecycle() ?: remember { mutableStateOf(com.notmugil.uta.data.SubsonicSession.isOnline) })
@@ -209,41 +218,54 @@ fun LyricsSheet(
 
     val lines = lyricsData?.syncedLines.orEmpty()
     val plainLyrics = lyricsData?.plainLyrics
+    val effectiveDurationMs = if (durationMs > 0) durationMs else (track.durationSeconds * 1000L).coerceAtLeast(1L)
 
-    val currentLineIndex = if (lines.isNotEmpty()) {
-        lines.indexOfLast { it.startMs <= smoothPositionMs }.coerceAtLeast(0)
+    val lyricsItems = remember(lines, effectiveDurationMs) {
+        buildLyricsItems(lines, effectiveDurationMs)
+    }
+
+    val activeItemIndices = remember(lyricsItems, smoothPositionMs) {
+        if (lyricsItems.isEmpty()) emptyList()
+        else {
+            lyricsItems.indices.filter { idx ->
+                val item = lyricsItems[idx]
+                smoothPositionMs >= item.startMs && smoothPositionMs < item.endMs
+            }
+        }
+    }
+
+    val currentItemIndex = if (lyricsItems.isNotEmpty()) {
+        activeItemIndices.firstOrNull() ?: lyricsItems.indexOfLast { it.startMs <= smoothPositionMs }.coerceAtLeast(0)
     } else {
         0
     }
 
-    val focusedLineIndex by remember(lines, userScrolledAway, isDragged, currentLineIndex) {
+    val focusedItemIndex by remember(lyricsItems, userScrolledAway, isDragged, currentItemIndex) {
         derivedStateOf {
             if (!userScrolledAway && !isDragged) {
-                currentLineIndex
+                currentItemIndex
             } else {
                 val layoutInfo = listState.layoutInfo
                 val visibleItems = layoutInfo.visibleItemsInfo
                 if (visibleItems.isEmpty()) {
-                    currentLineIndex
+                    currentItemIndex
                 } else {
                     val focalY = layoutInfo.viewportSize.height * 0.35f
                     val closestItem = visibleItems.minByOrNull { item ->
                         val itemCenter = item.offset + item.size / 2f
                         kotlin.math.abs(itemCenter - focalY)
                     }
-                    closestItem?.index ?: currentLineIndex
+                    closestItem?.index ?: currentItemIndex
                 }
             }
         }
     }
 
-    LaunchedEffect(currentLineIndex, userScrolledAway, lyricsData) {
-        if (!userScrolledAway && lines.isNotEmpty() && currentLineIndex in lines.indices) {
-            listState.animateScrollToItem((currentLineIndex - 1).coerceAtLeast(0))
+    LaunchedEffect(currentItemIndex, userScrolledAway, lyricsData) {
+        if (!userScrolledAway && lyricsItems.isNotEmpty() && currentItemIndex in lyricsItems.indices) {
+            listState.animateScrollToItem((currentItemIndex - 1).coerceAtLeast(0))
         }
     }
-
-    val effectiveDurationMs = if (durationMs > 0) durationMs else (track.durationSeconds * 1000L).coerceAtLeast(1L)
     var isDraggingSlider by remember { mutableStateOf(false) }
     var dragPositionMs by remember { mutableFloatStateOf(0f) }
 
@@ -253,29 +275,38 @@ fun LyricsSheet(
         smoothPositionMs.toFloat().coerceIn(0f, effectiveDurationMs.toFloat())
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        dragHandle = null,
-        shape = RectangleShape,
-        containerColor = MaterialTheme.colorScheme.background,
-        scrimColor = Color.Black.copy(alpha = 0.5f),
-        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            LyricsAmbientBackground(track = track, isPlaying = isPlaying)
+    UtaTheme(darkTheme = true) {
+        val dynamicThemeManager = LocalDynamicThemeManager.current
+        val dynamicDarkBgColor by (dynamicThemeManager?.dynamicDarkBgColor?.collectAsState() ?: remember { mutableStateOf(null) })
+        val sheetBgColor = dynamicDarkBgColor ?: Color(0xFF101014)
 
-            Column(
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = sheetState,
+            dragHandle = null,
+            shape = RectangleShape,
+            containerColor = sheetBgColor,
+            scrimColor = Color.Black.copy(alpha = 0.5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .statusBarsPadding()
-                    .navigationBarsPadding()
+                    .background(sheetBgColor)
             ) {
+                ColoredAmbientGlowBackground(
+                    isPlaying = isPlaying,
+                    modifier = Modifier.fillMaxSize(),
+                    fullScreenSpread = true
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding()
+                        .navigationBarsPadding()
+                ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -312,9 +343,7 @@ fun LyricsSheet(
                             modifier = Modifier.basicMarquee()
                         )
                         Text(
-                            text = listOfNotNull(track.artist, track.album)
-                                .filter { it.isNotBlank() }
-                                .joinToString(" • "),
+                            text = track.artist.orEmpty(),
                             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.72f),
                             maxLines = 1,
@@ -465,32 +494,36 @@ fun LyricsSheet(
                         LazyColumn(
                             state = listState,
                             modifier = listModifier,
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
                             contentPadding = PaddingValues(top = 28.dp, bottom = 420.dp)
                         ) {
-                            itemsIndexed(lines) { index, line ->
-                                val isCurrent = index == currentLineIndex
-                                val isFocused = index == focusedLineIndex
-                                val focusDist = kotlin.math.abs(index - focusedLineIndex)
-                                val targetLineAlpha = if (blurInactiveLyrics || !isBrowsing) {
+                            itemsIndexed(lyricsItems, key = { _, item -> item.key }) { index, item ->
+                                val isItemActive = activeItemIndices.contains(index) || index == currentItemIndex
+                                val isCurrent = index == currentItemIndex
+                                val isFocused = index == focusedItemIndex || (isItemActive && !isBrowsing)
+                                val focusDist = if (isItemActive) 0 else kotlin.math.abs(index - focusedItemIndex)
+                                val isPast = index < currentItemIndex && !isItemActive
+                                val isBetter = lyricsStyle == LyricsStyle.BETTER
+                                val targetItemAlpha = if (blurInactiveLyrics || !isBrowsing) {
                                     when (focusDist) {
                                         0 -> 1.0f
-                                        1 -> 0.75f
-                                        2 -> 0.55f
-                                        3 -> 0.40f
-                                        else -> 0.28f
+                                        1 -> if (isBetter && isPast) 0.30f else 0.75f
+                                        2 -> if (isBetter && isPast) 0.18f else 0.55f
+                                        3 -> if (isBetter && isPast) 0.10f else 0.40f
+                                        else -> if (isBetter && isPast) 0.05f else 0.28f
                                     }
                                 } else {
-                                    if (isCurrent || isFocused) 1.0f else 0.78f
+                                    if (isCurrent || isFocused || isItemActive) 1.0f else if (isBetter && isPast) 0.25f else 0.78f
                                 }
-                                val lineAlpha by animateFloatAsState(
-                                    targetValue = targetLineAlpha,
+                                val itemAlpha by animateFloatAsState(
+                                    targetValue = targetItemAlpha,
                                     animationSpec = tween(220),
-                                    label = "line_alpha_$index"
+                                    label = "item_alpha_$index"
                                 )
                                 val textColor = MaterialTheme.colorScheme.onBackground
-                                val dimColor = textColor.copy(alpha = lineAlpha)
+                                val dimColor = textColor.copy(alpha = itemAlpha)
 
-                                val targetBlurDp = if (blurInactiveLyrics && !isFocused) {
+                                val targetBlurDp = if (blurInactiveLyrics && !isFocused && !isItemActive) {
                                     when (focusDist) {
                                         1 -> 0.8.dp
                                         2 -> 1.8.dp
@@ -503,83 +536,164 @@ fun LyricsSheet(
                                 val blurDp by animateDpAsState(
                                     targetValue = targetBlurDp,
                                     animationSpec = tween(220),
-                                    label = "line_blur_$index"
+                                    label = "item_blur_$index"
                                 )
-                                val lineBlurModifier = if (blurDp > 0.dp) {
+                                val itemBlurModifier = if (blurDp > 0.dp) {
                                     Modifier.blur(blurDp)
                                 } else {
                                     Modifier
                                 }
 
-                                if (line.isWordSynced) {
-                                    Surface(
-                                        shape = RoundedCornerShape(14.dp),
-                                        color = Color.Transparent,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .then(lineBlurModifier)
-                                            .padding(vertical = if (isCurrent) 4.dp else 2.dp)
-                                    ) {
-                                        FlowRow(
-                                            horizontalArrangement = Arrangement.Start,
-                                            verticalArrangement = Arrangement.Center,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    userScrolledAway = false
-                                                    onSeekTo(line.startMs)
-                                                }
-                                                .padding(horizontal = 8.dp, vertical = if (isCurrent) 8.dp else 4.dp)
-                                        ) {
-                                            line.words.forEachIndexed { wordIdx, word ->
-                                                val nextStartMs = if (wordIdx + 1 < line.words.size) {
-                                                    line.words[wordIdx + 1].startMs
+                                when (item) {
+                                    is LyricsItem.InstrumentalGap -> {
+                                        InstrumentalGapItem(
+                                            gap = item,
+                                            currentPositionMs = smoothPositionMs,
+                                            isActive = isItemActive,
+                                            accentColor = accentColor,
+                                            textColor = textColor,
+                                            dimColor = dimColor,
+                                            onSeekTo = { pos ->
+                                                userScrolledAway = false
+                                                onSeekTo(pos)
+                                            },
+                                            lyricsStyle = lyricsStyle,
+                                            modifier = itemBlurModifier
+                                        )
+                                    }
+                                    is LyricsItem.Lyric -> {
+                                        val line = item.line
+                                        if (line.isWordSynced) {
+                                            val lineParts = remember(line.words, line.endMs, lyricsStyle) {
+                                                if (lyricsStyle == LyricsStyle.BETTER) {
+                                                    parseWordSyncedLine(line.words, line.endMs)
                                                 } else {
-                                                    line.endMs ?: (word.startMs + 700L)
+                                                    null
                                                 }
-                                                val wordEnd = word.endMs ?: nextStartMs
-                                                KaraokeWord(
-                                                    word = word,
-                                                    wordEnd = wordEnd,
+                                            }
+
+                                            Surface(
+                                                shape = RoundedCornerShape(14.dp),
+                                                color = Color.Transparent,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .then(itemBlurModifier)
+                                            ) {
+                                                if (lineParts != null && lineParts.parentheticalWords.isNotEmpty()) {
+                                                    Column(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .clickable {
+                                                                userScrolledAway = false
+                                                                onSeekTo(line.startMs)
+                                                            }
+                                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                                    ) {
+                                                        FlowRow(
+                                                            horizontalArrangement = Arrangement.Start,
+                                                            verticalArrangement = Arrangement.Center,
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            lineParts.mainWords.forEach { itemWord ->
+                                                                KaraokeWord(
+                                                                    word = itemWord.word,
+                                                                    wordEnd = itemWord.wordEnd,
+                                                                    currentPositionMs = smoothPositionMs,
+                                                                    accentColor = accentColor,
+                                                                    textColor = textColor,
+                                                                    dimColor = dimColor,
+                                                                    fontSize = 21.sp,
+                                                                    isCurrentLine = isItemActive,
+                                                                    lyricsStyle = lyricsStyle
+                                                                )
+                                                            }
+                                                        }
+                                                        FlowRow(
+                                                            horizontalArrangement = Arrangement.Start,
+                                                            verticalArrangement = Arrangement.Center,
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(top = 2.dp)
+                                                        ) {
+                                                            lineParts.parentheticalWords.forEach { itemWord ->
+                                                                KaraokeWord(
+                                                                    word = itemWord.word,
+                                                                    wordEnd = itemWord.wordEnd,
+                                                                    currentPositionMs = smoothPositionMs,
+                                                                    accentColor = accentColor,
+                                                                    textColor = textColor,
+                                                                    dimColor = dimColor,
+                                                                    fontSize = 15.5.sp,
+                                                                    isCurrentLine = isItemActive,
+                                                                    lyricsStyle = lyricsStyle
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    FlowRow(
+                                                        horizontalArrangement = Arrangement.Start,
+                                                        verticalArrangement = Arrangement.Center,
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .clickable {
+                                                                userScrolledAway = false
+                                                                onSeekTo(line.startMs)
+                                                            }
+                                                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                                                    ) {
+                                                        line.words.forEachIndexed { wordIdx, word ->
+                                                            val nextStartMs = if (wordIdx + 1 < line.words.size) {
+                                                                line.words[wordIdx + 1].startMs
+                                                            } else {
+                                                                line.endMs ?: (word.startMs + 700L)
+                                                            }
+                                                            val wordEnd = word.endMs ?: nextStartMs
+                                                            KaraokeWord(
+                                                                word = word,
+                                                                wordEnd = wordEnd,
+                                                                currentPositionMs = smoothPositionMs,
+                                                                accentColor = accentColor,
+                                                                textColor = textColor,
+                                                                dimColor = dimColor,
+                                                                fontSize = 21.sp,
+                                                                isCurrentLine = isItemActive,
+                                                                lyricsStyle = lyricsStyle
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            Surface(
+                                                shape = RoundedCornerShape(14.dp),
+                                                color = Color.Transparent,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .then(itemBlurModifier)
+                                            ) {
+                                                LineSyncedLyricText(
+                                                    text = line.text,
+                                                    startMs = line.startMs,
                                                     currentPositionMs = smoothPositionMs,
+                                                    isActive = isItemActive,
+                                                    isPast = isPast,
                                                     accentColor = accentColor,
                                                     textColor = textColor,
                                                     dimColor = dimColor,
-                                                    fontSize = if (isCurrent) 28.sp else 20.sp,
-                                                    isCurrentLine = isCurrent
+                                                    fontSize = 21.sp,
+                                                    lineHeight = 30.sp,
+                                                    lyricsStyle = lyricsStyle,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable {
+                                                            userScrolledAway = false
+                                                            onSeekTo(line.startMs)
+                                                        }
+                                                        .padding(horizontal = 12.dp, vertical = 6.dp)
                                                 )
                                             }
                                         }
-                                    }
-                                } else {
-                                    val lineColor = if (isCurrent) accentColor else dimColor
-                                    val lineFontWeight = if (isCurrent) FontWeight.ExtraBold else (if (focusDist <= 1) FontWeight.SemiBold else FontWeight.Normal)
-                                    val lineFontSize = if (isCurrent) 28.sp else 20.sp
-                                    val lineLineHeight = if (isCurrent) 38.sp else 28.sp
-
-                                    Surface(
-                                        shape = RoundedCornerShape(14.dp),
-                                        color = Color.Transparent,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .then(lineBlurModifier)
-                                            .padding(vertical = if (isCurrent) 4.dp else 2.dp)
-                                    ) {
-                                        Text(
-                                            text = line.text,
-                                            fontSize = lineFontSize,
-                                            fontWeight = lineFontWeight,
-                                            color = lineColor,
-                                            lineHeight = lineLineHeight,
-                                            textAlign = TextAlign.Start,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable {
-                                                    userScrolledAway = false
-                                                    onSeekTo(line.startMs)
-                                                }
-                                                .padding(horizontal = 8.dp, vertical = if (isCurrent) 8.dp else 6.dp)
-                                        )
                                     }
                                 }
                             }
@@ -597,7 +711,7 @@ fun LyricsSheet(
                                 onClick = {
                                     userScrolledAway = false
                                     coroutineScope.launch {
-                                        listState.animateScrollToItem((currentLineIndex - 1).coerceAtLeast(0))
+                                        listState.animateScrollToItem((currentItemIndex - 1).coerceAtLeast(0))
                                     }
                                 },
                                 shape = RoundedCornerShape(20.dp),
@@ -743,4 +857,5 @@ fun LyricsSheet(
             }
         }
     }
+}
 }

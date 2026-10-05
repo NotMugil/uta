@@ -16,6 +16,7 @@ import com.notmugil.uta.data.preferences.AppThemeMode
 import com.notmugil.uta.data.preferences.CoverArtQuality
 import com.notmugil.uta.data.preferences.DynamicColorSource
 import com.notmugil.uta.data.preferences.LyricsSourceMode
+import com.notmugil.uta.data.preferences.LyricsStyle
 import com.notmugil.uta.data.preferences.MiniPlayerPlacement
 import com.notmugil.uta.data.preferences.MiniPlayerStyle
 import com.notmugil.uta.data.preferences.PlayerStyle
@@ -50,6 +51,7 @@ fun GeneralSubPage(
     val onlineLyricsProviders by viewModel.onlineLyricsProviders.collectAsStateWithLifecycle()
     val keepScreenOnLyrics by viewModel.keepScreenOnLyrics.collectAsStateWithLifecycle()
     val blurInactiveLyrics by viewModel.blurInactiveLyrics.collectAsStateWithLifecycle()
+    val lyricsStyle by viewModel.lyricsStyle.collectAsStateWithLifecycle()
 
     val showExternalLinks by viewModel.showExternalLinks.collectAsStateWithLifecycle()
     val showLastFmLinks by viewModel.showLastFmLinks.collectAsStateWithLifecycle()
@@ -238,6 +240,16 @@ fun GeneralSubPage(
         )
 
         SettingsSectionHeader(stringResource(R.string.setting_lyrics_header))
+
+        SettingsDropdownRow(
+            icon = null,
+            title = stringResource(R.string.setting_lyrics_style),
+            subtitle = stringResource(R.string.setting_lyrics_style_subtitle),
+            selectedValue = lyricsStyle,
+            options = LyricsStyle.entries,
+            getDisplayName = { it.displayName },
+            onValueChange = { viewModel.setLyricsStyle(it) }
+        )
 
         val lyricsSourceSummary = when (lyricsSourceMode) {
             LyricsSourceMode.BOTH -> {

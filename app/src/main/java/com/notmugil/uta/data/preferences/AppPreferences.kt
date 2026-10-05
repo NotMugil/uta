@@ -122,6 +122,16 @@ enum class LyricsProvider(val displayName: String, val shortName: String) {
     PAXSENIX("Paxsenix", "Paxsenix")
 }
 
+enum class LyricsStyle(val displayName: String) {
+    DEFAULT("Default"),
+    BETTER("Better");
+
+    companion object {
+        fun fromString(value: String?): LyricsStyle =
+            entries.find { it.name.equals(value, ignoreCase = true) } ?: DEFAULT
+    }
+}
+
 data class LyricsProviderConfig(val provider: LyricsProvider, val enabled: Boolean = true)
 
 enum class MiniPlayerPlacement(val displayName: String) {
@@ -336,6 +346,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_COVER_ART_QUALITY = "cover_art_quality"
         private const val KEY_KEEP_SCREEN_ON_LYRICS = "keep_screen_on_lyrics"
         private const val KEY_BLUR_INACTIVE_LYRICS = "blur_inactive_lyrics"
+        private const val KEY_LYRICS_STYLE = "lyrics_page_style"
         private const val KEY_HOME_SECTIONS = "home_sections_config"
         private const val KEY_NAVBAR_SECTIONS = "navbar_sections_config"
         private const val KEY_MINIPLAYER_BUTTONS = "miniplayer_buttons_config"
@@ -345,6 +356,9 @@ class AppPreferences @Inject constructor(
         val name = prefs.getString(key, defaultValue.name) ?: return defaultValue
         return enumValues<T>().find { it.name.equals(name, ignoreCase = true) } ?: defaultValue
     }
+
+    private val _lyricsStyle = MutableStateFlow(getEnumPreference(KEY_LYRICS_STYLE, LyricsStyle.DEFAULT))
+    val lyricsStyle: StateFlow<LyricsStyle> = _lyricsStyle.asStateFlow()
 
     private val _fontPreference = MutableStateFlow(getEnumPreference(KEY_FONT_PREFERENCE, AppFont.SYSTEM_DEFAULT))
     val fontPreference: StateFlow<AppFont> = _fontPreference.asStateFlow()
@@ -584,6 +598,11 @@ class AppPreferences @Inject constructor(
     fun setBlurInactiveLyrics(enabled: Boolean) {
         _blurInactiveLyrics.value = enabled
         prefs.edit().putBoolean(KEY_BLUR_INACTIVE_LYRICS, enabled).apply()
+    }
+
+    fun setLyricsStyle(style: LyricsStyle) {
+        _lyricsStyle.value = style
+        prefs.edit().putString(KEY_LYRICS_STYLE, style.name).apply()
     }
 
     fun setPlayerStyle(style: PlayerStyle) {

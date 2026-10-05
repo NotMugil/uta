@@ -18,6 +18,7 @@ import com.notmugil.uta.data.preferences.HomeSectionConfig
 import com.notmugil.uta.data.preferences.LyricsProvider
 import com.notmugil.uta.data.preferences.LyricsProviderConfig
 import com.notmugil.uta.data.preferences.LyricsSourceMode
+import com.notmugil.uta.data.preferences.LyricsStyle
 import com.notmugil.uta.data.preferences.MiniPlayerButtonConfig
 import com.notmugil.uta.data.preferences.MiniPlayerPlacement
 import com.notmugil.uta.data.preferences.MiniPlayerStyle
@@ -111,6 +112,7 @@ class SettingsViewModel @Inject constructor(
     val onlineLyricsProviders: StateFlow<List<LyricsProviderConfig>> = appPreferences.onlineLyricsProviders
     val keepScreenOnLyrics: StateFlow<Boolean> = appPreferences.keepScreenOnLyrics
     val blurInactiveLyrics: StateFlow<Boolean> = appPreferences.blurInactiveLyrics
+    val lyricsStyle: StateFlow<LyricsStyle> = appPreferences.lyricsStyle
 
     // External Links
     val showExternalLinks: StateFlow<Boolean> = appPreferences.showExternalLinks
@@ -185,6 +187,7 @@ class SettingsViewModel @Inject constructor(
         appPreferences.setOnlineLyricsProviderEnabled(provider, enabled)
     fun setKeepScreenOnLyrics(enabled: Boolean) = appPreferences.setKeepScreenOnLyrics(enabled)
     fun setBlurInactiveLyrics(enabled: Boolean) = appPreferences.setBlurInactiveLyrics(enabled)
+    fun setLyricsStyle(style: LyricsStyle) = appPreferences.setLyricsStyle(style)
 
     fun setShowExternalLinks(enabled: Boolean) = appPreferences.setShowExternalLinks(enabled)
     fun setShowLastFmLinks(enabled: Boolean) = appPreferences.setShowLastFmLinks(enabled)

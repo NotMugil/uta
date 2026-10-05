@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Fill gaps in lyrics with music icon.
+- Added multiple styles for fullscreen lyrics page.
 - Artist action modal sheet with actions like rate, favourites, add to playlist.
 - Snap fling behavior for horizontal carousel rows across Home screen sections.
 - Dynamic theme toggle in Display Settings with conditional Dynamic Color Source selection.
 
 ### Changed
 
+- Redesign fullscreen lyrics pages with ambient background.
 - New & redesigned cinematic player page style
 
 ### Fixed

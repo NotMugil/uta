@@ -403,7 +403,8 @@ fun CinematicPlayerLayout(
                         onToggleFavorite = onToggleFavorite,
                         onNavigateToArtist = onNavigateToArtist,
                         onNavigateToAlbum = onNavigateToAlbum,
-                        onMoreOptions = onMoreOptions
+                        onMoreOptions = onMoreOptions,
+                        enableMarquee = false
                     )
 
                     Spacer(modifier = Modifier.height(26.dp))

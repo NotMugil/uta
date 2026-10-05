@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.notmugil.uta.domain.model.TrackItem
 
@@ -33,7 +34,8 @@ fun LeftAlignedMetadataRow(
     onToggleFavorite: () -> Unit,
     onNavigateToArtist: (String) -> Unit,
     onNavigateToAlbum: (String) -> Unit,
-    onMoreOptions: (() -> Unit)? = null
+    onMoreOptions: (() -> Unit)? = null,
+    enableMarquee: Boolean = true
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -51,7 +53,8 @@ fun LeftAlignedMetadataRow(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                overflow = if (enableMarquee) TextOverflow.Clip else TextOverflow.Ellipsis,
+                modifier = if (enableMarquee) Modifier.basicMarquee() else Modifier
             )
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -62,8 +65,8 @@ fun LeftAlignedMetadataRow(
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
-                    modifier = Modifier
-                        .basicMarquee()
+                    overflow = if (enableMarquee) TextOverflow.Clip else TextOverflow.Ellipsis,
+                    modifier = (if (enableMarquee) Modifier.basicMarquee() else Modifier)
                         .clickable {
                             track.artistId?.let { onNavigateToArtist(it) }
                         }
