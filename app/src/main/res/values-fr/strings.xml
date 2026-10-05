@@ -344,10 +344,14 @@
     <string name="action_sheet_remove_download_track_msg">Supprimer « %1$s » de cet appareil ?\n~%2$s</string>
     <string name="action_sheet_remove_download_album_msg">Supprimer « %1$s » de cet appareil ?\n%2$s • ~%3$s</string>
     <string name="action_sheet_remove_download_playlist_msg">Supprimer « %1$s » de cet appareil ?\n%2$s • ~%3$s</string>
+    <string name="action_sheet_remove_download_artist_msg">Supprimer « %1$s » de cet appareil ?\n%2$s • %3$s</string>
     <string name="action_sheet_download_album_title">Télécharger l\'album</string>
     <string name="action_sheet_download_album_msg">Télécharger « %1$s » sur cet appareil ?\n%2$s • ~%3$s • %4$s</string>
     <string name="action_sheet_download_playlist_title">Télécharger la playlist</string>
     <string name="action_sheet_download_playlist_msg">Télécharger « %1$s » sur cet appareil ?\n%2$s • ~%3$s • %4$s</string>
+    <string name="action_sheet_download_artist_title">Télécharger l\'artiste</string>
+    <string name="action_sheet_download_artist_msg">Télécharger « %1$s » sur cet appareil ?\n%2$s • %3$s • %4$s</string>
+    <string name="artist_options_cd">Options de l\'artiste</string>
     <string name="dialog_resume_queue_title">Reprendre la lecture ?</string>
     <string name="dialog_resume_queue_message">Une file de lecture contenant %1$d morceaux a été trouvée depuis %2$s. Souhaitez-vous la restaurer ?</string>
     <string name="dialog_resume">Reprendre</string>
@@ -364,6 +368,7 @@
     <string name="toast_downloading_track">Téléchargement de « %1$s »</string>
     <string name="toast_downloading_album">Téléchargement de l\'album (%1$d titres)</string>
     <string name="toast_downloading_playlist">Téléchargement de la playlist (%1$d titres)</string>
+    <string name="toast_downloading_artist">Téléchargement de l\'artiste (%1$d titres)</string>
     <string name="toast_album_download_complete">Téléchargement de l\'album terminé</string>
     <string name="toast_playlist_download_complete">Téléchargement de la playlist terminé</string>
     <string name="toast_song_downloaded_single">1 titre téléchargé</string>
