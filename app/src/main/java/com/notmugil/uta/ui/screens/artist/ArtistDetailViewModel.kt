@@ -21,9 +21,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ArtistDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val libraryRepository: LibraryRepository,
-    private val playbackController: PlaybackController,
-    private val offlineDownloadManager: OfflineDownloadManager,
+    val libraryRepository: LibraryRepository,
+    val playbackController: PlaybackController,
+    val offlineDownloadManager: OfflineDownloadManager,
     private val localMediaDao: LocalMediaDao,
     private val subsonicRepository: SubsonicRepository,
     private val networkMonitor: com.notmugil.uta.data.NetworkMonitor
@@ -37,7 +37,22 @@ class ArtistDetailViewModel @Inject constructor(
     init {
         observeDownloadStates()
         observeOfflineState()
+        observeArtist()
         loadArtist()
+    }
+
+    private fun observeArtist() {
+        viewModelScope.launch {
+            libraryRepository.getArtistFlow(artistId).collect { dbArtist ->
+                if (dbArtist != null) {
+                    _uiState.update { current ->
+                        if (current.artist != null) {
+                            current.copy(artist = current.artist.copy(isStarred = dbArtist.isStarred))
+                        } else current
+                    }
+                }
+            }
+        }
     }
 
     private fun observeOfflineState() {
@@ -104,17 +119,31 @@ class ArtistDetailViewModel @Inject constructor(
         playbackController.playTrack(track, playableQueue)
     }
 
-    fun playTopTracks(shuffle: Boolean = false) {
-        val state = _uiState.value
-        val tracks = if (state.isOfflineModeActive) {
-            state.topTracks.filter { state.downloadedTrackIds.contains(it.id) }
-        } else {
-            state.topTracks
+    fun playArtist(shuffle: Boolean = false) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            val allTracks = libraryRepository.fetchAllArtistTracks(artistId)
+            val tracksToPlay = if (state.isOfflineModeActive) {
+                allTracks.filter { state.downloadedTrackIds.contains(it.id) }
+            } else {
+                allTracks
+            }
+            val queue = if (tracksToPlay.isNotEmpty()) {
+                if (shuffle) tracksToPlay.shuffled() else tracksToPlay
+            } else {
+                val fallback = if (state.isOfflineModeActive) {
+                    state.topTracks.filter { state.downloadedTrackIds.contains(it.id) }
+                } else {
+                    state.topTracks
+                }
+                if (fallback.isEmpty()) return@launch
+                if (shuffle) fallback.shuffled() else fallback
+            }
+            playbackController.playQueue(queue, 0)
         }
-        if (tracks.isEmpty()) return
-        val queue = if (shuffle) tracks.shuffled() else tracks
-        playbackController.playQueue(queue, 0)
     }
+
+    fun playTopTracks(shuffle: Boolean = false) = playArtist(shuffle)
 
     fun toggleTrackDownload(track: TrackItem) {
         val isDownloaded = _uiState.value.downloadedTrackIds.contains(track.id)

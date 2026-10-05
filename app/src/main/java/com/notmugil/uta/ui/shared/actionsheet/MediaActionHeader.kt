@@ -188,7 +188,7 @@ fun MediaActionHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            if (onRateClick != null && (target is MediaTarget.TrackTarget || target is MediaTarget.AlbumTarget)) {
+            if (onRateClick != null && (target is MediaTarget.TrackTarget || target is MediaTarget.AlbumTarget || target is MediaTarget.ArtistTarget)) {
                 if (rating > 0) {
                     Surface(
                         onClick = onRateClick,

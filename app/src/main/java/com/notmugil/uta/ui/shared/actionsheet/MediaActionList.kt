@@ -41,7 +41,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-private suspend fun resolveTracksForTarget(
+internal suspend fun resolveTracksForTarget(
     target: MediaTarget,
     libraryRepository: LibraryRepository
 ): List<TrackItem> {
@@ -63,7 +63,9 @@ private suspend fun resolveTracksForTarget(
             }
             tracks ?: emptyList()
         }
-        is MediaTarget.ArtistTarget -> emptyList()
+        is MediaTarget.ArtistTarget -> {
+            libraryRepository.fetchAllArtistTracks(target.artist.id)
+        }
     }
 }
 
@@ -151,130 +153,114 @@ fun MediaActionList(
             }
         )
 
-        if (target !is MediaTarget.ArtistTarget) {
-            val tracksCountSubtitle = stringResource(R.string.action_tracks_count_format, target.let {
-                when (it) {
-                    is MediaTarget.AlbumTarget -> it.album.songCount
-                    is MediaTarget.PlaylistTarget -> it.playlist.songCount
-                    else -> 0
-                }
-            })
-            ActionRowItem(
-                icon = Tabler.Outline.Playlist,
-                title = stringResource(R.string.action_play_next),
-                onClick = {
-                    executionScope.launch {
-                        val tracks = resolveTracksForTarget(target, libraryRepository)
-                        val playable = if (isOffline) {
-                            tracks.filter { offlineDownloadManager.getLocalUriForTrack(it.id) != null }
-                        } else tracks
-                        if (playable.isNotEmpty()) {
-                            if (target is MediaTarget.TrackTarget) {
-                                playbackController.playNext(target.track)
-                                toastHostState.showInfo(
-                                    message = playingNextToast,
-                                    subtitle = target.track.title,
-                                    coverArtId = target.track.coverArtId,
-                                    icon = Tabler.Outline.PlayerTrackNext
-                                )
-                            } else {
-                                playbackController.playNext(playable)
-                                val (name, coverId) = when (target) {
-                                    is MediaTarget.AlbumTarget -> Pair(target.album.title, target.album.coverArtId)
-                                    is MediaTarget.PlaylistTarget -> Pair(target.playlist.name, target.playlist.coverArtId)
-                                    is MediaTarget.TrackTarget, is MediaTarget.ArtistTarget -> Pair("", null)
-                                }
-                                toastHostState.showInfo(
-                                    message = "$playingNextToast: $name",
-                                    subtitle = tracksCountSubtitle,
-                                    coverArtId = coverId,
-                                    icon = Tabler.Outline.PlayerTrackNext
-                                )
-                            }
+        ActionRowItem(
+            icon = Tabler.Outline.Playlist,
+            title = stringResource(R.string.action_play_next),
+            onClick = {
+                executionScope.launch {
+                    val tracks = resolveTracksForTarget(target, libraryRepository)
+                    val playable = if (isOffline) {
+                        tracks.filter { offlineDownloadManager.getLocalUriForTrack(it.id) != null }
+                    } else tracks
+                    if (playable.isNotEmpty()) {
+                        if (target is MediaTarget.TrackTarget) {
+                            playbackController.playNext(target.track)
+                            toastHostState.showInfo(
+                                message = playingNextToast,
+                                subtitle = target.track.title,
+                                coverArtId = target.track.coverArtId,
+                                icon = Tabler.Outline.PlayerTrackNext
+                            )
                         } else {
-                            toastHostState.showError(noPlayableTracksToast)
-                        }
-                    }
-                    onDismiss()
-                }
-            )
-        }
-
-        if (target !is MediaTarget.ArtistTarget) {
-            val tracksCountSubtitle = stringResource(R.string.action_tracks_count_format, target.let {
-                when (it) {
-                    is MediaTarget.AlbumTarget -> it.album.songCount
-                    is MediaTarget.PlaylistTarget -> it.playlist.songCount
-                    else -> 0
-                }
-            })
-            ActionRowItem(
-                icon = Tabler.Outline.Playlist,
-                title = stringResource(R.string.action_add_to_queue),
-                onClick = {
-                    executionScope.launch {
-                        val tracks = resolveTracksForTarget(target, libraryRepository)
-                        val playable = if (isOffline) {
-                            tracks.filter { offlineDownloadManager.getLocalUriForTrack(it.id) != null }
-                        } else tracks
-                        if (playable.isNotEmpty()) {
-                            if (target is MediaTarget.TrackTarget) {
-                                playbackController.addToQueue(target.track)
-                                toastHostState.showQueue(
-                                    title = addedToQueueToast,
-                                    subtitle = target.track.title,
-                                    coverArtId = target.track.coverArtId
-                                )
-                            } else {
-                                playbackController.addToQueue(playable)
-                                val (name, coverId) = when (target) {
-                                    is MediaTarget.AlbumTarget -> Pair(target.album.title, target.album.coverArtId)
-                                    is MediaTarget.PlaylistTarget -> Pair(target.playlist.name, target.playlist.coverArtId)
-                                    is MediaTarget.TrackTarget, is MediaTarget.ArtistTarget -> Pair("", null)
-                                }
-                                toastHostState.showQueue(
-                                    title = "$addedToQueueToast: $name",
-                                    subtitle = tracksCountSubtitle,
-                                    coverArtId = coverId
-                                )
+                            playbackController.playNext(playable)
+                            val (name, coverId) = when (target) {
+                                is MediaTarget.AlbumTarget -> Pair(target.album.title, target.album.coverArtId)
+                                is MediaTarget.PlaylistTarget -> Pair(target.playlist.name, target.playlist.coverArtId)
+                                is MediaTarget.ArtistTarget -> Pair(target.artist.name, target.artist.coverArtId)
+                                is MediaTarget.TrackTarget -> Pair("", null)
                             }
-                        } else {
-                            toastHostState.showError(noPlayableTracksToast)
+                            val tracksCountSubtitle = context.getString(R.string.action_tracks_count_format, playable.size)
+                            toastHostState.showInfo(
+                                message = "$playingNextToast: $name",
+                                subtitle = tracksCountSubtitle,
+                                coverArtId = coverId,
+                                icon = Tabler.Outline.PlayerTrackNext
+                            )
                         }
+                    } else {
+                        toastHostState.showError(noPlayableTracksToast)
                     }
-                    onDismiss()
                 }
-            )
-        }
-
-        if (target is MediaTarget.TrackTarget) {
-            if (target.playlistId != null) {
-                ActionRowItem(
-                    icon = Tabler.Outline.PlaylistX,
-                    title = stringResource(R.string.action_remove_from_playlist),
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    textColor = MaterialTheme.colorScheme.primary,
-                    onClick = {
-                        val pId = target.playlistId
-                        val trackIndex = target.playlistTrackIndex
-                        coroutineScope.launch {
-                            if (trackIndex != null) {
-                                libraryRepository.removeTrackFromPlaylist(pId, trackIndex)
-                            }
-                            target.onRemoveFromPlaylist?.invoke()
-                        }
-                        onDismiss()
-                    }
-                )
-            } else if (!isOffline) {
-                ActionRowItem(
-                    icon = Tabler.Outline.PlaylistAdd,
-                    title = stringResource(R.string.action_add_to_playlist),
-                    onClick = {
-                        onShowPlaylistSheet()
-                    }
-                )
+                onDismiss()
             }
+        )
+
+        ActionRowItem(
+            icon = Tabler.Outline.Playlist,
+            title = stringResource(R.string.action_add_to_queue),
+            onClick = {
+                executionScope.launch {
+                    val tracks = resolveTracksForTarget(target, libraryRepository)
+                    val playable = if (isOffline) {
+                        tracks.filter { offlineDownloadManager.getLocalUriForTrack(it.id) != null }
+                    } else tracks
+                    if (playable.isNotEmpty()) {
+                        if (target is MediaTarget.TrackTarget) {
+                            playbackController.addToQueue(target.track)
+                            toastHostState.showQueue(
+                                title = addedToQueueToast,
+                                subtitle = target.track.title,
+                                coverArtId = target.track.coverArtId
+                            )
+                        } else {
+                            playbackController.addToQueue(playable)
+                            val (name, coverId) = when (target) {
+                                is MediaTarget.AlbumTarget -> Pair(target.album.title, target.album.coverArtId)
+                                is MediaTarget.PlaylistTarget -> Pair(target.playlist.name, target.playlist.coverArtId)
+                                is MediaTarget.ArtistTarget -> Pair(target.artist.name, target.artist.coverArtId)
+                                is MediaTarget.TrackTarget -> Pair("", null)
+                            }
+                            val tracksCountSubtitle = context.getString(R.string.action_tracks_count_format, playable.size)
+                            toastHostState.showQueue(
+                                title = "$addedToQueueToast: $name",
+                                subtitle = tracksCountSubtitle,
+                                coverArtId = coverId
+                            )
+                        }
+                    } else {
+                        toastHostState.showError(noPlayableTracksToast)
+                    }
+                }
+                onDismiss()
+            }
+        )
+
+        if (target is MediaTarget.TrackTarget && target.playlistId != null) {
+            ActionRowItem(
+                icon = Tabler.Outline.PlaylistX,
+                title = stringResource(R.string.action_remove_from_playlist),
+                iconTint = MaterialTheme.colorScheme.primary,
+                textColor = MaterialTheme.colorScheme.primary,
+                onClick = {
+                    val pId = target.playlistId
+                    val trackIndex = target.playlistTrackIndex
+                    coroutineScope.launch {
+                        if (trackIndex != null) {
+                            libraryRepository.removeTrackFromPlaylist(pId, trackIndex)
+                        }
+                        target.onRemoveFromPlaylist?.invoke()
+                    }
+                    onDismiss()
+                }
+            )
+        } else if (!isOffline) {
+            ActionRowItem(
+                icon = Tabler.Outline.PlaylistAdd,
+                title = stringResource(R.string.action_add_to_playlist),
+                onClick = {
+                    onShowPlaylistSheet()
+                }
+            )
         }
 
         if (target is MediaTarget.PlaylistTarget && !isOffline) {
@@ -350,7 +336,7 @@ fun MediaActionList(
             )
         }
 
-        if (showExternalLinks && showLastFmLinks && target !is MediaTarget.PlaylistTarget && target !is MediaTarget.ArtistTarget && !isOffline) {
+        if (showExternalLinks && showLastFmLinks && target !is MediaTarget.PlaylistTarget && !isOffline) {
             ActionRowItem(
                 icon = Tabler.Outline.BrandLastfm,
                 title = stringResource(R.string.action_open_lastfm),
@@ -358,6 +344,8 @@ fun MediaActionList(
                     val url = when (target) {
                         is MediaTarget.TrackTarget -> "https://www.last.fm/music/${Uri.encode(target.track.artist)}/_/${Uri.encode(target.track.title)}"
                         is MediaTarget.AlbumTarget -> "https://www.last.fm/music/${Uri.encode(target.album.artist)}/${Uri.encode(target.album.title)}"
+                        is MediaTarget.ArtistTarget -> "https://www.last.fm/music/${Uri.encode(target.artist.name)}"
+                        is MediaTarget.PlaylistTarget -> ""
                     }
                     if (url.isNotBlank()) {
                         try {
@@ -369,17 +357,18 @@ fun MediaActionList(
             )
         }
 
-        if (showExternalLinks && showMusicBrainzLinks && target !is MediaTarget.PlaylistTarget && target !is MediaTarget.ArtistTarget && !isOffline) {
+        if (showExternalLinks && showMusicBrainzLinks && target !is MediaTarget.PlaylistTarget && !isOffline) {
             ActionRowItem(
                 icon = Tabler.Outline.BrandMetabrainz,
                 title = stringResource(R.string.action_open_musicbrainz),
                 onClick = {
-                    val query = when (target) {
-                        is MediaTarget.TrackTarget -> "${target.track.title} ${target.track.artist}"
-                        is MediaTarget.AlbumTarget -> "${target.album.title} ${target.album.artist}"
+                    val (query, type) = when (target) {
+                        is MediaTarget.TrackTarget -> Pair("${target.track.title} ${target.track.artist}", "recording")
+                        is MediaTarget.AlbumTarget -> Pair("${target.album.title} ${target.album.artist}", "release")
+                        is MediaTarget.ArtistTarget -> Pair(target.artist.name, "artist")
+                        is MediaTarget.PlaylistTarget -> Pair("", "")
                     }
                     if (query.isNotBlank()) {
-                        val type = if (target is MediaTarget.TrackTarget) "recording" else "release"
                         val url = "https://musicbrainz.org/search?query=${Uri.encode(query)}&type=$type"
                         try {
                             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))

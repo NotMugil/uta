@@ -1,6 +1,7 @@
 package com.notmugil.uta.ui.screens.playlist.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -23,8 +24,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -45,6 +48,10 @@ fun PlaylistTopBar(
     modifier: Modifier = Modifier
 ) {
     val fadeColor = MaterialTheme.colorScheme.background
+    val titleAlpha by animateFloatAsState(
+        targetValue = if (showTitle) 1f else 0f,
+        label = "titleAlpha"
+    )
 
     Box(
         modifier = modifier
@@ -103,30 +110,27 @@ fun PlaylistTopBar(
                 )
             }
 
-            AnimatedVisibility(
-                visible = showTitle,
-                enter = fadeIn(),
-                exit = fadeOut(),
+            Box(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(horizontal = 12.dp)
+                    .padding(horizontal = 12.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .basicMarquee()
-                )
-            }
-
-            if (!showTitle) {
-                Spacer(modifier = Modifier.weight(1f))
+                if (titleAlpha > 0f) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .alpha(titleAlpha)
+                            .basicMarquee()
+                    )
+                }
             }
 
             IconButton(

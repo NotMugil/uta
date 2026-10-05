@@ -344,10 +344,14 @@
     <string name="action_sheet_remove_download_track_msg">Remove \"%1$s\" from this device?\n %2$s</string>
     <string name="action_sheet_remove_download_album_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
     <string name="action_sheet_remove_download_playlist_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
+    <string name="action_sheet_remove_download_artist_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
     <string name="action_sheet_download_album_title">Download Album</string>
     <string name="action_sheet_download_album_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
     <string name="action_sheet_download_playlist_title">Download Playlist</string>
     <string name="action_sheet_download_playlist_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
+    <string name="action_sheet_download_artist_title">Download Artist</string>
+    <string name="action_sheet_download_artist_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
+    <string name="artist_options_cd">Artist options</string>
     <string name="dialog_resume_queue_title">Resume Playback?</string>
     <string name="dialog_resume_queue_message">A play queue with %1$d tracks was found from %2$s. Would you like to restore it?</string>
     <string name="dialog_resume">Resume</string>
@@ -364,6 +368,7 @@
     <string name="toast_downloading_track">Downloading \"%1$s\"</string>
     <string name="toast_downloading_album">Downloading album (%1$d tracks)</string>
     <string name="toast_downloading_playlist">Downloading playlist (%1$d tracks)</string>
+    <string name="toast_downloading_artist">Downloading artist (%1$d tracks)</string>
     <string name="toast_album_download_complete">Album download complete</string>
     <string name="toast_playlist_download_complete">Playlist download complete</string>
     <string name="toast_song_downloaded_single">1 song downloaded</string>

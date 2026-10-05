@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -179,6 +180,7 @@ class LibraryRepository @Inject constructor(
     suspend fun getTrack(trackId: String): TrackItem? = trackDao.getTrack(trackId, serverId)?.toDomain()
     suspend fun getAlbum(albumId: String): AlbumItem? = albumDao.getAlbum(albumId, serverId)?.toDomain()
     suspend fun getArtist(artistId: String): ArtistItem? = artistDao.getArtist(artistId, serverId)?.toDomain()
+    fun getArtistFlow(artistId: String): Flow<ArtistItem?> = artistDao.getArtistFlow(artistId, serverId).map { it?.toDomain() }
     suspend fun getPlaylist(playlistId: String): PlaylistItem? = playlistDao.getPlaylist(playlistId, serverId)?.toDomain()
 
     suspend fun toggleTrackStarred(trackId: String): Boolean = mutationManager.toggleTrackStarred(trackId)
@@ -365,7 +367,9 @@ class LibraryRepository @Inject constructor(
                 Timber.d("[Artist] subsonic-kotlin getArtist failed (${e.message}), falling back to sanitized raw fetch")
                 subsonicRepository.getArtistRaw(artistId)
             }
-            val artistItem = remoteArtist.toDomain()
+            val artistItem = remoteArtist.toDomain().let {
+                it.copy(isStarred = it.isStarred || (localArtist?.isStarred == true))
+            }
             val remoteAlbums = remoteArtist.album.map { album ->
                 val domainAlbum = album.toDomain()
                 domainAlbum.copy(
@@ -416,6 +420,40 @@ class LibraryRepository @Inject constructor(
                 topTracks = localTracks.take(10)
             )
         }
+    }
+
+    suspend fun fetchAllArtistTracks(artistId: String): List<TrackItem> {
+        val details = fetchArtistDetails(artistId)
+        val artistName = details.artist?.name
+        val localTracks = if (!artistName.isNullOrBlank()) {
+            trackDao.getTracksByArtistName(artistName, serverId).map { it.toDomain() }
+        } else emptyList()
+
+        if (isOffline) {
+            if (localTracks.isNotEmpty()) return localTracks.distinctBy { it.id }
+        }
+
+        val allTracks = mutableListOf<TrackItem>()
+        for (album in details.albums) {
+            var tracks = getTracksForAlbumFlow(album.id).firstOrNull()
+            if (tracks.isNullOrEmpty()) {
+                val res = fetchAlbumTracks(album.id)
+                tracks = res.getOrNull()
+            }
+            if (!tracks.isNullOrEmpty()) {
+                allTracks.addAll(tracks)
+            }
+        }
+
+        if (allTracks.isNotEmpty()) {
+            return allTracks.distinctBy { it.id }
+        }
+
+        if (details.topTracks.isNotEmpty()) {
+            return details.topTracks
+        }
+
+        return localTracks.distinctBy { it.id }
     }
 
     suspend fun fetchGenreDetails(genreName: String): GenreDetailResult {

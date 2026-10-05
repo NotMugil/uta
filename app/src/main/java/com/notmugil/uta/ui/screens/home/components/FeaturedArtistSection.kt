@@ -3,6 +3,8 @@ package com.notmugil.uta.ui.screens.home.components
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import com.composables.icons.tabler.Tabler
 import com.composables.icons.tabler.outline.*
@@ -117,9 +120,11 @@ fun FeaturedArtistSection(
         Spacer(modifier = Modifier.height(4.dp))
 
         if (albums.isNotEmpty()) {
-            val listState = androidx.compose.runtime.remember { androidx.compose.foundation.lazy.LazyListState() }
+            val listState = rememberLazyListState()
+            val flingBehavior = rememberSnapFlingBehavior(lazyListState = listState, snapPosition = SnapPosition.Start)
             LazyRow(
                 state = listState,
+                flingBehavior = flingBehavior,
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {

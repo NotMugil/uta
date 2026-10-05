@@ -1,10 +1,13 @@
 package com.notmugil.uta.ui.screens.artist
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.snapping.SnapPosition
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,14 +55,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,6 +76,7 @@ import com.notmugil.uta.domain.model.TrackItem
 import com.notmugil.uta.ui.shared.CoverArtImage
 import com.notmugil.uta.ui.shared.MediaCard
 import com.notmugil.uta.ui.shared.actionsheet.LocalMediaActionHandler
+import com.notmugil.uta.ui.shared.actionsheet.MediaActionBottomSheet
 import com.notmugil.uta.ui.shared.actionsheet.MediaTarget
 
 @Composable
@@ -85,13 +92,42 @@ fun ArtistDetailScreen(
     val density = LocalDensity.current
     var isTopSongsExpanded by rememberSaveable { mutableStateOf(false) }
 
-    val scrollFraction by remember {
+    val heroHeight = 340.dp
+    val buttonsHeight = 70.dp
+    val topBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 56.dp
+    val maxTravelPx = with(density) { (heroHeight - topBarHeight).toPx() }
+    val maxHeroTravelPx = with(density) { (heroHeight - topBarHeight - 60.dp).toPx().coerceAtLeast(0f) }
+    val heroHeightPx = with(density) { heroHeight.toPx() }
+    val topBarHeightPx = with(density) { topBarHeight.toPx() }
+
+    val heroOffsetPx by remember(maxHeroTravelPx) {
+        derivedStateOf {
+            if (listState.firstVisibleItemIndex > 0) {
+                -maxHeroTravelPx
+            } else {
+                (-listState.firstVisibleItemScrollOffset.toFloat()).coerceIn(-maxHeroTravelPx, 0f)
+            }
+        }
+    }
+
+    val scrollFraction by remember(maxTravelPx) {
         derivedStateOf {
             if (listState.firstVisibleItemIndex > 0) {
                 1f
+            } else if (maxTravelPx <= 0f) {
+                0f
             } else {
-                val travelPx = with(density) { 240.dp.toPx() }
-                if (travelPx <= 0f) 0f else (listState.firstVisibleItemScrollOffset.toFloat() / travelPx).coerceIn(0f, 1f)
+                (listState.firstVisibleItemScrollOffset.toFloat() / maxTravelPx).coerceIn(0f, 1f)
+            }
+        }
+    }
+
+    val buttonsOffsetPx by remember(heroHeightPx, topBarHeightPx) {
+        derivedStateOf {
+            if (listState.firstVisibleItemIndex > 0) {
+                topBarHeightPx
+            } else {
+                (heroHeightPx - listState.firstVisibleItemScrollOffset.toFloat()).coerceAtLeast(topBarHeightPx)
             }
         }
     }
@@ -128,77 +164,34 @@ fun ArtistDetailScreen(
                 }
             }
         } else {
+            state.artist?.let { artist ->
+                ArtistHeroHeader(
+                    artist = artist,
+                    height = heroHeight,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer {
+                            translationY = heroOffsetPx
+                        }
+                )
+            }
+
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 168.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = topBarHeight)
+                    .clipToBounds(),
+                contentPadding = PaddingValues(bottom = 210.dp)
             ) {
                 state.artist?.let { artist ->
-                    item {
-                        ArtistHeroHeader(
-                            artist = artist,
-                            scrollFraction = scrollFraction
-                        )
-                    }
-
-                    item {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 12.dp)
-                        ) {
-                            Button(
-                                onClick = { viewModel.playTopTracks(shuffle = false) },
-                                enabled = state.topTracks.isNotEmpty(),
-                                shape = RoundedCornerShape(24.dp),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(46.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Tabler.Filled.PlayerPlay,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.action_play),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-
-                            FilledTonalButton(
-                                onClick = { viewModel.playTopTracks(shuffle = true) },
-                                enabled = state.topTracks.isNotEmpty(),
-                                shape = RoundedCornerShape(24.dp),
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f)
-                                ),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(46.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Tabler.Outline.ArrowsShuffle,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.action_shuffle),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
+                    item(key = "hero_spacer") {
+                        Spacer(modifier = Modifier.height(heroHeight - topBarHeight + buttonsHeight))
                     }
 
                     val bio = state.biography?.trim()
                     if (!bio.isNullOrBlank()) {
-                        item {
+                        item(key = "artist_about") {
                             var isBioExpanded by remember { mutableStateOf(false) }
                             Box(
                                 modifier = Modifier
@@ -297,7 +290,11 @@ fun ArtistDetailScreen(
                     }
 
                     item {
+                        val albumListState = rememberLazyListState()
+                        val albumFlingBehavior = rememberSnapFlingBehavior(lazyListState = albumListState, snapPosition = SnapPosition.Start)
                         LazyRow(
+                            state = albumListState,
+                            flingBehavior = albumFlingBehavior,
                             contentPadding = PaddingValues(horizontal = 20.dp),
                             horizontalArrangement = Arrangement.spacedBy(14.dp),
                             modifier = Modifier.fillMaxWidth()
@@ -318,29 +315,160 @@ fun ArtistDetailScreen(
                     }
                 }
             }
+
+            state.artist?.let {
+                ArtistPlayShuffleContainer(
+                    onPlay = { viewModel.playArtist(shuffle = false) },
+                    onShuffle = { viewModel.playArtist(shuffle = true) },
+                    hasTracks = state.topTracks.isNotEmpty() || state.albums.isNotEmpty(),
+                    gradientHeight = topBarHeight,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer {
+                            translationY = (buttonsOffsetPx - topBarHeightPx).coerceAtLeast(0f)
+                        }
+                )
+            }
+
+            state.artist?.let { artist ->
+                ArtistHeroName(
+                    artist = artist,
+                    scrollFraction = scrollFraction,
+                    height = heroHeight,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer {
+                            translationY = heroOffsetPx
+                        }
+                )
+            }
         }
 
-        val fallbackArtistName = stringResource(R.string.artist_fallback)
-        ArtistTopBarOverlay(
-            artistName = state.artist?.name ?: fallbackArtistName,
-            isStarred = state.artist?.isStarred == true,
-            scrollFraction = scrollFraction,
-            onNavigateBack = onNavigateBack,
-            onToggleFavorite = { viewModel.toggleArtistFavorite() }
+        state.artist?.let { artist ->
+            ArtistTopBarOverlay(
+                artistName = artist.name,
+                scrollFraction = scrollFraction,
+                onNavigateBack = onNavigateBack,
+                onOptionsClick = {
+                    mediaActionState.show(MediaTarget.ArtistTarget(artist))
+                }
+            )
+        }
+
+        val currentTarget = mediaActionState.currentTarget
+        val isTargetDownloaded = when (currentTarget) {
+            is MediaTarget.TrackTarget -> state.downloadedTrackIds.contains(currentTarget.track.id)
+            is MediaTarget.AlbumTarget -> state.downloadedAlbumIds.contains(currentTarget.album.id)
+            is MediaTarget.ArtistTarget -> state.albums.isNotEmpty() && state.albums.all { state.downloadedAlbumIds.contains(it.id) }
+            else -> false
+        }
+
+        MediaActionBottomSheet(
+            state = mediaActionState,
+            playbackController = viewModel.playbackController,
+            libraryRepository = viewModel.libraryRepository,
+            offlineDownloadManager = viewModel.offlineDownloadManager,
+            isDownloaded = isTargetDownloaded,
+            isOffline = state.isOfflineModeActive,
+            onNavigateToAlbum = onNavigateToAlbum
         )
+    }
+}
+
+@Composable
+private fun ArtistPlayShuffleContainer(
+    onPlay: () -> Unit,
+    onShuffle: () -> Unit,
+    hasTracks: Boolean,
+    gradientHeight: Dp,
+    modifier: Modifier = Modifier
+) {
+    val bgColor = MaterialTheme.colorScheme.background
+    Column(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(gradientHeight)
+                .background(
+                    Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color.Transparent,
+                            0.50f to bgColor.copy(alpha = 0.35f),
+                            0.80f to bgColor.copy(alpha = 0.75f),
+                            1.0f to bgColor
+                        )
+                    )
+                )
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(bgColor)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
+        ) {
+            Button(
+                onClick = onPlay,
+                enabled = hasTracks,
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(46.dp)
+            ) {
+                Icon(
+                    imageVector = Tabler.Filled.PlayerPlay,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.action_play),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            FilledTonalButton(
+                onClick = onShuffle,
+                enabled = hasTracks,
+                shape = RoundedCornerShape(24.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f)
+                ),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(46.dp)
+            ) {
+                Icon(
+                    imageVector = Tabler.Outline.ArrowsShuffle,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.action_shuffle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
     }
 }
 
 @Composable
 private fun ArtistHeroHeader(
     artist: ArtistItem,
-    scrollFraction: Float,
+    height: Dp = 340.dp,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(340.dp)
+            .height(height)
     ) {
         CoverArtImage(
             coverArtId = artist.coverArtId,
@@ -352,25 +480,36 @@ private fun ArtistHeroHeader(
             modifier = Modifier.fillMaxSize()
         )
 
-        val bgColor = MaterialTheme.colorScheme.background
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
+                .height(100.dp)
                 .background(
                     Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0.0f to Color.Black.copy(alpha = 0.45f),
-                            0.3f to Color.Transparent,
-                            0.65f to bgColor.copy(alpha = 0.35f),
-                            0.85f to bgColor.copy(alpha = 0.80f),
-                            1.0f to bgColor
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.35f),
+                            Color.Transparent
                         )
                     )
                 )
         )
+    }
+}
 
-        val nameAlpha = (1f - (scrollFraction * 2.0f)).coerceIn(0f, 1f)
-        if (nameAlpha > 0f) {
+@Composable
+private fun ArtistHeroName(
+    artist: ArtistItem,
+    scrollFraction: Float,
+    height: Dp = 340.dp,
+    modifier: Modifier = Modifier
+) {
+    val nameAlpha = (1f - ((scrollFraction - 0.40f) / 0.35f)).coerceIn(0f, 1f)
+    if (nameAlpha > 0f) {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(height)
+        ) {
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -395,37 +534,38 @@ private fun ArtistHeroHeader(
 @Composable
 private fun ArtistTopBarOverlay(
     artistName: String,
-    isStarred: Boolean,
     scrollFraction: Float,
     onNavigateBack: () -> Unit,
-    onToggleFavorite: () -> Unit,
+    onOptionsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val topPadding = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val fadeColor = MaterialTheme.colorScheme.background
-    val titleAlpha = ((scrollFraction - 0.25f) / 0.5f).coerceIn(0f, 1f)
-    val bgAlpha = scrollFraction.coerceIn(0f, 1f)
+    val bgProgress = ((scrollFraction - 0.85f) / 0.15f).coerceIn(0f, 1f)
+    val bgAlpha = FastOutSlowInEasing.transform(bgProgress)
+    val titleAlpha = ((scrollFraction - 0.40f) / 0.35f).coerceIn(0f, 1f)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(topPadding + 56.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(bgAlpha)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            fadeColor.copy(alpha = 0.9f),
-                            fadeColor.copy(alpha = 0.7f),
-                            fadeColor.copy(alpha = 0.35f),
-                            Color.Transparent
+        if (bgAlpha > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(bgAlpha)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                fadeColor.copy(alpha = 0.70f),
+                                fadeColor.copy(alpha = 0.85f),
+                                fadeColor.copy(alpha = 0.95f)
+                            )
                         )
                     )
-                )
-        )
+            )
+        }
 
         Row(
             modifier = Modifier
@@ -440,13 +580,13 @@ private fun ArtistTopBarOverlay(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(
-                        Color.Black.copy(alpha = (0.35f * (1f - scrollFraction)).coerceIn(0f, 0.35f))
+                        Color.Black.copy(alpha = (0.35f * (1f - bgAlpha)).coerceIn(0f, 0.35f))
                     )
             ) {
                 Icon(
                     imageVector = Tabler.Outline.ArrowLeft,
                     contentDescription = stringResource(R.string.nav_back),
-                    tint = if (scrollFraction >= 0.85f) MaterialTheme.colorScheme.onSurface else Color.White
+                    tint = if (bgAlpha >= 0.85f) MaterialTheme.colorScheme.onSurface else Color.White
                 )
             }
 
@@ -473,24 +613,19 @@ private fun ArtistTopBarOverlay(
             }
 
             IconButton(
-                onClick = onToggleFavorite,
+                onClick = onOptionsClick,
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(
-                        Color.Black.copy(alpha = (0.35f * (1f - scrollFraction)).coerceIn(0f, 0.35f))
+                        Color.Black.copy(alpha = (0.35f * (1f - bgAlpha)).coerceIn(0f, 0.35f))
                     )
             ) {
                 Icon(
-                    imageVector = Tabler.Outline.Heart,
-                    contentDescription = stringResource(if (isStarred) R.string.action_unstar_artist else R.string.action_star_artist),
-                    tint = if (isStarred) {
-                        MaterialTheme.colorScheme.primary
-                    } else if (scrollFraction >= 0.85f) {
-                        MaterialTheme.colorScheme.onSurface
-                    } else {
-                        Color.White
-                    }
+                    imageVector = Tabler.Outline.DotsVertical,
+                    contentDescription = stringResource(R.string.artist_options_cd),
+                    tint = if (bgAlpha >= 0.85f) MaterialTheme.colorScheme.onSurface else Color.White,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -545,7 +680,9 @@ private fun ArtistTrackRow(
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
-                modifier = Modifier.basicMarquee()
+                modifier = Modifier
+                    .fillMaxWidth(0.85f)
+                    .basicMarquee()
             )
             track.album?.let { album ->
                 Text(
@@ -553,7 +690,9 @@ private fun ArtistTrackRow(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    modifier = Modifier.basicMarquee()
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .basicMarquee()
                 )
             }
         }

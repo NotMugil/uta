@@ -116,6 +116,17 @@ fun MediaActionBottomSheet(
         )
     }
 
+    val dbArtist by if (target is MediaTarget.ArtistTarget) {
+        libraryRepository.getArtistFlow(target.artist.id).collectAsStateWithLifecycle(initialValue = target.artist)
+    } else {
+        remember { MutableStateFlow<com.notmugil.uta.domain.model.ArtistItem?>(null) }.collectAsStateWithLifecycle()
+    }
+    LaunchedEffect(dbArtist?.isStarred) {
+        if (target is MediaTarget.ArtistTarget && dbArtist != null) {
+            isStarredState = dbArtist!!.isStarred
+        }
+    }
+
     var ratingState by remember(target) {
         mutableIntStateOf(
             when (target) {
@@ -156,6 +167,17 @@ fun MediaActionBottomSheet(
         remember { MutableStateFlow(emptyList<TrackItem>()) }.collectAsStateWithLifecycle()
     }
 
+    val artistTracks by if (target is MediaTarget.ArtistTarget) {
+        val flow = remember(target.artist.id) {
+            kotlinx.coroutines.flow.flow {
+                emit(resolveTracksForTarget(target, libraryRepository))
+            }
+        }
+        flow.collectAsStateWithLifecycle(initialValue = emptyList())
+    } else {
+        remember { MutableStateFlow(emptyList<TrackItem>()) }.collectAsStateWithLifecycle()
+    }
+
     val cancelString = stringResource(R.string.action_cancel)
     val deleteString = stringResource(R.string.action_delete)
     val downloadString = stringResource(R.string.action_download)
@@ -170,11 +192,11 @@ fun MediaActionBottomSheet(
             onConfirm = {
                 val cleanName = newPlaylistName.trim()
                 if (cleanName.isNotEmpty()) {
-                    val trackId = (target as? MediaTarget.TrackTarget)?.track?.id
                     coroutineScope.launch {
+                        val tracks = resolveTracksForTarget(target, libraryRepository)
                         val result = libraryRepository.createPlaylist(
                             name = cleanName,
-                            songIds = if (trackId != null) listOf(trackId) else emptyList()
+                            songIds = tracks.map { it.id }
                         )
                         if (result.isSuccess) {
                             toastHostState.showToast(context.getString(R.string.toast_created_playlist, cleanName), ToastType.SUCCESS)
@@ -345,7 +367,18 @@ fun MediaActionBottomSheet(
                             toastHostState.showToast(context.getString(R.string.toast_no_tracks_download), ToastType.ERROR)
                         }
                     }
-                    is MediaTarget.ArtistTarget -> {}
+                    is MediaTarget.ArtistTarget -> {
+                        val tracks = if (artistTracks.isNotEmpty()) artistTracks else resolveTracksForTarget(target, libraryRepository)
+                        if (tracks.isNotEmpty()) {
+                            offlineDownloadManager.enqueueTracks(tracks, scopeId = target.artist.id, scopeType = "ARTIST")
+                            isDownloadedState = true
+                            val nonDownloaded = tracks.filter { it.id !in downloadedTrackIds }
+                            val count = nonDownloaded.size.takeIf { it > 0 } ?: tracks.size
+                            toastHostState.showToast(context.getString(R.string.toast_downloading_artist, count), ToastType.INFO, Tabler.Outline.Download)
+                        } else {
+                            toastHostState.showToast(context.getString(R.string.toast_no_tracks_download), ToastType.ERROR)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 toastHostState.showToast(context.getString(R.string.toast_download_failed, e.message.orEmpty()), ToastType.ERROR)
@@ -353,7 +386,7 @@ fun MediaActionBottomSheet(
         }
     }
 
-    if (showDownloadConfirmDialog && (target is MediaTarget.AlbumTarget || target is MediaTarget.PlaylistTarget)) {
+    if (showDownloadConfirmDialog && (target is MediaTarget.AlbumTarget || target is MediaTarget.PlaylistTarget || target is MediaTarget.ArtistTarget)) {
         val (title, message) = when (target) {
             is MediaTarget.AlbumTarget -> {
                 val nonDownloaded = if (albumTracks.isNotEmpty()) {
@@ -425,7 +458,36 @@ fun MediaActionBottomSheet(
                     )
                 )
             }
-            is MediaTarget.TrackTarget, is MediaTarget.ArtistTarget -> Pair("", "")
+            is MediaTarget.ArtistTarget -> {
+                val nonDownloaded = if (artistTracks.isNotEmpty()) {
+                    artistTracks.filter { it.id !in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+                val count = nonDownloaded.size
+                val estimatedBytes = DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = nonDownloaded,
+                    quality = downloadQuality,
+                    fallbackSongCount = count
+                )
+                val sizeStr = Formatters.formatBytes(estimatedBytes)
+                val tracksStr = if (count == 1) {
+                    stringResource(R.string.action_track_single_format)
+                } else {
+                    stringResource(R.string.action_tracks_count_format, count)
+                }
+                Pair(
+                    stringResource(R.string.action_sheet_download_artist_title),
+                    stringResource(
+                        R.string.action_sheet_download_artist_msg,
+                        target.artist.name,
+                        tracksStr,
+                        sizeStr,
+                        downloadQuality.displayName
+                    )
+                )
+            }
+            is MediaTarget.TrackTarget -> Pair("", "")
         }
         ActionConfirmDialog(
             title = title,
@@ -526,7 +588,34 @@ fun MediaActionBottomSheet(
                     )
                 )
             }
-            is MediaTarget.ArtistTarget -> Pair("", "")
+            is MediaTarget.ArtistTarget -> {
+                val downloadedTracks = if (artistTracks.isNotEmpty()) {
+                    artistTracks.filter { it.id in downloadedTrackIds }
+                } else {
+                    emptyList()
+                }
+                val count = downloadedTracks.size
+                val estimatedBytes = DownloadEstimator.calculateEstimatedSizeBytes(
+                    tracks = downloadedTracks,
+                    quality = downloadQuality,
+                    fallbackSongCount = count
+                )
+                val sizeStr = Formatters.formatBytes(estimatedBytes)
+                val tracksStr = if (count == 1) {
+                    stringResource(R.string.action_track_single_format)
+                } else {
+                    stringResource(R.string.action_tracks_count_format, count)
+                }
+                Pair(
+                    stringResource(R.string.action_sheet_remove_download_confirm_title),
+                    stringResource(
+                        R.string.action_sheet_remove_download_artist_msg,
+                        target.artist.name,
+                        tracksStr,
+                        sizeStr
+                    )
+                )
+            }
         }
         ActionConfirmDialog(
             title = title,
@@ -549,7 +638,9 @@ fun MediaActionBottomSheet(
                             is MediaTarget.PlaylistTarget -> {
                                 offlineDownloadManager.deleteDownloadedScope(target.playlist.id)
                             }
-                            is MediaTarget.ArtistTarget -> {}
+                            is MediaTarget.ArtistTarget -> {
+                                offlineDownloadManager.deleteDownloadedScope(target.artist.id)
+                            }
                         }
                         isDownloadedState = false
                     } catch (e: Exception) {
@@ -588,7 +679,7 @@ fun MediaActionBottomSheet(
     val handleDownload: () -> Unit = {
         if (isOffline) {
             toastHostState.showToast(context.getString(R.string.toast_cannot_download_offline), ToastType.ERROR)
-        } else if (target is MediaTarget.AlbumTarget || target is MediaTarget.PlaylistTarget) {
+        } else if (target is MediaTarget.AlbumTarget || target is MediaTarget.PlaylistTarget || target is MediaTarget.ArtistTarget) {
             showDownloadConfirmDialog = true
         } else {
             performDownload()
@@ -739,10 +830,11 @@ fun MediaActionBottomSheet(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            val trackId = (target as? MediaTarget.TrackTarget)?.track?.id
                                             coroutineScope.launch {
-                                                if (trackId != null) {
-                                                    val res = libraryRepository.addTracksToPlaylist(playlist.id, listOf(trackId))
+                                                val tracks = resolveTracksForTarget(target, libraryRepository)
+                                                val songIds = tracks.map { it.id }
+                                                if (songIds.isNotEmpty()) {
+                                                    val res = libraryRepository.addTracksToPlaylist(playlist.id, songIds)
                                                     if (res.isSuccess) {
                                                         toastHostState.showToast(context.getString(R.string.toast_added_to_named_playlist, playlist.name), ToastType.SUCCESS)
                                                     } else {
@@ -795,7 +887,7 @@ fun MediaActionBottomSheet(
                         MediaActionHeader(
                             target = target,
                             rating = ratingState,
-                            onRateClick = if (target is MediaTarget.TrackTarget || target is MediaTarget.AlbumTarget) {
+                            onRateClick = if (target is MediaTarget.TrackTarget || target is MediaTarget.AlbumTarget || target is MediaTarget.ArtistTarget) {
                                 { showRatingDialog = true }
                             } else null,
                             onShare = handleShare,

@@ -185,6 +185,9 @@ interface ArtistDao {
     @Query("SELECT * FROM artists WHERE id = :id AND serverId = :serverId LIMIT 1")
     suspend fun getArtist(id: String, serverId: String): ArtistEntity?
 
+    @Query("SELECT * FROM artists WHERE id = :id AND serverId = :serverId LIMIT 1")
+    fun getArtistFlow(id: String, serverId: String): Flow<ArtistEntity?>
+
     @Query(
         "SELECT * FROM artists WHERE serverId = :serverId AND name LIKE '%' || :query || '%' ORDER BY name COLLATE NOCASE ASC LIMIT :limit"
     )
