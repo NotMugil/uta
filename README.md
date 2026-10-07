@@ -37,6 +37,14 @@ Want to help bring Uta to your language or improve existing strings? Join the **
 
 If your language isn't listed, please [open an issue](https://github.com/NotMugil/uta/issues) to request it.
 
+<br>
+
+<p align="center">
+  <a href="https://crowdin.com/project/uta-android">
+    <img src="https://badges.awesome-crowdin.com/translation-17931173-936409.png" alt="Crowdin translation status" />
+  </a>
+</p>
+
 ## Contributing
 
 Contributions are welcome! Whether it is bug fixes, new features, UI improvements, or documentation — all help is appreciated.  
