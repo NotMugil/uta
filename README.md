@@ -30,7 +30,18 @@ Get the latest APK from the [Releases](https://github.com/NotMugil/uta/releases/
 
 Also you can get automatic updates directly via [Obtainium](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/NotMugil/uta).
 
----
+
+## Translations
+
+Want to help bring Uta to your language or improve existing strings? Join the **[Crowdin project](https://crowdin.com/project/uta-android)**.
+
+If your language isn't listed, please [open an issue](https://github.com/NotMugil/uta/issues) to request it.
+
+## Contributing
+
+Contributions are welcome! Whether it is bug fixes, new features, UI improvements, or documentation — all help is appreciated.  
+
+Please read the [Contributing Guide](./CONTRIBUTING.md) before getting started.
 
 ## License
 This project is licensed under the [GNU General Public License v3.0 (GPL-3.0)](./LICENSE)

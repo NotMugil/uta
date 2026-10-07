@@ -1,0 +1,6 @@
+# Crowdin configuration file for Uta
+# Documentation: https://support.crowdin.com/configuration-file/
+
+files:
+  - source: /app/src/main/res/values/strings.xml
+    translation: /app/src/main/res/values-%android_code%/strings.xml
