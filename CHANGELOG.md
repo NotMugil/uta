@@ -5,10 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.0-alpha.3] - 2026-10-07
 
 ### Added
 
+- Option to disable ambient page top-left gradient.
+- Smooth song switching transitions and cubic easing in Default player layout.
 - Fill gaps in lyrics with music icon.
 - Added multiple styles for fullscreen lyrics page.
 - Artist action modal sheet with actions like rate, favourites, add to playlist.
@@ -17,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Reworked album art dynamic color extractor.
+- Changed next and previous track icons for player pages to match miniplayer.
 - Redesign fullscreen lyrics pages with ambient background.
 - New & redesigned cinematic player page style
 
@@ -45,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix miniplayer contrast and background colors in light mode.
 - Improve Subsonic error message formatting.
 
-## [1.0.0-alpha1] - 2026-09-30
+## [1.0.0-alpha.1] - 2026-09-30
 
 ### Added
 
@@ -57,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Search with instant filtering across library tracks, albums, and artists.
 - Sleep timer and scrobbling support.
 
-[unreleased]: https://github.com/NotMugil/uta/compare/v1.0.0-alpha.2...HEAD
+[unreleased]: https://github.com/NotMugil/uta/compare/v1.0.0-alpha.3...HEAD
+[1.0.0-alpha.3]: https://github.com/NotMugil/uta/compare/v1.0.0-alpha.2...v1.0.0-alpha.3
 [1.0.0-alpha.2]: https://github.com/NotMugil/uta/compare/v1.0.0-alpha1...v1.0.0-alpha.2
-[1.0.0-alpha1]: https://github.com/NotMugil/uta/releases/tag/v1.0.0-alpha1
+[1.0.0-alpha.1]: https://github.com/NotMugil/uta/releases/tag/v1.0.0-alpha1

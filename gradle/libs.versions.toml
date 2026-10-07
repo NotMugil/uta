@@ -2,8 +2,8 @@
 android-minSdk = "24"
 android-compileSdk = "37"
 android-targetSdk = "36"
-android-versionCode = "2"
-android-versionName = "1.0.0-alpha.2"
+android-versionCode = "3"
+android-versionName = "1.0.0-alpha.3"
 
 agp = "9.4.1"
 kotlin = "2.4.10"
