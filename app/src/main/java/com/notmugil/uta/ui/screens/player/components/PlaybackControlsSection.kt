@@ -75,7 +75,7 @@ fun PlaybackControlsSection(
             modifier = buttonModifier
         ) {
             Icon(
-                imageVector = Tabler.Filled.PlayerTrackPrev,
+                imageVector = Tabler.Filled.PlayerSkipBack,
                 contentDescription = stringResource(R.string.player_previous_cd),
                 modifier = Modifier.size(skipIconSize),
                 tint = MaterialTheme.colorScheme.onSurface
@@ -117,7 +117,7 @@ fun PlaybackControlsSection(
             modifier = buttonModifier
         ) {
             Icon(
-                imageVector = Tabler.Filled.PlayerTrackNext,
+                imageVector = Tabler.Filled.PlayerSkipForward,
                 contentDescription = stringResource(R.string.player_next_cd),
                 modifier = Modifier.size(skipIconSize),
                 tint = MaterialTheme.colorScheme.onSurface

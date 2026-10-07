@@ -86,6 +86,7 @@ class SettingsViewModel @Inject constructor(
     val themeMode: StateFlow<AppThemeMode> = appPreferences.themeMode
     val isDynamicThemeEnabled: StateFlow<Boolean> = appPreferences.isDynamicThemeEnabled
     val dynamicColorSource: StateFlow<DynamicColorSource> = appPreferences.dynamicColorSource
+    val enableAppAmbientGradient: StateFlow<Boolean> = appPreferences.enableAppAmbientGradient
     val customAccentColor: StateFlow<Int?> = appPreferences.customAccentColor
     val fontPreference: StateFlow<AppFont> = appPreferences.fontPreference
     val languagePreference: StateFlow<String> = appPreferences.languagePreference
@@ -157,6 +158,7 @@ class SettingsViewModel @Inject constructor(
     fun setThemeMode(mode: AppThemeMode) = appPreferences.setThemeMode(mode)
     fun setDynamicThemeEnabled(enabled: Boolean) = appPreferences.setDynamicThemeEnabled(enabled)
     fun setDynamicColorSource(source: DynamicColorSource) = appPreferences.setDynamicColorSource(source)
+    fun setEnableAppAmbientGradient(enabled: Boolean) = appPreferences.setEnableAppAmbientGradient(enabled)
     fun setCustomAccentColor(color: Int?) = appPreferences.setCustomAccentColor(color)
     fun setFontPreference(font: AppFont) = appPreferences.setFontPreference(font)
     fun setLanguagePreference(language: String) = appPreferences.setLanguagePreference(language)

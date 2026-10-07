@@ -346,6 +346,7 @@ class AppPreferences @Inject constructor(
         private const val KEY_COVER_ART_QUALITY = "cover_art_quality"
         private const val KEY_KEEP_SCREEN_ON_LYRICS = "keep_screen_on_lyrics"
         private const val KEY_BLUR_INACTIVE_LYRICS = "blur_inactive_lyrics"
+        private const val KEY_ENABLE_APP_AMBIENT_GRADIENT = "enable_app_ambient_gradient"
         private const val KEY_LYRICS_STYLE = "lyrics_page_style"
         private const val KEY_HOME_SECTIONS = "home_sections_config"
         private const val KEY_NAVBAR_SECTIONS = "navbar_sections_config"
@@ -569,6 +570,16 @@ class AppPreferences @Inject constructor(
         prefs.getBoolean(KEY_BLUR_INACTIVE_LYRICS, true)
     )
     val blurInactiveLyrics: StateFlow<Boolean> = _blurInactiveLyrics.asStateFlow()
+
+    private val _enableAppAmbientGradient = MutableStateFlow(
+        prefs.getBoolean(KEY_ENABLE_APP_AMBIENT_GRADIENT, true)
+    )
+    val enableAppAmbientGradient: StateFlow<Boolean> = _enableAppAmbientGradient.asStateFlow()
+
+    fun setEnableAppAmbientGradient(enabled: Boolean) {
+        _enableAppAmbientGradient.value = enabled
+        prefs.edit().putBoolean(KEY_ENABLE_APP_AMBIENT_GRADIENT, enabled).apply()
+    }
 
     fun setShowExternalLinks(enabled: Boolean) {
         _showExternalLinks.value = enabled

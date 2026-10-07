@@ -37,6 +37,7 @@ fun GeneralSubPage(
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val isDynamicThemeEnabled by viewModel.isDynamicThemeEnabled.collectAsStateWithLifecycle()
     val dynamicColorSource by viewModel.dynamicColorSource.collectAsStateWithLifecycle()
+    val enableAppAmbientGradient by viewModel.enableAppAmbientGradient.collectAsStateWithLifecycle()
     val fontPreference by viewModel.fontPreference.collectAsStateWithLifecycle()
     val hapticFeedback by viewModel.hapticFeedback.collectAsStateWithLifecycle()
 
@@ -126,6 +127,20 @@ fun GeneralSubPage(
                 onValueChange = { viewModel.setDynamicColorSource(it) }
             )
         }
+
+        SettingsItemRow(
+            icon = null,
+            title = stringResource(R.string.setting_app_ambient_gradient),
+            subtitle = stringResource(R.string.setting_app_ambient_gradient_subtitle),
+            showChevron = false,
+            verticalPadding = 16.dp,
+            trailing = {
+                UtaSwitch(
+                    checked = enableAppAmbientGradient,
+                    onCheckedChange = { viewModel.setEnableAppAmbientGradient(it) }
+                )
+            }
+        )
 
         SettingsSectionHeader(stringResource(R.string.setting_layout_style_header))
 

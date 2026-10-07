@@ -89,7 +89,7 @@ fun KaraokeWord(
     }
 
     val isLightMode = (0.2126f * MaterialTheme.colorScheme.background.red + 0.7152f * MaterialTheme.colorScheme.background.green + 0.0722f * MaterialTheme.colorScheme.background.blue) > 0.5f
-    val activeWordColor = if (isLightMode) androidx.compose.ui.graphics.lerp(accentColor, Color.White, 0.35f) else accentColor
+    val activeWordColor = accentColor
 
     val isBetter = lyricsStyle == LyricsStyle.BETTER
     val infiniteTransition = rememberInfiniteTransition(label = "word_wave")

@@ -423,6 +423,8 @@
     <string name="setting_dynamic_theme_subtitle">Adapter les couleurs selon la pochette ou le fond d\'écran</string>
     <string name="setting_dynamic_color_source">Source de couleur dynamique</string>
     <string name="setting_dynamic_color_source_subtitle">Source utilisée pour l\'extraction dynamique des couleurs</string>
+    <string name="setting_app_ambient_gradient">Dégradé d\'ambiance en arrière-plan</string>
+    <string name="setting_app_ambient_gradient_subtitle">Afficher le dégradé de couleur en haut à gauche sur les pages principales</string>
     <string name="setting_feedback_header">Retour tactile</string>
     <string name="setting_haptic_feedback">Retour haptique</string>
     <string name="setting_haptic_feedback_subtitle">Vibrations subtiles lors des actions et pressions</string>

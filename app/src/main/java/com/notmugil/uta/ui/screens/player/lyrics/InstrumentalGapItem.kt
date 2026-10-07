@@ -60,7 +60,7 @@ fun InstrumentalGapItem(
             0.7152f * MaterialTheme.colorScheme.background.green +
             0.0722f * MaterialTheme.colorScheme.background.blue) > 0.5f
 
-    val activeFillColor = if (isLightMode) lerp(accentColor, Color.White, 0.35f) else accentColor
+    val activeFillColor = accentColor
     val unfilledColor = textColor.copy(alpha = if (isActive) 0.35f else dimColor.alpha.coerceAtMost(0.28f))
 
     val infiniteTransition = rememberInfiniteTransition(label = "gap_anim")
@@ -235,9 +235,10 @@ fun InstrumentalGapItem(
                                     }
                                     close()
                                 }
+                                val shimmerColor = if (isLightMode) lerp(activeFillColor, Color.White, 0.40f).copy(alpha = 0.90f) else Color.White.copy(alpha = 0.85f)
                                 drawPath(
                                     path = crestShimmerPath,
-                                    color = Color.White.copy(alpha = 0.85f),
+                                    color = shimmerColor,
                                     blendMode = BlendMode.SrcAtop
                                 )
                             }

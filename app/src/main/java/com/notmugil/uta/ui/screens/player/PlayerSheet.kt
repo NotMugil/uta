@@ -2,6 +2,8 @@ package com.notmugil.uta.ui.screens.player
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInCubic
+import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -58,14 +60,12 @@ import com.notmugil.uta.player.SleepTimerManager
 import com.notmugil.uta.player.SleepTimerMode
 import com.notmugil.uta.util.Formatters
 import com.notmugil.uta.ui.shared.ActionConfirmDialog
-import com.notmugil.uta.ui.screens.player.components.LyricsAmbientBackground
 import com.notmugil.uta.ui.screens.player.layouts.CinematicPlayerLayout
 import com.notmugil.uta.ui.screens.player.layouts.CoverPlayerLayout
 import com.notmugil.uta.ui.screens.player.layouts.DefaultPlayerLayout
 import com.notmugil.uta.ui.screens.player.layouts.LandscapePlayerLayout
 import com.notmugil.uta.ui.screens.player.layouts.LyricsPlayerLayout
 import com.notmugil.uta.ui.screens.player.layouts.ModernPlayerLayout
-import com.notmugil.uta.ui.shared.CoverArtImage
 import com.notmugil.uta.ui.shared.SleepTimerSheet
 import com.notmugil.uta.ui.theme.LocalDynamicThemeManager
 import kotlin.math.abs
@@ -172,24 +172,6 @@ fun PlayerSheet(
     val scrollState = rememberScrollState()
     var dragDirection by remember { mutableStateOf<PlayerDragDirection?>(null) }
 
-    val ambientRotation = remember { Animatable(0f) }
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
-            while (isActive) {
-                val current = ambientRotation.value
-                ambientRotation.animateTo(
-                    targetValue = current + 360f,
-                    animationSpec = tween(
-                        durationMillis = 45000,
-                        easing = LinearEasing
-                    )
-                )
-            }
-        } else {
-            ambientRotation.stop()
-        }
-    }
-
     val dynamicThemeManager = LocalDynamicThemeManager.current
     val dynamicDarkBgColor by (dynamicThemeManager?.dynamicDarkBgColor?.collectAsState() ?: remember { mutableStateOf(null) })
     val cinematicBgColor = dynamicDarkBgColor ?: Color(0xFF101014)
@@ -207,62 +189,12 @@ fun PlayerSheet(
         contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         modifier = modifier.fillMaxSize()
     ) {
+        val playerSheetBgColor = if (!isLandscape && effectivePlayerStyle == PlayerStyle.CINEMATIC) cinematicBgColor else MaterialTheme.colorScheme.background
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(playerSheetBgColor)
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (!isLandscape && effectivePlayerStyle == PlayerStyle.CINEMATIC) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(cinematicBgColor)
-                    )
-                } else if (!isLandscape && effectivePlayerStyle == PlayerStyle.LYRICS) {
-                    LyricsAmbientBackground(track = track, isPlaying = isPlaying)
-                } else if (isLandscape || effectivePlayerStyle != PlayerStyle.COVER) {
-                    val ambientCoverArtId = track.coverArtId
-                    if (ambientCoverArtId != null) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .graphicsLayer {
-                                    rotationZ = ambientRotation.value
-                                    scaleX = 3.2f
-                                    scaleY = 3.2f
-                                }
-                        ) {
-                            CoverArtImage(
-                                coverArtId = ambientCoverArtId,
-                                contentDescription = null,
-                                size = 1000.dp,
-                                shape = RoundedCornerShape(0.dp),
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .blur(65.dp)
-                                    .alpha(0.60f)
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.20f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.45f),
-                                        MaterialTheme.colorScheme.background.copy(alpha = 0.70f)
-                                    )
-                                )
-                            )
-                    )
-                }
-            }
-
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -312,38 +244,29 @@ fun PlayerSheet(
                                         val currentX = horizontalOffset.value
                                         if (currentX < -swipeThresholdPx) {
                                             coroutineScope.launch {
-                                                horizontalOffset.animateTo(-swipeThresholdPx * 2.5f, tween(160))
+                                                horizontalOffset.animateTo(-swipeThresholdPx * 2.2f, tween(180, easing = EaseInCubic))
                                                 onSkipNext()
-                                                horizontalOffset.snapTo(swipeThresholdPx * 2.5f)
+                                                horizontalOffset.snapTo(swipeThresholdPx * 1.6f)
                                                 horizontalOffset.animateTo(
                                                     0f,
-                                                    spring(
-                                                        dampingRatio = Spring.DampingRatioLowBouncy,
-                                                        stiffness = Spring.StiffnessMediumLow
-                                                    )
+                                                    tween(320, easing = EaseOutCubic)
                                                 )
                                             }
                                         } else if (currentX > swipeThresholdPx) {
                                             coroutineScope.launch {
-                                                horizontalOffset.animateTo(swipeThresholdPx * 2.5f, tween(160))
+                                                horizontalOffset.animateTo(swipeThresholdPx * 2.2f, tween(180, easing = EaseInCubic))
                                                 onSkipPrevious()
-                                                horizontalOffset.snapTo(-swipeThresholdPx * 2.5f)
+                                                horizontalOffset.snapTo(-swipeThresholdPx * 1.6f)
                                                 horizontalOffset.animateTo(
                                                     0f,
-                                                    spring(
-                                                        dampingRatio = Spring.DampingRatioLowBouncy,
-                                                        stiffness = Spring.StiffnessMediumLow
-                                                    )
+                                                    tween(320, easing = EaseOutCubic)
                                                 )
                                             }
                                         } else {
                                             coroutineScope.launch {
                                                 horizontalOffset.animateTo(
                                                     0f,
-                                                    spring(
-                                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                                        stiffness = Spring.StiffnessLow
-                                                    )
+                                                    tween(240, easing = EaseOutCubic)
                                                 )
                                             }
                                         }

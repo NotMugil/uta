@@ -361,7 +361,7 @@ fun CoverPlayerLayout(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Icon(
-                                imageVector = Tabler.Filled.PlayerTrackPrev,
+                                imageVector = Tabler.Filled.PlayerSkipBack,
                                 contentDescription = stringResource(R.string.player_previous_cd),
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(28.dp)
@@ -403,7 +403,7 @@ fun CoverPlayerLayout(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             Icon(
-                                imageVector = Tabler.Filled.PlayerTrackNext,
+                                imageVector = Tabler.Filled.PlayerSkipForward,
                                 contentDescription = stringResource(R.string.player_next_cd),
                                 tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(28.dp)

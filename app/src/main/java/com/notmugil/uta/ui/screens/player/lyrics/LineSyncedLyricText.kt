@@ -117,7 +117,7 @@ fun LineSyncedLyricText(
     val isLightMode = (0.2126f * MaterialTheme.colorScheme.background.red +
             0.7152f * MaterialTheme.colorScheme.background.green +
             0.0722f * MaterialTheme.colorScheme.background.blue) > 0.5f
-    val activeLineColor = if (isLightMode) lerp(accentColor, Color.White, 0.35f) else accentColor
+    val activeLineColor = accentColor
 
     val parsed = remember(text, isBetter) {
         if (isBetter) parseLineText(text) else ParsedLineText(mainText = text, parentheticalText = null)
@@ -195,7 +195,7 @@ fun LineSyncedLyricText(
             arrayOf(
                 0.0f to activeLineColor,
                 (easeProgress * 0.85f).coerceIn(0f, 1f) to activeLineColor,
-                easeProgress to Color.White.copy(alpha = 0.95f),
+                easeProgress to (if (isLightMode) activeLineColor else Color.White.copy(alpha = 0.95f)),
                 (easeProgress + 0.08f).coerceIn(0f, 1f) to activeLineColor.copy(alpha = 0.85f),
                 (easeProgress + 0.16f).coerceIn(0f, 1f) to textColor.copy(alpha = 0.35f),
                 1.0f to textColor.copy(alpha = 0.35f)

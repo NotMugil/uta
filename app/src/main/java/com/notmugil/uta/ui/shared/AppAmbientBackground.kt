@@ -41,13 +41,13 @@ fun AppAmbientBackground(
     val isDynamicThemeEnabled by (appPreferences?.isDynamicThemeEnabled?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(true) })
 
+    val enableAppAmbientGradient by (appPreferences?.enableAppAmbientGradient?.collectAsStateWithLifecycle()
+        ?: remember { androidx.compose.runtime.mutableStateOf(true) })
+
     val dynamicColorSource by (appPreferences?.dynamicColorSource?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(DynamicColorSource.BOTH) })
 
     val dynamicSeedColor by (dynamicThemeManager?.dynamicSeedColor?.collectAsStateWithLifecycle()
-        ?: remember { androidx.compose.runtime.mutableStateOf(null) })
-
-    val dynamicSecondaryColor by (dynamicThemeManager?.dynamicSecondaryColor?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(null) })
 
     val currentTrack by (playbackController?.currentTrack?.collectAsStateWithLifecycle()
@@ -66,8 +66,6 @@ fun AppAmbientBackground(
     )
 
     val themePrimary = MaterialTheme.colorScheme.primary
-    val themeSecondary = MaterialTheme.colorScheme.secondary.takeIf { it != themePrimary }
-        ?: MaterialTheme.colorScheme.tertiary
 
     val targetPrimary = when {
         isCoverActive -> dynamicSeedColor ?: themePrimary
@@ -75,25 +73,13 @@ fun AppAmbientBackground(
         else -> themePrimary
     }
 
-    val targetSecondary = when {
-        isCoverActive -> dynamicSecondaryColor?.takeIf { it != targetPrimary } ?: themeSecondary
-        isWallpaperActive && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> themeSecondary
-        else -> themeSecondary
-    }
-
-    val (rawC1, rawC2, rawC3) = remember(targetPrimary, targetSecondary) {
-        deriveThreeColors(targetPrimary, targetSecondary)
-    }
-
-    val color1 by animateColorAsState(rawC1, animationSpec = tween(700), label = "ambient_c1")
-    val color2 by animateColorAsState(rawC2, animationSpec = tween(700), label = "ambient_c2")
-    val color3 by animateColorAsState(rawC3, animationSpec = tween(700), label = "ambient_c3")
+    val blobColor by animateColorAsState(targetPrimary, animationSpec = tween(700), label = "ambient_blob")
     val bgColor = MaterialTheme.colorScheme.background
 
     val rotation = remember { Animatable(0f) }
 
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) {
+    LaunchedEffect(isPlaying, enableAppAmbientGradient) {
+        if (isPlaying && enableAppAmbientGradient) {
             while (isActive) {
                 val current = rotation.value
                 rotation.animateTo(
@@ -111,116 +97,73 @@ fun AppAmbientBackground(
             .fillMaxSize()
             .background(bgColor)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .blur(55.dp)
-        ) {
-            Canvas(
+        if (enableAppAmbientGradient) {
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer {
-                        rotationZ = rotation.value
-                        transformOrigin = TransformOrigin(0f, 0f)
-                    }
+                    .blur(55.dp)
             ) {
-                val circleRadius = (size.width * 1.10f).coerceIn(340.dp.toPx(), 540.dp.toPx())
-                val centerOffset = Offset(0f, 0f)
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            rotationZ = rotation.value
+                            transformOrigin = TransformOrigin(0f, 0f)
+                        }
+                ) {
+                    val circleRadius = (size.width * 1.10f).coerceIn(340.dp.toPx(), 540.dp.toPx())
+                    val centerOffset = Offset(0f, 0f)
 
-                drawCircle(
-                    brush = Brush.sweepGradient(
-                        colors = listOf(
-                            color1.copy(alpha = 0.70f),
-                            color2.copy(alpha = 0.65f),
-                            color3.copy(alpha = 0.60f),
-                            color1.copy(alpha = 0.70f)
+                    drawCircle(
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                blobColor.copy(alpha = 0.70f),
+                                blobColor.copy(alpha = 0.45f),
+                                blobColor.copy(alpha = 0.65f),
+                                blobColor.copy(alpha = 0.70f)
+                            ),
+                            center = centerOffset
                         ),
+                        radius = circleRadius,
                         center = centerOffset
-                    ),
-                    radius = circleRadius,
-                    center = centerOffset
-                )
-            }
-
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val circleRadius = (size.width * 1.10f).coerceIn(340.dp.toPx(), 540.dp.toPx())
-                val centerOffset = Offset(0f, 0f)
-                val screenCenter = Offset(size.width * 0.50f, size.height * 0.45f)
-
-                drawCircle(
-                    brush = Brush.radialGradient(
-                        colorStops = arrayOf(
-                            0.0f to Color.Transparent,
-                            0.20f to Color.Transparent,
-                            0.50f to bgColor.copy(alpha = 0.45f),
-                            0.75f to bgColor.copy(alpha = 0.85f),
-                            1.0f to bgColor
-                        ),
-                        center = centerOffset,
-                        radius = circleRadius
-                    ),
-                    radius = circleRadius,
-                    center = centerOffset
-                )
-
-                drawRect(
-                    brush = Brush.radialGradient(
-                        colorStops = arrayOf(
-                            0.0f to bgColor,
-                            0.35f to bgColor.copy(alpha = 0.90f),
-                            0.65f to bgColor.copy(alpha = 0.45f),
-                            1.0f to Color.Transparent
-                        ),
-                        center = screenCenter,
-                        radius = size.width * 0.95f
                     )
-                )
+                }
+
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val circleRadius = (size.width * 1.10f).coerceIn(340.dp.toPx(), 540.dp.toPx())
+                    val centerOffset = Offset(0f, 0f)
+                    val screenCenter = Offset(size.width * 0.50f, size.height * 0.45f)
+
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colorStops = arrayOf(
+                                0.0f to Color.Transparent,
+                                0.20f to Color.Transparent,
+                                0.50f to bgColor.copy(alpha = 0.45f),
+                                0.75f to bgColor.copy(alpha = 0.85f),
+                                1.0f to bgColor
+                            ),
+                            center = centerOffset,
+                            radius = circleRadius
+                        ),
+                        radius = circleRadius,
+                        center = centerOffset
+                    )
+
+                    drawRect(
+                        brush = Brush.radialGradient(
+                            colorStops = arrayOf(
+                                0.0f to bgColor,
+                                0.35f to bgColor.copy(alpha = 0.90f),
+                                0.65f to bgColor.copy(alpha = 0.45f),
+                                1.0f to Color.Transparent
+                            ),
+                            center = screenCenter,
+                            radius = size.width * 0.95f
+                        )
+                    )
+                }
             }
         }
-    }
-}
-
-private fun deriveThreeColors(primary: Color, secondary: Color): Triple<Color, Color, Color> {
-    val hsv1 = FloatArray(3)
-    android.graphics.Color.RGBToHSV(
-        (primary.red * 255).toInt(),
-        (primary.green * 255).toInt(),
-        (primary.blue * 255).toInt(),
-        hsv1
-    )
-
-    val hsv2 = FloatArray(3)
-    android.graphics.Color.RGBToHSV(
-        (secondary.red * 255).toInt(),
-        (secondary.green * 255).toInt(),
-        (secondary.blue * 255).toInt(),
-        hsv2
-    )
-
-    val isSecondaryDistinct = kotlin.math.abs(hsv1[0] - hsv2[0]) > 15f ||
-        kotlin.math.abs(hsv1[2] - hsv2[2]) > 0.15f
-
-    if (isSecondaryDistinct) {
-        val hsv3 = hsv1.clone().apply {
-            this[0] = (this[0] + 30f) % 360f
-            this[2] = (this[2] * 1.25f).coerceIn(0.2f, 1f)
-            this[1] = (this[1] * 0.85f).coerceIn(0.3f, 1f)
-        }
-        val c3 = Color(android.graphics.Color.HSVToColor(hsv3))
-        return Triple(primary, secondary, c3)
-    } else {
-        val lighterHsv = hsv1.clone().apply {
-            this[0] = (this[0] + 20f) % 360f
-            this[2] = (this[2] * 1.3f).coerceIn(0.3f, 1f)
-            this[1] = (this[1] * 0.75f).coerceIn(0.25f, 1f)
-        }
-        val darkerHsv = hsv1.clone().apply {
-            this[0] = (this[0] - 25f + 360f) % 360f
-            this[2] = (this[2] * 0.7f).coerceIn(0.15f, 0.9f)
-            this[1] = (this[1] * 1.15f).coerceIn(0.3f, 1f)
-        }
-        val lighterColor = Color(android.graphics.Color.HSVToColor(lighterHsv))
-        val darkerColor = Color(android.graphics.Color.HSVToColor(darkerHsv))
-        return Triple(primary, lighterColor, darkerColor)
     }
 }

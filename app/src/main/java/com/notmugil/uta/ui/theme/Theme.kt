@@ -116,7 +116,7 @@ fun UtaTheme(
         ?: remember { androidx.compose.runtime.mutableStateOf(true) })
     val dynamicColorSource by (appPreferences?.dynamicColorSource?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(DynamicColorSource.BOTH) })
-    val dynamicSeedColor by (dynamicThemeManager?.dynamicSeedColor?.collectAsStateWithLifecycle()
+    val dynamicColors by (dynamicThemeManager?.dynamicColors?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(null) })
 
     val context = LocalContext.current
@@ -134,41 +134,39 @@ fun UtaTheme(
         defaultScheme
     } else {
         when (dynamicColorSource) {
-        DynamicColorSource.COVER_ONLY -> {
-            if (dynamicSeedColor != null) {
-                val seed = dynamicSeedColor!!
-                if (isDark) dynamicDarkColorSchemeFromSeed(seed) else dynamicLightColorSchemeFromSeed(seed)
-            } else {
-                defaultScheme
-            }
-        }
-        DynamicColorSource.WALLPAPER_ONLY -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (isDark) {
-                    accentOnlyDarkColorScheme(dynamicDarkColorScheme(context))
+            DynamicColorSource.COVER_ONLY -> {
+                if (dynamicColors != null) {
+                    buildDynamicColorScheme(dynamicColors!!, isDark)
                 } else {
-                    accentOnlyLightColorScheme(dynamicLightColorScheme(context))
+                    defaultScheme
                 }
-            } else {
-                defaultScheme
             }
-        }
-        DynamicColorSource.BOTH -> {
-            if (dynamicSeedColor != null) {
-                val seed = dynamicSeedColor!!
-                if (isDark) dynamicDarkColorSchemeFromSeed(seed) else dynamicLightColorSchemeFromSeed(seed)
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (isDark) {
-                    accentOnlyDarkColorScheme(dynamicDarkColorScheme(context))
+            DynamicColorSource.WALLPAPER_ONLY -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (isDark) {
+                        accentOnlyDarkColorScheme(dynamicDarkColorScheme(context))
+                    } else {
+                        accentOnlyLightColorScheme(dynamicLightColorScheme(context))
+                    }
                 } else {
-                    accentOnlyLightColorScheme(dynamicLightColorScheme(context))
+                    defaultScheme
                 }
-            } else {
-                defaultScheme
+            }
+            DynamicColorSource.BOTH -> {
+                if (dynamicColors != null) {
+                    buildDynamicColorScheme(dynamicColors!!, isDark)
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (isDark) {
+                        accentOnlyDarkColorScheme(dynamicDarkColorScheme(context))
+                    } else {
+                        accentOnlyLightColorScheme(dynamicLightColorScheme(context))
+                    }
+                } else {
+                    defaultScheme
+                }
             }
         }
     }
-}
 
     val fontPreference by (appPreferences?.fontPreference?.collectAsStateWithLifecycle()
         ?: remember { androidx.compose.runtime.mutableStateOf(com.notmugil.uta.data.preferences.AppFont.SYSTEM_DEFAULT) })
