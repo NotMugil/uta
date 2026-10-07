@@ -16,9 +16,9 @@
 
 ## Screenshots
 
-| **Home** | **Player** | **Lyrics** | **Album** |
+| **Player** | **Album** | **Lyrics** | **Home** |
 |:---:|:---:|:---:|:---:|
-| ![Home](.github/assets/screenshots/1_home.webp) | ![Player](.github/assets/screenshots/2_player.webp) | ![Lyrics](.github/assets/screenshots/3_lyrics.webp) | ![Album](.github/assets/screenshots/4_album.webp) |
+| ![Player](.github/assets/screenshots/2_player.webp) | ![Album](.github/assets/screenshots/4_album.webp) | ![Lyrics](.github/assets/screenshots/3_lyrics.webp) | ![Home](.github/assets/screenshots/1_home.webp) |
 | **Artist** | **Playlist** | **Queue** | **Library** |
 | ![Artist](.github/assets/screenshots/5_artist.webp) | ![Playlists](.github/assets/screenshots/6_playlist.webp) | ![Queue](.github/assets/screenshots/7_queue.webp) | ![Library](.github/assets/screenshots/8_library.webp) |
 
