@@ -1,571 +1,521 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Application -->
-    <string name="app_name">Uta</string>
-    <!-- Navigation -->
-    <string name="nav_home">Home</string>
-    <string name="nav_search">Search</string>
-    <string name="nav_downloads">Downloads</string>
-    <string name="nav_library">Library</string>
-    <string name="nav_settings">Settings</string>
-    <string name="nav_back">Back</string>
-    <!-- Library Tabs -->
-    <string name="tab_albums">Albums</string>
-    <string name="tab_artists">Artists</string>
-    <string name="tab_playlists">Playlists</string>
-    <!-- Common Actions -->
-    <string name="action_play">Play</string>
-    <string name="action_pause">Pause</string>
-    <string name="action_shuffle">Shuffle</string>
-    <string name="action_play_all">Play All</string>
-    <string name="action_play_next">Play Next</string>
-    <string name="action_add_to_queue">Add to Queue</string>
-    <string name="action_add_to_playlist">Add to Playlist</string>
-    <string name="action_remove_from_playlist">Remove from Playlist</string>
-    <string name="action_add_to_favorites">Add to Favorites</string>
-    <string name="action_remove_from_favorites">Remove from Favorites</string>
-    <string name="action_star">Star</string>
-    <string name="action_unstar">Unstar</string>
-    <string name="action_star_artist">Star Artist</string>
-    <string name="action_unstar_artist">Unstar Artist</string>
-    <string name="action_download">Download</string>
-    <string name="action_remove_download">Remove Download</string>
-    <string name="action_remove_from_downloads">Remove from Downloads</string>
-    <string name="action_delete_playlist">Delete Playlist</string>
-    <string name="action_tracks_count_format">%1$d tracks</string>
-    <string name="action_track_single_format">1 track</string>
-    <string name="action_cancel">Cancel</string>
-    <string name="action_confirm">Confirm</string>
-    <string name="action_delete">Delete</string>
-    <string name="action_clear">Clear</string>
-    <string name="action_save">Save</string>
-    <string name="action_retry">Retry</string>
-    <string name="action_close">Close</string>
-    <string name="action_back">Back</string>
-    <string name="action_search">Search</string>
-    <string name="action_sync">Sync</string>
-    <string name="action_logout">Log Out</string>
-    <string name="action_undo">Undo</string>
-    <string name="action_remove">Remove</string>
-    <string name="action_share">Share</string>
-    <string name="action_info">Info</string>
-    <string name="action_rate">Rate</string>
-    <string name="action_go_to_artist">Go to Artist</string>
-    <string name="action_go_to_album">Go to Album</string>
-    <string name="action_clear_queue">Clear Queue</string>
-    <string name="action_add_queue_to_playlist">Add Queue to Playlist</string>
-    <string name="action_create_and_add">Create &amp; Add</string>
-    <string name="action_remove_from_queue">Remove from Queue</string>
-    <string name="action_scroll_up">Scroll Up</string>
-    <string name="action_scroll_down">Scroll Down</string>
-    <string name="action_repeat">Repeat</string>
-    <string name="action_open_lastfm">Open in Last.fm</string>
-    <string name="action_open_musicbrainz">Open in MusicBrainz</string>
-    <string name="action_show_less">Show less</string>
-    <string name="action_read_more">Read more</string>
-    <string name="action_see_more">See more</string>
-    <string name="action_see_all">See all</string>
-    <string name="action_more_options">More options</string>
-    <string name="action_done">Done</string>
-    <string name="dialog_ok">OK</string>
-    <string name="playlist_songs_count">%1$d songs</string>
-    <string name="status_offline_badge">Offline</string>
-    <string name="status_offline_mode">Offline mode</string>
-    <string name="status_no_internet">No internet connection</string>
-    <string name="status_server_unreachable">Can\'t reach the server</string>
-    <!-- Common Values -->
-    <!-- Greetings -->
-    <string name="greeting_morning">Good morning</string>
-    <string name="greeting_afternoon">Good afternoon</string>
-    <string name="greeting_evening">Good evening</string>
-    <string name="greeting_night">Good night</string>
-    <!-- Home Screen -->
-    <string name="home_quick_picks">Quick picks</string>
-    <string name="home_playlists">Your playlists</string>
-    <string name="home_most_played_songs">Most played songs</string>
-    <string name="home_recently_added">Recently added</string>
-    <string name="home_most_played_albums">Most played albums</string>
-    <string name="home_recently_played">Recently played</string>
-    <string name="home_random_albums">Random albums</string>
-    <string name="home_featured_artist">Featured artist</string>
-    <string name="home_empty_title">Your library is empty</string>
-    <string name="home_empty_subtitle">Sync your Subsonic server to start listening.</string>
-    <string name="home_syncing">Syncing your music library…</string>
-    <string name="featured_artist_more_from">More from</string>
-    <!-- Home Sections Settings -->
-    <string name="setting_home_sections_title">Home page sections</string>
-    <string name="setting_home_sections_subtitle">Customize and reorder sections on the home screen</string>
-    <string name="setting_home_sections_reset">Reset to default</string>
-    <!-- Navigation Bar Sections Settings -->
-    <string name="setting_navbar_sections_title">Navigation bar sections</string>
-    <string name="setting_navbar_sections_subtitle">Customize and reorder navigation bar buttons</string>
-    <string name="setting_navbar_sections_reset">Reset to default</string>
-    <!-- Mini Player Buttons Settings -->
-    <string name="setting_miniplayer_buttons_title">Mini player buttons</string>
-    <string name="setting_miniplayer_buttons_subtitle">Customize and reorder buttons in the mini player</string>
-    <string name="setting_miniplayer_buttons_reset">Reset to default</string>
-    <string name="action_play_pause">Play / Pause</string>
-    <string name="action_previous">Previous</string>
-    <string name="action_next">Next</string>
-    <string name="action_favorite">Favorite</string>
-    <!-- Search Screen -->
-    <string name="search_placeholder">Search songs, albums, artists…</string>
-    <string name="search_tracks">Tracks</string>
-    <string name="search_albums">Albums</string>
-    <string name="search_artists">Artists</string>
-    <string name="search_browse_genres">Browse genres</string>
-    <string name="search_no_results">No results found</string>
-    <string name="search_no_results_for">No results found for \"%1$s\"</string>
-    <string name="search_empty_prompt">Search your music library</string>
-    <!-- Library Screen & Tabs -->
-    <string name="library_title">Library</string>
-    <string name="library_sort_by">Sort by</string>
-    <string name="library_new_playlist">New Playlist</string>
-    <string name="library_create_playlist">Create</string>
-    <string name="library_playlist_name">Playlist Name</string>
-    <string name="library_empty_albums">No albums in library</string>
-    <string name="library_empty_artists">No artists in library</string>
-    <string name="library_empty_playlists">No playlists in library</string>
-    <string name="sort_alphabetical">Alphabetical</string>
-    <string name="sort_artist">Artist</string>
-    <string name="sort_album">Album</string>
-    <string name="sort_title">Title</string>
-    <string name="sort_id">ID</string>
-    <string name="sort_duration">Duration</string>
-    <string name="sort_favourites">Favourites</string>
-    <string name="sort_rating">Rating</string>
-    <string name="sort_recently_added">Recently Added</string>
-    <string name="sort_recently_played">Recently Played</string>
-    <string name="sort_most_played">Most Played</string>
-    <string name="sort_year">Year</string>
-    <string name="sort_item_count">Item Count</string>
-    <string name="sort_date_modified">Date Modified</string>
-    <string name="sort_date_created">Date Created</string>
-    <string name="sort_ascending">Ascending</string>
-    <string name="sort_descending">Descending</string>
-    <string name="view_options">View options</string>
-    <string name="view_list">List</string>
-    <string name="view_text_only">Text-Only</string>
-    <string name="view_columns_format">%1$d Columns</string>
-    <!-- Downloads Screen -->
-    <string name="downloads_title">Downloads</string>
-    <string name="downloads_search_placeholder">Search downloaded tracks</string>
-    <string name="downloads_empty_title">No downloaded music</string>
-    <string name="downloads_empty_subtitle">Download your favorite songs, albums, or playlists to listen offline</string>
-    <string name="downloads_no_matching_title">No matching tracks</string>
-    <string name="downloads_no_matching_subtitle">Try searching for a different title, artist, or album.</string>
-    <string name="downloads_tracks_count">%1$d Tracks</string>
-    <string name="downloads_downloading_count"> (%1$d downloading)</string>
-    <string name="downloads_delete_confirm_msg">Remove \"%1$s\" from this device?</string>
-    <string name="download_status_downloading">Downloading %1$d%%</string>
-    <string name="download_status_queued">Queued</string>
-    <string name="download_status_failed">Download failed</string>
-    <string name="download_status_completed">Completed</string>
-    <string name="download_status_waiting">Waiting…</string>
-    <string name="downloads_clear_all">Clear All</string>
-    <string name="downloads_clear_confirm_title">Delete All Downloads</string>
-    <string name="downloads_clear_confirm_message">Are you sure you want to delete all downloaded tracks and media from this server?</string>
-    <!-- History Screen -->
-    <string name="history_title">History</string>
-    <string name="history_clear_all">Clear History</string>
-    <string name="history_clear_confirm_title">Clear History</string>
-    <string name="history_clear_confirm_message">Are you sure you want to clear all listening history?</string>
-    <string name="history_empty_title">No listening history yet</string>
-    <string name="history_empty_subtitle">Songs you play will appear here</string>
-    <string name="history_cleared">History cleared</string>
-    <string name="history_removed_toast">Removed from history</string>
-    <!-- Detail Screens (Artist, Album, Playlist, Genre) -->
-    <string name="artist_albums">Albums</string>
-    <string name="artist_about">About</string>
-    <string name="artist_top_songs">Top songs</string>
-    <string name="artist_fallback">Artist</string>
-    <string name="album_tracks">Tracks</string>
-    <string name="album_duration_format">%1$d tracks • %2$s</string>
-    <string name="album_filter_placeholder">Filter album…</string>
-    <string name="album_disc_header">Disc %1$d</string>
-    <string name="playlist_tracks">Tracks</string>
-    <string name="playlist_filter_placeholder">Filter playlist…</string>
-    <string name="playlist_edit">Edit Playlist</string>
-    <string name="playlist_edit_title">Edit Playlist</string>
-    <string name="playlist_delete_confirm_title">Delete Playlist?</string>
-    <string name="playlist_delete_confirm_message">Are you sure you want to permanently delete \"%1$s\"?</string>
-    <string name="playlist_save">Save</string>
-    <string name="playlist_reorder">Reorder</string>
-    <string name="genre_albums">Albums</string>
-    <string name="genre_tracks">Tracks</string>
-    <string name="genre_albums_songs_format">%1$d albums • %2$d songs</string>
-    <string name="edit_playlist_choose_image">Choose an image</string>
-    <string name="edit_playlist_remove_image">Remove current image</string>
-    <string name="edit_playlist_description_label">Description (Optional)</string>
-    <string name="edit_playlist_private">Private</string>
-    <string name="edit_playlist_public">Public</string>
-    <string name="edit_playlist_auto_gen">Auto generated playlist</string>
-    <string name="edit_playlist_auto_gen_desc">It\'s an auto-imported .m3u file-based playlist</string>
-    <string name="edit_playlist_songs_count">Songs (%1$d)</string>
-    <string name="edit_playlist_auto_imported">Auto-imported playlist</string>
-    <string name="edit_playlist_read_only">Read-only</string>
-    <string name="edit_playlist_swipe_drag_reorder">Swipe or drag to reorder</string>
-    <string name="edit_playlist_cover_cd">New Playlist Cover</string>
-    <string name="edit_playlist_edit_cover_cd">Edit Cover</string>
-    <string name="failed_load_album">Failed to load album</string>
-    <string name="failed_load_artist">Failed to load artist</string>
-    <string name="failed_load_playlist">Failed to load playlist</string>
-    <string name="failed_load_genre">Failed to load genre</string>
-    <string name="failed_to_delete_format">Failed to delete: %1$s</string>
-    <string name="failed_to_add_to_playlist">Failed to add to playlist</string>
-    <string name="offline_mode_active_title">Offline Mode Active</string>
-    <string name="offline_mode_active_msg">You are currently in offline mode. Please disable offline mode or connect to the internet to download albums.</string>
-    <string name="album_options_cd">Album Options</string>
-    <string name="playlist_options_cd">Playlist Options</string>
-    <string name="more_actions_cd">More actions</string>
-    <string name="sort_options_cd">Sort Options</string>
-    <string name="sort_ascending_cd">Ascending (tap to invert)</string>
-    <string name="sort_descending_cd">Descending (tap to invert)</string>
-    <string name="view_options_cd">View Options</string>
-    <string name="clear_search_cd">Clear text</string>
-    <string name="close_search_cd">Close search</string>
-    <string name="starred_cd">Starred</string>
-    <string name="not_starred_cd">Not Starred</string>
-    <string name="track_not_downloaded_toast">Track not downloaded for offline playback</string>
-    <!-- Media Info Screen -->
-    <string name="info_title">Info</string>
-    <string name="info_track_title">Song Details</string>
-    <string name="info_album_title">Album Details</string>
-    <string name="info_artist_title">Artist Details</string>
-    <string name="info_playlist_title">Playlist Details</string>
-    <string name="info_title_label">Title</string>
-    <string name="info_artist_label">Artist</string>
-    <string name="info_album_label">Album</string>
-    <string name="info_genre_label">Genre</string>
-    <string name="info_year_label">Release Year</string>
-    <string name="info_track_number_label">Track Number</string>
-    <string name="info_disc_number_label">Disc Number</string>
-    <string name="info_duration_label">Duration</string>
-    <string name="info_bitrate_label">Bitrate</string>
-    <string name="info_format_label">Format</string>
-    <string name="info_size_label">File Size</string>
-    <string name="info_copied">Copied to clipboard</string>
-    <string name="info_copy">Copy</string>
-    <string name="info_loading">Loading metadata…</string>
-    <string name="info_copied_title">Copied title to clipboard</string>
-    <string name="info_copied_artist">Copied artist to clipboard</string>
-    <string name="info_copied_album">Copied album to clipboard</string>
-    <string name="info_copied_filename">Copied file name to clipboard</string>
-    <string name="info_copied_path">Copied storage path to clipboard</string>
-    <string name="info_copied_song_id">Copied Song ID</string>
-    <string name="info_copied_album_id">Copied Album ID</string>
-    <string name="info_copied_artist_id">Copied Artist ID</string>
-    <string name="info_copied_playlist_id">Copied Playlist ID</string>
-    <string name="info_date_added_label">Date Added</string>
-    <string name="info_last_played_label">Last Played</string>
-    <string name="info_play_count_label">Play Count</string>
-    <string name="info_user_rating_label">User Rating</string>
-    <string name="info_favourited_label">Favourited</string>
-    <string name="info_downloaded_label">Downloaded</string>
-    <string name="info_file_name_label">File Name</string>
-    <string name="info_storage_path_label">Storage Path</string>
-    <string name="info_download_quality_label">Download Quality</string>
-    <string name="info_song_id_label">Song ID</string>
-    <string name="info_album_id_label">Album ID</string>
-    <string name="info_artist_id_label">Artist ID</string>
-    <string name="info_playlist_id_label">Playlist ID</string>
-    <string name="info_album_artist_label">Album Artist</string>
-    <string name="info_total_duration_label">Total Duration</string>
-    <string name="info_comment_label">Comment</string>
-    <string name="info_public_label">Public</string>
-    <string name="info_smart_playlist_label">Smart Playlist</string>
-    <string name="info_owner_label">Owner</string>
-    <string name="info_artist_name_label">Artist Name</string>
-    <string name="info_yes">Yes</string>
-    <string name="info_no">No</string>
-    <string name="info_owner_you">You</string>
-    <string name="info_owner_other">Other</string>
-    <string name="info_kbps_format">%1$d kbps</string>
-    <string name="info_rating_format">%1$d / 5</string>
-    <string name="rating_val_cd">Rating %1$d</string>
-    <string name="info_songs_count_format">%1$d songs</string>
-    <string name="info_albums_count_format">%1$d albums</string>
-    <string name="info_quality_original_lossless">Original (Lossless/Direct)</string>
-    <string name="info_quality_original">Original</string>
-    <string name="info_tracks_count_label">Tracks</string>
-    <string name="info_copied_album_title">Copied album title</string>
-    <!-- Player & Queue & Lyrics -->
-    <string name="now_playing">Now Playing</string>
-    <string name="player_playing_from">PLAYING FROM</string>
-    <string name="queue_empty">No songs in queue</string>
-    <string name="queue_title">Playing Queue</string>
-    <string name="queue_clear_confirm_title">Clear Playing Queue?</string>
-    <string name="queue_clear_confirm_message">This will remove all tracks from your current queue and stop playback.</string>
-    <string name="queue_drag_reorder_cd">Drag to reorder</string>
-    <string name="queue_removed_track">Removed track from queue</string>
-    <string name="queue_cleared">Queue cleared</string>
-    <string name="queue_create_playlist_subtitle">Create with current queue (%1$d songs)</string>
-    <string name="lyrics">Lyrics</string>
-    <string name="lyrics_collapse_cd">Collapse lyrics</string>
-    <string name="lyrics_switch_provider_cd">Switch Lyrics Provider</string>
-    <string name="lyrics_resume_scroll">Resume auto-scroll</string>
-    <string name="lyrics_not_found">No lyrics found for this track</string>
-    <string name="player_previous_cd">Previous Track</string>
-    <string name="player_next_cd">Next Track</string>
-    <string name="sleep_timer">Sleep Timer</string>
-    <string name="sleep_timer_off">Off</string>
-    <string name="sleep_timer_end_of_song">End of song</string>
-    <string name="sleep_timer_end_of_queue">End of queue</string>
-    <string name="sleep_timer_set">Set Timer</string>
-    <string name="sleep_timer_active_title">Timer Active</string>
-    <string name="sleep_timer_time_remaining">%1$02d:%2$02d remaining</string>
-    <string name="sleep_timer_stops_end_of_track">Stops at end of track</string>
-    <string name="sleep_timer_stops_end_of_queue">Stops when queue finishes</string>
-    <string name="sleep_timer_turn_off">Turn Off</string>
-    <string name="sleep_timer_set_format">Set Timer (%1$s)</string>
-    <!-- Action Sheet & Dialogs -->
-    <string name="action_sheet_rate_title">Rate</string>
-    <string name="action_sheet_remove_download_confirm_title">Remove Download</string>
-    <string name="action_sheet_remove_download_track_msg">Remove \"%1$s\" from this device?\n %2$s</string>
-    <string name="action_sheet_remove_download_album_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
-    <string name="action_sheet_remove_download_playlist_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
-    <string name="action_sheet_remove_download_artist_msg">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
-    <string name="action_sheet_download_album_title">Download Album</string>
-    <string name="action_sheet_download_album_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
-    <string name="action_sheet_download_playlist_title">Download Playlist</string>
-    <string name="action_sheet_download_playlist_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
-    <string name="action_sheet_download_artist_title">Download Artist</string>
-    <string name="action_sheet_download_artist_msg">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
-    <string name="artist_options_cd">Artist options</string>
-    <string name="dialog_resume_queue_title">Resume Playback?</string>
-    <string name="dialog_resume_queue_message">A play queue with %1$d tracks was found from %2$s. Would you like to restore it?</string>
-    <string name="dialog_resume">Resume</string>
-    <string name="dialog_dismiss">Dismiss</string>
-    <string name="image_crop_loading">Loading image…</string>
-    <string name="image_crop_failed_load">Failed to load image</string>
-    <string name="image_crop_ratio_1_1">Crop to 1:1</string>
-    <string name="image_crop_rotate_90">Rotate 90 degrees</string>
-    <string name="image_crop_reset">Reset</string>
-    <!-- Toasts -->
-    <string name="toast_added_to_favorites">Added to favourites</string>
-    <string name="toast_removed_from_favorites">Removed from favourites</string>
-    <string name="toast_downloading_track">Downloading \"%1$s\"</string>
-    <string name="toast_downloading_album">Downloading album (%1$d tracks)</string>
-    <string name="toast_downloading_playlist">Downloading playlist (%1$d tracks)</string>
-    <string name="toast_downloading_artist">Downloading artist (%1$d tracks)</string>
-    <string name="toast_album_download_complete">Album download complete</string>
-    <string name="toast_playlist_download_complete">Playlist download complete</string>
-    <string name="toast_song_downloaded_single">1 song downloaded</string>
-    <string name="toast_songs_downloaded">%1$d songs downloaded</string>
-    <string name="toast_song_deleted_single">1 song deleted</string>
-    <string name="toast_songs_deleted">%1$d songs deleted</string>
-    <string name="toast_removed_from_downloads">Removed from downloads</string>
-    <string name="toast_rating_set">Rating set to %1$d stars</string>
-    <string name="toast_failed_rate">Failed to set rating</string>
-    <string name="toast_cannot_download_offline">Cannot download in offline mode. Please connect to the internet.</string>
-    <string name="toast_download_failed">Download failed: %1$s</string>
-    <string name="toast_no_tracks_download">Could not find tracks to download</string>
-    <string name="toast_playlist_deleted">Playlist deleted</string>
-    <string name="playlist_create_new_desc">Create a new playlist</string>
-    <string name="share_chooser_title">Share Music</string>
-    <string name="rating_stars_cd">%1$d stars</string>
-    <string name="toast_playing_next">Playing next</string>
-    <string name="toast_added_to_queue">Added to queue</string>
-    <string name="toast_added_to_named_playlist">Added to \"%1$s\"</string>
-    <string name="toast_created_playlist">Created \"%1$s\"</string>
-    <string name="toast_failed_create_playlist">Failed to create playlist</string>
-    <string name="toast_no_playable_tracks">No playable tracks found</string>
-    <!-- Settings Titles -->
-    <string name="settings_title">Settings</string>
-    <string name="settings_general">General</string>
-    <string name="settings_playback">Playback</string>
-    <string name="settings_downloads">Downloads and Offline</string>
-    <string name="settings_network">Network</string>
-    <string name="settings_about">About</string>
-    <string name="settings_online_lyrics">Online Lyrics Providers</string>
-    <string name="settings_check_updates">Check for updates</string>
-    <string name="settings_logout_confirm_title">Log Out</string>
-    <string name="settings_logout_confirm_msg">Are you sure you want to log out and clear local cached data?</string>
-    <string name="settings_offline_summary">Offline Mode • Downloaded music</string>
-    <string name="settings_switch_online_cd">Switch Online</string>
-    <string name="settings_switch_offline_cd">Switch Offline</string>
-    <string name="settings_selected_cd">Selected</string>
-    <string name="settings_fallback_url_title">Fallback server URL</string>
-    <string name="settings_fallback_url_hint">https://fallback.example.com</string>
-    <string name="settings_scrobbling_subtitle">Send playback history and Now Playing to your Subsonic server</string>
-    <string name="settings_sleep_timer_subtitle">Stop music automatically after time or queue</string>
-    <!-- Appearance Settings -->
-    <string name="setting_display_header">Display Settings</string>
-    <string name="setting_language">Language</string>
-    <string name="setting_language_subtitle">Application interface language</string>
-    <string name="setting_font">Font</string>
-    <string name="setting_theme">Theme</string>
-    <string name="setting_theme_subtitle">Theme appearance mode (System, Dark, Light)</string>
-    <string name="setting_dynamic_theme">Dynamic Theme</string>
-    <string name="setting_dynamic_theme_subtitle">Match colors to current artwork or device wallpaper</string>
-    <string name="setting_dynamic_color_source">Dynamic Color Source</string>
-    <string name="setting_dynamic_color_source_subtitle">Source used for dynamic color extraction</string>
-    <string name="setting_app_ambient_gradient">Ambient background gradient</string>
-    <string name="setting_app_ambient_gradient_subtitle">Display top-left color gradient on main pages</string>
-    <string name="setting_feedback_header">Feedback</string>
-    <string name="setting_haptic_feedback">Haptic feedback</string>
-    <string name="setting_haptic_feedback_subtitle">Subtle vibrations on key actions and touches</string>
-    <!-- Player Settings -->
-    <string name="setting_player_style">Player Page Style</string>
-    <string name="setting_player_style_subtitle">Layout presentation for the full-screen now playing page</string>
-    <string name="setting_seekbar_style">Seek Bar Style</string>
-    <string name="setting_seekbar_style_subtitle">Visual appearance and animation of the progress bar</string>
-    <string name="setting_miniplayer_header">Mini Player</string>
-    <string name="setting_miniplayer_style">Mini Player Style</string>
-    <string name="setting_miniplayer_style_subtitle">Visual design for the persistent bottom mini player bar</string>
-    <string name="setting_miniplayer_placement">Mini Player Placement</string>
-    <string name="setting_miniplayer_placement_subtitle">Positioning of the mini player relative to navigation bar</string>
-    <string name="setting_tint_miniplayer">Tint miniplayer</string>
-    <!-- Cover Art Settings -->
-    <string name="setting_cover_art_header">Cover Art</string>
-    <string name="setting_animated_covers">Animated Album Covers</string>
-    <string name="setting_animated_covers_subtitle">Display motion canvas video for supported tracks</string>
-    <string name="setting_cover_art_resolution">Cover Art Resolution</string>
-    <string name="setting_cover_art_resolution_subtitle">Image resolution for album and playlist artwork</string>
-    <!-- Lyrics Settings -->
-    <string name="setting_lyrics_header">Lyrics</string>
-    <string name="setting_lyrics_style">Lyrics page style</string>
-    <string name="setting_lyrics_style_subtitle">Visual style and animations for synced lyrics</string>
-    <string name="setting_lyrics_provider">Song Lyrics Provider</string>
-    <string name="setting_lyrics_source_header">Lyrics Source</string>
-    <string name="setting_lyrics_source_both">Online + Server</string>
-    <string name="setting_lyrics_source_server">Server</string>
-    <string name="setting_lyrics_source_disabled">No lyrics</string>
-    <string name="setting_online_lyrics_inactive_notice">Disabled because lyrics source does not use online providers</string>
-    <string name="setting_blur_inactive_lyrics">Lyrics blur effect</string>
-    <string name="setting_blur_inactive_lyrics_subtitle">Apply depth of field blur focused on the active lyric</string>
-    <string name="setting_keep_screen_on_lyrics">Keep Screen Awake</string>
-    <string name="setting_keep_screen_on_lyrics_subtitle">Prevent the screen from turning off while viewing lyrics</string>
-    <!-- External Links Settings -->
-    <string name="setting_external_links_header">External Links</string>
-    <string name="setting_show_external_links">Show External Links</string>
-    <string name="setting_show_external_links_subtitle">Display links to external metadata services in action sheets</string>
-    <string name="setting_show_lastfm_links">Show Last.fm links</string>
-    <string name="setting_show_lastfm_links_subtitle">Quick access to track and album pages on Last.fm</string>
-    <string name="setting_show_musicbrainz_links">Show MusicBrainz links</string>
-    <string name="setting_show_musicbrainz_links_subtitle">Quick access to releases and recordings on MusicBrainz</string>
-    <!-- Prefetch Settings -->
-    <string name="setting_prefetch_header">Queue Prefetching</string>
-    <string name="setting_prefetch_upcoming">Prefetch upcoming tracks</string>
-    <string name="setting_prefetch_upcoming_subtitle">Seamlessly buffer upcoming songs in queue for instant playback</string>
-    <string name="setting_prefetch_track_count">Tracks to prefetch</string>
-    <string name="setting_prefetch_track_count_subtitle">Number of upcoming songs in queue to cache ahead</string>
-    <string name="setting_prefetch_only_on_wifi">Prefetch on Wi-Fi only</string>
-    <string name="setting_prefetch_only_on_wifi_subtitle">Prevent mobile data consumption for queue prefetch</string>
-    <string name="prefetch_count_format">%d tracks</string>
-    <string name="prefetch_count_single">1 track</string>
-    <!-- Playback Settings -->
-    <string name="setting_streaming_quality_header">Streaming Quality</string>
-    <string name="setting_wifi_quality">Wi-Fi Streaming Quality</string>
-    <string name="setting_wifi_quality_subtitle">Maximum bitrate used when streaming over Wi-Fi</string>
-    <string name="setting_cellular_quality">Cellular Streaming Quality</string>
-    <string name="setting_cellular_quality_subtitle">Maximum bitrate used when streaming over mobile data</string>
-    <string name="setting_transcoding_format">Transcoding Format</string>
-    <string name="setting_transcoding_format_subtitle">Audio codec used by server when transcoding</string>
-    <string name="setting_auto_next">Auto Next</string>
-    <string name="setting_auto_next_subtitle">Automatically play the next track in the queue</string>
-    <string name="setting_pause_on_disconnect">Pause on Disconnect</string>
-    <string name="setting_pause_on_disconnect_subtitle">Pause playback when headphones or bluetooth disconnect</string>
-    <string name="setting_auto_resume">Auto Resume</string>
-    <string name="setting_auto_resume_subtitle">Automatically resume playback after phone calls or audio interruptions</string>
-    <!-- Downloads & Storage Settings -->
-    <string name="setting_offline_mode">Offline Mode</string>
-    <string name="setting_download_quality">Download Quality</string>
-    <string name="setting_download_quality_subtitle">Bitrate used when downloading songs for offline playback</string>
-    <string name="setting_download_codec">Download Codec</string>
-    <string name="setting_download_codec_subtitle">Audio format for downloaded tracks</string>
-    <string name="setting_wifi_only_downloads">Wi-Fi Only Downloads</string>
-    <string name="setting_wifi_only_downloads_subtitle">Only download music when connected to Wi-Fi</string>
-    <string name="setting_storage_maintenance_header">Storage Maintenance</string>
-    <string name="setting_clear_downloads">Delete All Offline Downloads</string>
-    <string name="setting_clear_downloads_subtitle">Removes all offline tracks and albums from local storage</string>
-    <!-- Network Settings -->
-    <string name="setting_connected_server_header">Connected Server</string>
-    <string name="setting_fallback_url">Fallback server URL</string>
-    <string name="setting_synchronization_header">Synchronization</string>
-    <string name="setting_last_full_sync">Last Full Sync</string>
-    <string name="setting_sync_never">Never</string>
-    <string name="setting_sync_library">Sync Library</string>
-    <string name="setting_sync_library_subtitle">Perform a full library sync pull immediately</string>
-    <string name="setting_disconnect_server">Disconnect Server</string>
-    <!-- Scrobbling Settings -->
-    <string name="setting_scrobbling_header">Scrobbling</string>
-    <string name="setting_subsonic_scrobble">Subsonic Scrobbling</string>
-    <string name="setting_scrobble_threshold">Scrobble Point</string>
-    <string name="setting_scrobble_threshold_subtitle">Percentage of track played to record scrobble and history</string>
-    <!-- About Settings -->
-    <string name="setting_terms">Terms of service</string>
-    <string name="setting_privacy">Privacy policy</string>
-    <string name="setting_source_code">Source code</string>
-    <string name="setting_version">Version</string>
-    <!-- Auth & Connection -->
-    <string name="login_title">Connect to Server</string>
-    <string name="login_header">Subsonic</string>
-    <string name="login_subtitle">Connect to your music server</string>
-    <string name="login_server_url">Server URL</string>
-    <string name="login_fallback_server_url">Fallback Server URL (Optional)</string>
-    <string name="login_username">Username</string>
-    <string name="login_password">Password</string>
-    <string name="login_button">Log In</string>
-    <string name="login_connect">Connect</string>
-    <string name="login_clear">Clear</string>
-    <string name="login_hide_password">Hide password</string>
-    <string name="login_show_password">Show password</string>
-    <string name="login_nearby_permission_required">Nearby devices permission is required for local HTTP connections</string>
-    <string name="login_open_settings">Open App Settings</string>
-    <string name="status_offline">OFFLINE</string>
-    <!-- Settings Screen Additions -->
-    <string name="settings_checking_updates">Checking for updates…</string>
-    <string name="settings_checking_releases">Checking for new releases…</string>
-    <string name="update_available_toast">Update available: %1$s</string>
-    <string name="update_action">Update</string>
-    <string name="update_up_to_date">Uta is up to date (v%1$s)</string>
-    <string name="update_error">Could not check for updates: %1$s</string>
-    <string name="setting_layout_style_header">Layout &amp; Style</string>
-    <string name="setting_player_style_lyrics_disabled">Lyrics view unavailable when lyrics are disabled</string>
-    <string name="setting_tint_miniplayer_enabled_desc">Apply dynamic accent color to the miniplayer background</string>
-    <string name="setting_tint_miniplayer_disabled_desc">Disabled when Dynamic theme is turned off</string>
-    <string name="setting_downloads_prefs_header">Offline &amp; Download Preferences</string>
-    <string name="setting_offline_mode_active_desc">Browse only downloaded and cached content</string>
-    <string name="setting_offline_mode_inactive_desc">Currently connected to server</string>
-    <string name="setting_clear_downloads_dialog_title">Delete All Offline Downloads</string>
-    <string name="setting_clear_downloads_dialog_msg">Are you sure you want to permanently delete all downloaded songs and offline albums? This cannot be undone.</string>
-    <string name="setting_clear_downloads_confirm">Delete All</string>
-    <string name="storage_used_by_uta">Used by Uta</string>
-    <string name="storage_downloaded_music">Downloaded Music</string>
-    <string name="storage_tracks_offline_format">%1$d tracks offline</string>
-    <string name="storage_other">Other</string>
-    <string name="storage_other_hint">Other apps &amp; system</string>
-    <string name="storage_free_space">Free Space</string>
-    <string name="storage_free_space_hint">Available storage</string>
-    <string name="setting_disconnect_server_confirm_msg">Are you sure you want to log out? Local catalog cache and credentials will be removed.</string>
-    <string name="toast_fallback_url_updated">Fallback URL updated</string>
-    <string name="settings_fallback_url_help">Specify an alternate URL for your server (e.g. local LAN IP or remote domain).</string>
-    <string name="settings_server_status_format">User: %1$s • Status: %2$s</string>
-    <string name="status_connected">Connected</string>
-    <string name="settings_fallback_url_not_configured">Not configured (tap to set LAN/Remote fallback)</string>
-    <string name="sync_error_format">Sync failed: %1$s</string>
-    <string name="toast_sync_started">Full library sync started</string>
-    <string name="toast_refresh_started">Refreshing library…</string>
-    <string name="pull_refresh_hold_hint">Hold for full sync…</string>
-    <string name="pull_refresh_release_full_sync">Release for full library sync</string>
-    <string name="full_sync_completed">Full library sync complete</string>
-    <string name="sync_stage_connecting">Connecting to server…</string>
-    <string name="sync_stage_playlists">Syncing playlists…</string>
-    <string name="sync_stage_albums">Syncing albums…</string>
-    <string name="sync_stage_albums_count">Syncing albums (%1$d)…</string>
-    <string name="sync_stage_artists">Syncing artists…</string>
-    <string name="sync_stage_genres">Syncing genres…</string>
-    <string name="settings_no_server_connected">No server connected</string>
-    <string name="settings_no_server_connected_desc">Log in to connect to a Subsonic music server</string>
-    <string name="content_desc_back">Back</string>
-    <string name="cd_back">Back</string>
-    <string name="cd_logout">Log Out</string>
-    <string name="album_tracks_count">%1$d Tracks</string>
-    <string name="album_search_tracks_cd">Search tracks</string>
-    <string name="playlist_search_tracks_cd">Search tracks</string>
-    <string name="playlist_new">New Playlist</string>
-    <string name="playlists_empty_title">No playlists</string>
-    <string name="playlist_name_placeholder">Playlist name</string>
-    <string name="album_unknown_album">Unknown Album</string>
+    <string name="app_name" comment="Application name">Uta</string>
+    <string name="nav_home" comment="First tab in bottom navigation bar">Home</string>
+    <string name="nav_search" comment="Search tab in bottom navigation bar">Search</string>
+    <string name="nav_downloads" comment="Offline downloads tab in bottom navigation bar">Downloads</string>
+    <string name="nav_library" comment="Music collection tab in bottom navigation bar">Library</string>
+    <string name="nav_settings" comment="Settings tab in bottom navigation bar">Settings</string>
+    <string name="nav_back" comment="Back navigation action (accessibility description)">Back</string>
+    <string name="tab_albums" comment="Library tab displaying albums">Albums</string>
+    <string name="tab_artists" comment="Library tab displaying artists">Artists</string>
+    <string name="tab_playlists" comment="Library tab displaying playlists">Playlists</string>
+    <string name="action_play" comment="Player control: starts or resumes playback (verb)">Play</string>
+    <string name="action_pause" comment="Player control: pauses playback (verb)">Pause</string>
+    <string name="action_shuffle" comment="Plays songs in random order (verb)">Shuffle</string>
+    <string name="action_play_all" comment="Starts playing all tracks in the current view (verb)">Play All</string>
+    <string name="action_play_next" comment="Inserts item right after the currently playing track in queue">Play Next</string>
+    <string name="action_add_to_queue" comment="Appends item to the end of the current playback queue">Add to Queue</string>
+    <string name="action_add_to_playlist" comment="Opens playlist picker to add item (verb)">Add to Playlist</string>
+    <string name="action_remove_from_playlist" comment="Removes item from current playlist (verb)">Remove from Playlist</string>
+    <string name="action_add_to_favorites" comment="Marks track or album as favorite with a heart icon (verb)">Add to Favorites</string>
+    <string name="action_remove_from_favorites" comment="Unmarks item from favorites (verb)">Remove from Favorites</string>
+    <string name="action_star" comment="Subsonic star rating / favorite toggle (verb)">Star</string>
+    <string name="action_unstar" comment="Removes Subsonic star rating (verb)">Unstar</string>
+    <string name="action_download" comment="Downloads media files to device storage for offline playback">Download</string>
+    <string name="action_remove_download" comment="Deletes downloaded local audio file(s) while keeping item in library">Remove Download</string>
+    <string name="action_remove_from_downloads" comment="Deletes downloaded audio file(s) from storage">Remove from Downloads</string>
+    <string name="action_delete_playlist" comment="Permanently deletes the playlist from the server">Delete Playlist</string>
+    <string name="action_tracks_count_format" comment="Formatted string with dynamic placeholders">%1$d tracks</string>
+    <string name="action_track_single_format" comment="Common Actions string: 1 track">1 track</string>
+    <string name="action_cancel" comment="Closes a dialog without performing any changes">Cancel</string>
+    <string name="action_confirm" comment="Confirms dialog action">Confirm</string>
+    <string name="action_delete" comment="Deletes item permanently (destructive verb)">Delete</string>
+    <string name="action_clear" comment="Clears contents or text field (verb)">Clear</string>
+    <string name="action_save" comment="Saves changes (verb)">Save</string>
+    <string name="action_retry" comment="Retries the failed network operation (verb)">Retry</string>
+    <string name="action_close" comment="Closes sheet, dialog or screen (verb)">Close</string>
+    <string name="action_back" comment="Navigates back (verb)">Back</string>
+    <string name="action_search" comment="Executes search or focuses search box (verb)">Search</string>
+    <string name="action_sync" comment="Syncs library with Subsonic server (verb)">Sync</string>
+    <string name="action_logout" comment="Logs out and disconnects from current server account">Log Out</string>
+    <string name="action_undo" comment="Button in toast to revert the last action">Undo</string>
+    <string name="action_remove" comment="Removes item from a list (verb)">Remove</string>
+    <string name="action_share" comment="Shares music link or track metadata (verb)">Share</string>
+    <string name="action_info" comment="Opens track/media information sheet">Info</string>
+    <string name="action_rate" comment="Opens modal to set star/user rating (verb, not bitrate)">Rate</string>
+    <string name="action_go_to_artist" comment="Navigates to artist details page">Go to Artist</string>
+    <string name="action_go_to_album" comment="Navigates to album details page">Go to Album</string>
+    <string name="action_clear_queue" comment="Empties all upcoming tracks in the queue">Clear Queue</string>
+    <string name="action_add_queue_to_playlist" comment="Saves all songs in current queue to a playlist">Add Queue to Playlist</string>
+    <string name="action_create_and_add" comment="Creates a new playlist and immediately adds selected tracks">Create &amp; Add</string>
+    <string name="action_remove_from_queue" comment="Removes selected track from active playback queue">Remove from Queue</string>
+    <string name="action_scroll_up" comment="Common Actions string: Scroll Up">Scroll Up</string>
+    <string name="action_scroll_down" comment="Common Actions string: Scroll Down">Scroll Down</string>
+    <string name="action_repeat" comment="Toggles repeat mode (off / all / one)">Repeat</string>
+    <string name="action_open_lastfm" comment="Opens artist/track page on Last.fm in web browser">Open in Last.fm</string>
+    <string name="action_open_musicbrainz" comment="Opens artist/release page on MusicBrainz in web browser">Open in MusicBrainz</string>
+    <string name="action_show_less" comment="Collapses expanded description or biography">Show less</string>
+    <string name="action_read_more" comment="Expands truncated text or biography">Read more</string>
+    <string name="action_see_more" comment="Expands list view">See more</string>
+    <string name="action_see_all" comment="Opens full list view page">See all</string>
+    <string name="action_more_options" comment="Accessibility description for 3-dots (⋮) overflow menu button">More options</string>
+    <string name="action_done" comment="Confirms changes or leaves editing/reordering mode">Done</string>
+    <string name="dialog_ok" comment="Confirmation button in dialogs">OK</string>
+    <string name="playlist_songs_count" comment="Formatted string with dynamic placeholders">%1$d songs</string>
+    <string name="status_offline_badge" comment="Badge indicating offline state">Offline</string>
+    <string name="status_offline_mode" comment="Offline mode banner / indicator">Offline mode</string>
+    <string name="status_no_internet" comment="Network error banner when offline">No internet connection</string>
+    <string name="status_server_unreachable" comment="Connection error when Subsonic server is down or unreachable">Can\'t reach the server</string>
+    <string name="greeting_morning" comment="Home screen greeting shown in morning hours">Good morning</string>
+    <string name="greeting_afternoon" comment="Home screen greeting shown in afternoon hours">Good afternoon</string>
+    <string name="greeting_evening" comment="Home screen greeting shown in evening hours">Good evening</string>
+    <string name="greeting_night" comment="Home screen greeting shown in late night hours">Good night</string>
+    <string name="home_quick_picks" comment="Home screen section or label">Quick picks</string>
+    <string name="home_playlists" comment="Home screen section or label">Your playlists</string>
+    <string name="home_most_played_songs" comment="Home screen section or label">Most played songs</string>
+    <string name="home_recently_added" comment="Home screen section or label">Recently added</string>
+    <string name="home_most_played_albums" comment="Home screen section or label">Most played albums</string>
+    <string name="home_recently_played" comment="Home screen section or label">Recently played</string>
+    <string name="home_random_albums" comment="Home screen section or label">Random albums</string>
+    <string name="home_featured_artist" comment="Home screen section or label">Featured artist</string>
+    <string name="home_empty_title" comment="Home screen section or label">Your library is empty</string>
+    <string name="home_empty_subtitle" comment="Home screen section or label">Sync your Subsonic server to start listening.</string>
+    <string name="home_syncing" comment="Home screen section or label">Syncing your music library…</string>
+    <string name="featured_artist_more_from" comment="Home Screen string: More from">More from</string>
+    <string name="setting_home_sections_title" comment="Settings section title">Home page sections</string>
+    <string name="setting_home_sections_subtitle" comment="Settings description / explanation subtitle">Customize and reorder sections on the home screen</string>
+    <string name="setting_home_sections_reset" comment="Settings option in Home Sections Settings">Reset to default</string>
+    <string name="setting_navbar_sections_title" comment="Settings section title">Navigation bar sections</string>
+    <string name="setting_navbar_sections_subtitle" comment="Settings description / explanation subtitle">Customize and reorder navigation bar buttons</string>
+    <string name="setting_navbar_sections_reset" comment="Settings option in Navigation Bar Sections Settings">Reset to default</string>
+    <string name="setting_miniplayer_buttons_title" comment="Settings section title">Mini player buttons</string>
+    <string name="setting_miniplayer_buttons_subtitle" comment="Settings description / explanation subtitle">Customize and reorder buttons in the mini player</string>
+    <string name="setting_miniplayer_buttons_reset" comment="Settings option in Mini Player Buttons Settings">Reset to default</string>
+    <string name="action_play_pause" comment="Mini Player Buttons Settings string: Play / Pause">Play / Pause</string>
+    <string name="action_previous" comment="Mini Player Buttons Settings string: Previous">Previous</string>
+    <string name="action_next" comment="Mini Player Buttons Settings string: Next">Next</string>
+    <string name="action_favorite" comment="Mini Player Buttons Settings string: Favorite">Favorite</string>
+    <string name="search_placeholder" comment="Search screen label or placeholder">Search songs, albums, artists…</string>
+    <string name="search_tracks" comment="Search screen label or placeholder">Tracks</string>
+    <string name="search_albums" comment="Search screen label or placeholder">Albums</string>
+    <string name="search_artists" comment="Search screen label or placeholder">Artists</string>
+    <string name="search_browse_genres" comment="Search screen label or placeholder">Browse genres</string>
+    <string name="search_no_results" comment="Search screen label or placeholder">No results found</string>
+    <string name="search_no_results_for" comment="Search screen label or placeholder">No results found for \"%1$s\"</string>
+    <string name="search_empty_prompt" comment="Search screen label or placeholder">Search your music library</string>
+    <string name="library_title" comment="Library screen string">Library</string>
+    <string name="library_sort_by" comment="Library screen string">Sort by</string>
+    <string name="library_new_playlist" comment="Library screen string">New Playlist</string>
+    <string name="library_create_playlist" comment="Library screen string">Create</string>
+    <string name="library_playlist_name" comment="Library screen string">Playlist Name</string>
+    <string name="library_empty_albums" comment="Library screen string">No albums in library</string>
+    <string name="library_empty_artists" comment="Library screen string">No artists in library</string>
+    <string name="library_empty_playlists" comment="Library screen string">No playlists in library</string>
+    <string name="sort_alphabetical" comment="Library sort option: Alphabetical">Alphabetical</string>
+    <string name="sort_artist" comment="Library sort option: Artist">Artist</string>
+    <string name="sort_album" comment="Library sort option: Album">Album</string>
+    <string name="sort_title" comment="Library sort option: Title">Title</string>
+    <string name="sort_id" comment="Sort option: sort by server track/item ID">ID</string>
+    <string name="sort_duration" comment="Library sort option: Duration">Duration</string>
+    <string name="sort_favourites" comment="Library sort option: Favourites">Favourites</string>
+    <string name="sort_rating" comment="Library sort option: Rating">Rating</string>
+    <string name="sort_recently_added" comment="Library sort option: Recently Added">Recently Added</string>
+    <string name="sort_recently_played" comment="Library sort option: Recently Played">Recently Played</string>
+    <string name="sort_most_played" comment="Library sort option: Most Played">Most Played</string>
+    <string name="sort_year" comment="Library sort option: Year">Year</string>
+    <string name="sort_item_count" comment="Library sort option: Item Count">Item Count</string>
+    <string name="sort_date_modified" comment="Library sort option: Date Modified">Date Modified</string>
+    <string name="sort_date_created" comment="Library sort option: Date Created">Date Created</string>
+    <string name="sort_ascending" comment="Library sort option: Ascending">Ascending</string>
+    <string name="sort_descending" comment="Library sort option: Descending">Descending</string>
+    <string name="view_options" comment="Library Screen &amp; Tabs string: View options">View options</string>
+    <string name="view_list" comment="Library Screen &amp; Tabs string: List">List</string>
+    <string name="view_text_only" comment="Library Screen &amp; Tabs string: Text-Only">Text-Only</string>
+    <string name="view_columns_format" comment="Formatted string with dynamic placeholders">%1$d Columns</string>
+    <string name="downloads_title" comment="Downloads screen string">Downloads</string>
+    <string name="downloads_search_placeholder" comment="Downloads screen string">Search downloaded tracks</string>
+    <string name="downloads_empty_title" comment="Downloads screen string">No downloaded music</string>
+    <string name="downloads_empty_subtitle" comment="Downloads screen string">Download your favorite songs, albums, or playlists to listen offline</string>
+    <string name="downloads_no_matching_title" comment="Downloads screen string">No matching tracks</string>
+    <string name="downloads_no_matching_subtitle" comment="Downloads screen string">Try searching for a different title, artist, or album.</string>
+    <string name="downloads_tracks_count" comment="Downloads screen string">%1$d Tracks</string>
+    <string name="downloads_downloading_count" comment="Downloads screen string"> (%1$d downloading)</string>
+    <string name="downloads_delete_confirm_msg" comment="Downloads screen string">Remove \"%1$s\" from this device?</string>
+    <string name="download_status_downloading" comment="Downloads screen string">Downloading %1$d%%</string>
+    <string name="download_status_queued" comment="Downloads screen string">Queued</string>
+    <string name="download_status_failed" comment="Downloads screen string">Download failed</string>
+    <string name="download_status_completed" comment="Downloads screen string">Completed</string>
+    <string name="download_status_waiting" comment="Downloads screen string">Waiting…</string>
+    <string name="downloads_clear_all" comment="Downloads screen string">Clear All</string>
+    <string name="downloads_clear_confirm_title" comment="Downloads screen string">Delete All Downloads</string>
+    <string name="downloads_clear_confirm_message" comment="Downloads screen string">Are you sure you want to delete all downloaded tracks and media from this server?</string>
+    <string name="history_title" comment="Listening history screen string">History</string>
+    <string name="history_clear_all" comment="Listening history screen string">Clear History</string>
+    <string name="history_clear_confirm_title" comment="Listening history screen string">Clear History</string>
+    <string name="history_clear_confirm_message" comment="Listening history screen string">Are you sure you want to clear all listening history?</string>
+    <string name="history_empty_title" comment="Listening history screen string">No listening history yet</string>
+    <string name="history_empty_subtitle" comment="Listening history screen string">Songs you play will appear here</string>
+    <string name="history_cleared" comment="Listening history screen string">History cleared</string>
+    <string name="history_removed_toast" comment="Listening history screen string">Removed from history</string>
+    <string name="artist_albums" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Albums">Albums</string>
+    <string name="artist_about" comment="Detail Screens (Artist, Album, Playlist, Genre) string: About">About</string>
+    <string name="artist_top_songs" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Top songs">Top songs</string>
+    <string name="album_tracks" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Tracks">Tracks</string>
+    <string name="album_duration_format" comment="Formatted string with dynamic placeholders">%1$d tracks • %2$s</string>
+    <string name="album_filter_placeholder" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Filter album…">Filter album…</string>
+    <string name="album_disc_header" comment="Formatted string with dynamic placeholders">Disc %1$d</string>
+    <string name="playlist_tracks" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Tracks">Tracks</string>
+    <string name="playlist_filter_placeholder" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Filter playlist…">Filter playlist…</string>
+    <string name="playlist_edit" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Edit Playlist">Edit Playlist</string>
+    <string name="playlist_edit_title" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Edit Playlist">Edit Playlist</string>
+    <string name="playlist_delete_confirm_title" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Delete Playlist?">Delete Playlist?</string>
+    <string name="playlist_delete_confirm_message" comment="Formatted string with dynamic placeholders">Are you sure you want to permanently delete \"%1$s\"?</string>
+    <string name="playlist_save" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Save">Save</string>
+    <string name="playlist_reorder" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Reorder">Reorder</string>
+    <string name="genre_albums" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Albums">Albums</string>
+    <string name="genre_tracks" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Tracks">Tracks</string>
+    <string name="genre_albums_songs_format" comment="Formatted string with dynamic placeholders">%1$d albums • %2$d songs</string>
+    <string name="edit_playlist_choose_image" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Choose an image">Choose an image</string>
+    <string name="edit_playlist_remove_image" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Remove current image">Remove current image</string>
+    <string name="edit_playlist_description_label" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Description (Optional)">Description (Optional)</string>
+    <string name="edit_playlist_private" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Private">Private</string>
+    <string name="edit_playlist_public" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Public">Public</string>
+    <string name="edit_playlist_auto_gen" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Auto generated playlist">Auto generated playlist</string>
+    <string name="edit_playlist_auto_gen_desc" comment="Detail Screens (Artist, Album, Playlist, Genre) string: It\'s an auto-imported .m3u file-based playlist">It\'s an auto-imported .m3u file-based playlist</string>
+    <string name="edit_playlist_songs_count" comment="Formatted string with dynamic placeholders">Songs (%1$d)</string>
+    <string name="edit_playlist_auto_imported" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Auto-imported playlist">Auto-imported playlist</string>
+    <string name="edit_playlist_read_only" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Read-only">Read-only</string>
+    <string name="edit_playlist_swipe_drag_reorder" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Swipe or drag to reorder">Swipe or drag to reorder</string>
+    <string name="edit_playlist_cover_cd" comment="Accessibility description for edit playlist cover">New Playlist Cover</string>
+    <string name="edit_playlist_edit_cover_cd" comment="Accessibility description for edit playlist edit cover">Edit Cover</string>
+    <string name="failed_load_album" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Failed to load album">Failed to load album</string>
+    <string name="failed_load_artist" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Failed to load artist">Failed to load artist</string>
+    <string name="failed_load_playlist" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Failed to load playlist">Failed to load playlist</string>
+    <string name="failed_load_genre" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Failed to load genre">Failed to load genre</string>
+    <string name="failed_to_delete_format" comment="Formatted string with dynamic placeholders">Failed to delete: %1$s</string>
+    <string name="failed_to_add_to_playlist" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Failed to add to playlist">Failed to add to playlist</string>
+    <string name="offline_mode_active_title" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Offline Mode Active">Offline Mode Active</string>
+    <string name="offline_mode_active_msg" comment="Detail Screens (Artist, Album, Playlist, Genre) string: You are currently in offline mode. Please disable offline mode or connect to the internet to download albums.">You are currently in offline mode. Please disable offline mode or connect to the internet to download albums.</string>
+    <string name="album_options_cd" comment="Accessibility description for album options">Album Options</string>
+    <string name="playlist_options_cd" comment="Accessibility description for playlist options">Playlist Options</string>
+    <string name="more_actions_cd" comment="Accessibility description for more actions">More actions</string>
+    <string name="sort_options_cd" comment="Accessibility description for sort options">Sort Options</string>
+    <string name="sort_ascending_cd" comment="Accessibility description for sort ascending">Ascending (tap to invert)</string>
+    <string name="sort_descending_cd" comment="Accessibility description for sort descending">Descending (tap to invert)</string>
+    <string name="view_options_cd" comment="Accessibility description for view options">View Options</string>
+    <string name="clear_search_cd" comment="Accessibility description for clear search">Clear text</string>
+    <string name="close_search_cd" comment="Accessibility description for close search">Close search</string>
+    <string name="starred_cd" comment="Accessibility description for starred">Starred</string>
+    <string name="not_starred_cd" comment="Accessibility description for not starred">Not Starred</string>
+    <string name="track_not_downloaded_toast" comment="Detail Screens (Artist, Album, Playlist, Genre) string: Track not downloaded for offline playback">Track not downloaded for offline playback</string>
+    <string name="info_title" comment="Media info screen string">Info</string>
+    <string name="info_track_title" comment="Media info screen string">Song Details</string>
+    <string name="info_album_title" comment="Media info screen string">Album Details</string>
+    <string name="info_artist_title" comment="Media info screen string">Artist Details</string>
+    <string name="info_playlist_title" comment="Media info screen string">Playlist Details</string>
+    <string name="info_title_label" comment="Media info field label: Title">Title</string>
+    <string name="info_artist_label" comment="Media info field label: Artist">Artist</string>
+    <string name="info_album_label" comment="Media info field label: Album">Album</string>
+    <string name="info_genre_label" comment="Media info field label: Genre">Genre</string>
+    <string name="info_year_label" comment="Media info field label: Release Year">Release Year</string>
+    <string name="info_track_number_label" comment="Media info field label: Track Number">Track Number</string>
+    <string name="info_disc_number_label" comment="Media info field label: Disc Number">Disc Number</string>
+    <string name="info_duration_label" comment="Media info field label: Duration">Duration</string>
+    <string name="info_bitrate_label" comment="Media info field label: Bitrate">Bitrate</string>
+    <string name="info_format_label" comment="Media info field label: Format">Format</string>
+    <string name="info_size_label" comment="Media info field label: File Size">File Size</string>
+    <string name="info_copied" comment="Media info screen string">Copied to clipboard</string>
+    <string name="info_copy" comment="Media info screen string">Copy</string>
+    <string name="info_copied_title" comment="Media info screen string">Copied title to clipboard</string>
+    <string name="info_copied_artist" comment="Media info screen string">Copied artist to clipboard</string>
+    <string name="info_copied_album" comment="Media info screen string">Copied album to clipboard</string>
+    <string name="info_copied_filename" comment="Media info screen string">Copied file name to clipboard</string>
+    <string name="info_copied_path" comment="Media info screen string">Copied storage path to clipboard</string>
+    <string name="info_copied_song_id" comment="Media info screen string">Copied Song ID</string>
+    <string name="info_copied_album_id" comment="Media info screen string">Copied Album ID</string>
+    <string name="info_copied_artist_id" comment="Media info screen string">Copied Artist ID</string>
+    <string name="info_copied_playlist_id" comment="Media info screen string">Copied Playlist ID</string>
+    <string name="info_date_added_label" comment="Media info field label: Date Added">Date Added</string>
+    <string name="info_last_played_label" comment="Media info field label: Last Played">Last Played</string>
+    <string name="info_play_count_label" comment="Media info field label: Play Count">Play Count</string>
+    <string name="info_user_rating_label" comment="Media info field label: User Rating">User Rating</string>
+    <string name="info_favourited_label" comment="Media info field label: Favourited">Favourited</string>
+    <string name="info_downloaded_label" comment="Media info field label: Downloaded">Downloaded</string>
+    <string name="info_file_name_label" comment="Media info field label: File Name">File Name</string>
+    <string name="info_storage_path_label" comment="Media info field label: Storage Path">Storage Path</string>
+    <string name="info_download_quality_label" comment="Media info field label: Download Quality">Download Quality</string>
+    <string name="info_song_id_label" comment="Media info field label: Song ID">Song ID</string>
+    <string name="info_album_id_label" comment="Media info field label: Album ID">Album ID</string>
+    <string name="info_artist_id_label" comment="Media info field label: Artist ID">Artist ID</string>
+    <string name="info_playlist_id_label" comment="Media info field label: Playlist ID">Playlist ID</string>
+    <string name="info_album_artist_label" comment="Media info field label: Album Artist">Album Artist</string>
+    <string name="info_total_duration_label" comment="Media info field label: Total Duration">Total Duration</string>
+    <string name="info_comment_label" comment="Media info field label: Comment">Comment</string>
+    <string name="info_public_label" comment="Media info field label: Public">Public</string>
+    <string name="info_smart_playlist_label" comment="Media info field label: Smart Playlist">Smart Playlist</string>
+    <string name="info_owner_label" comment="Media info field label: Owner">Owner</string>
+    <string name="info_artist_name_label" comment="Media info field label: Artist Name">Artist Name</string>
+    <string name="info_yes" comment="Media info screen string">Yes</string>
+    <string name="info_no" comment="Media info screen string">No</string>
+    <string name="info_owner_you" comment="Media info screen string">You</string>
+    <string name="info_owner_other" comment="Media info screen string">Other</string>
+    <string name="info_kbps_format" comment="Formatted media info value with placeholder">%1$d kbps</string>
+    <string name="info_rating_format" comment="Formatted media info value with placeholder">%1$d / 5</string>
+    <string name="rating_val_cd" comment="Accessibility description for rating val">Rating %1$d</string>
+    <string name="info_songs_count_format" comment="Formatted media info value with placeholder">%1$d songs</string>
+    <string name="info_albums_count_format" comment="Formatted media info value with placeholder">%1$d albums</string>
+    <string name="info_quality_original_lossless" comment="Quality option: original lossless direct stream">Original (Lossless/Direct)</string>
+    <string name="info_quality_original" comment="Quality option: original file format without server transcoding">Original</string>
+    <string name="info_tracks_count_label" comment="Media info field label: Tracks">Tracks</string>
+    <string name="info_copied_album_title" comment="Media info screen string">Copied album title</string>
+    <string name="now_playing" comment="Player &amp; Queue &amp; Lyrics string: Now Playing">Now Playing</string>
+    <string name="player_playing_from" comment="Now Playing / Queue screen string">PLAYING FROM</string>
+    <string name="queue_empty" comment="Now Playing / Queue screen string">No songs in queue</string>
+    <string name="queue_title" comment="Now Playing / Queue screen string">Playing Queue</string>
+    <string name="queue_clear_confirm_title" comment="Now Playing / Queue screen string">Clear Playing Queue?</string>
+    <string name="queue_clear_confirm_message" comment="Now Playing / Queue screen string">This will remove all tracks from your current queue and stop playback.</string>
+    <string name="queue_drag_reorder_cd" comment="Accessibility description for queue drag reorder">Drag to reorder</string>
+    <string name="queue_removed_track" comment="Now Playing / Queue screen string">Removed track from queue</string>
+    <string name="queue_cleared" comment="Now Playing / Queue screen string">Queue cleared</string>
+    <string name="queue_create_playlist_subtitle" comment="Now Playing / Queue screen string">Create with current queue (%1$d songs)</string>
+    <string name="lyrics" comment="Player &amp; Queue &amp; Lyrics string: Lyrics">Lyrics</string>
+    <string name="lyrics_collapse_cd" comment="Accessibility description for lyrics collapse">Collapse lyrics</string>
+    <string name="lyrics_switch_provider_cd" comment="Accessibility description for lyrics switch provider">Switch Lyrics Provider</string>
+    <string name="lyrics_resume_scroll" comment="Lyrics viewer string">Resume auto-scroll</string>
+    <string name="lyrics_not_found" comment="Lyrics viewer string">No lyrics found for this track</string>
+    <string name="player_previous_cd" comment="Accessibility description for player previous">Previous Track</string>
+    <string name="player_next_cd" comment="Accessibility description for player next">Next Track</string>
+    <string name="sleep_timer" comment="Player &amp; Queue &amp; Lyrics string: Sleep Timer">Sleep Timer</string>
+    <string name="sleep_timer_off" comment="Sleep timer option">Off</string>
+    <string name="sleep_timer_set" comment="Sleep timer option">Set Timer</string>
+    <string name="sleep_timer_active_title" comment="Sleep timer option">Timer Active</string>
+    <string name="sleep_timer_time_remaining" comment="Sleep timer option">%1$02d:%2$02d remaining</string>
+    <string name="sleep_timer_turn_off" comment="Sleep timer option">Turn Off</string>
+    <string name="sleep_timer_set_format" comment="Sleep timer option">Set Timer (%1$s)</string>
+    <string name="action_sheet_rate_title" comment="Action Sheet &amp; Dialogs string: Rate">Rate</string>
+    <string name="action_sheet_remove_download_confirm_title" comment="Action Sheet &amp; Dialogs string: Remove Download">Remove Download</string>
+    <string name="action_sheet_remove_download_track_msg" comment="Formatted string with dynamic placeholders">Remove \"%1$s\" from this device?\n %2$s</string>
+    <string name="action_sheet_remove_download_album_msg" comment="Formatted string with dynamic placeholders">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
+    <string name="action_sheet_remove_download_playlist_msg" comment="Formatted string with dynamic placeholders">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
+    <string name="action_sheet_remove_download_artist_msg" comment="Formatted string with dynamic placeholders">Remove \"%1$s\" from this device?\n%2$s • %3$s</string>
+    <string name="action_sheet_download_album_title" comment="Action Sheet &amp; Dialogs string: Download Album">Download Album</string>
+    <string name="action_sheet_download_album_msg" comment="Formatted string with dynamic placeholders">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
+    <string name="action_sheet_download_playlist_title" comment="Action Sheet &amp; Dialogs string: Download Playlist">Download Playlist</string>
+    <string name="action_sheet_download_playlist_msg" comment="Formatted string with dynamic placeholders">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
+    <string name="action_sheet_download_artist_title" comment="Action Sheet &amp; Dialogs string: Download Artist">Download Artist</string>
+    <string name="action_sheet_download_artist_msg" comment="Formatted string with dynamic placeholders">Download \"%1$s\" to this device?\n%2$s • %3$s • %4$s</string>
+    <string name="artist_options_cd" comment="Accessibility description for artist options">Artist options</string>
+    <string name="dialog_resume_queue_title" comment="Dialog title">Resume Playback?</string>
+    <string name="dialog_resume_queue_message" comment="Dialog description message">A play queue with %1$d tracks was found from %2$s. Would you like to restore it?</string>
+    <string name="dialog_resume" comment="Dialog action button">Resume</string>
+    <string name="dialog_dismiss" comment="Dialog action button">Dismiss</string>
+    <string name="image_crop_loading" comment="Action Sheet &amp; Dialogs string: Loading image…">Loading image…</string>
+    <string name="image_crop_failed_load" comment="Action Sheet &amp; Dialogs string: Failed to load image">Failed to load image</string>
+    <string name="image_crop_ratio_1_1" comment="Action Sheet &amp; Dialogs string: Crop to 1:1">Crop to 1:1</string>
+    <string name="image_crop_rotate_90" comment="Action Sheet &amp; Dialogs string: Rotate 90 degrees">Rotate 90 degrees</string>
+    <string name="image_crop_reset" comment="Action Sheet &amp; Dialogs string: Reset">Reset</string>
+    <string name="toast_added_to_favorites" comment="Toast notification message">Added to favourites</string>
+    <string name="toast_removed_from_favorites" comment="Toast notification message">Removed from favourites</string>
+    <string name="toast_downloading_track" comment="Toast notification message">Downloading \"%1$s\"</string>
+    <string name="toast_downloading_album" comment="Toast notification message">Downloading album (%1$d tracks)</string>
+    <string name="toast_downloading_playlist" comment="Toast notification message">Downloading playlist (%1$d tracks)</string>
+    <string name="toast_downloading_artist" comment="Toast notification message">Downloading artist (%1$d tracks)</string>
+    <string name="toast_album_download_complete" comment="Toast notification message">Album download complete</string>
+    <string name="toast_playlist_download_complete" comment="Toast notification message">Playlist download complete</string>
+    <string name="toast_song_downloaded_single" comment="Toast notification message">1 song downloaded</string>
+    <string name="toast_songs_downloaded" comment="Toast notification message">%1$d songs downloaded</string>
+    <string name="toast_song_deleted_single" comment="Toast notification message">1 song deleted</string>
+    <string name="toast_songs_deleted" comment="Toast notification message">%1$d songs deleted</string>
+    <string name="toast_rating_set" comment="Toast notification message">Rating set to %1$d stars</string>
+    <string name="toast_failed_rate" comment="Toast notification message">Failed to set rating</string>
+    <string name="toast_cannot_download_offline" comment="Toast notification message">Cannot download in offline mode. Please connect to the internet.</string>
+    <string name="toast_download_failed" comment="Toast notification message">Download failed: %1$s</string>
+    <string name="toast_no_tracks_download" comment="Toast notification message">Could not find tracks to download</string>
+    <string name="toast_playlist_deleted" comment="Toast notification message">Playlist deleted</string>
+    <string name="playlist_create_new_desc" comment="Toasts string: Create a new playlist">Create a new playlist</string>
+    <string name="share_chooser_title" comment="Toasts string: Share Music">Share Music</string>
+    <string name="rating_stars_cd" comment="Accessibility description for rating stars">%1$d stars</string>
+    <string name="toast_playing_next" comment="Toast notification message">Playing next</string>
+    <string name="toast_added_to_queue" comment="Toast notification message">Added to queue</string>
+    <string name="toast_added_to_named_playlist" comment="Toast notification message">Added to \"%1$s\"</string>
+    <string name="toast_created_playlist" comment="Toast notification message">Created \"%1$s\"</string>
+    <string name="toast_failed_create_playlist" comment="Toast notification message">Failed to create playlist</string>
+    <string name="toast_no_playable_tracks" comment="Toast notification message">No playable tracks found</string>
+    <string name="settings_title" comment="Settings Titles string: Settings">Settings</string>
+    <string name="settings_general" comment="Settings Titles string: General">General</string>
+    <string name="settings_playback" comment="Settings Titles string: Playback">Playback</string>
+    <string name="settings_downloads" comment="Settings Titles string: Downloads and Offline">Downloads and Offline</string>
+    <string name="settings_network" comment="Settings Titles string: Network">Network</string>
+    <string name="settings_about" comment="Settings Titles string: About">About</string>
+    <string name="settings_online_lyrics" comment="Settings Titles string: Online Lyrics Providers">Online Lyrics Providers</string>
+    <string name="settings_check_updates" comment="Settings Titles string: Check for updates">Check for updates</string>
+    <string name="settings_logout_confirm_title" comment="Settings Titles string: Log Out">Log Out</string>
+    <string name="settings_logout_confirm_msg" comment="Settings Titles string: Are you sure you want to log out and clear local cached data?">Are you sure you want to log out and clear local cached data?</string>
+    <string name="settings_offline_summary" comment="Settings Titles string: Offline Mode • Downloaded music">Offline Mode • Downloaded music</string>
+    <string name="settings_switch_online_cd" comment="Accessibility description for settings switch online">Switch Online</string>
+    <string name="settings_switch_offline_cd" comment="Accessibility description for settings switch offline">Switch Offline</string>
+    <string name="settings_selected_cd" comment="Accessibility description for settings selected">Selected</string>
+    <string name="settings_fallback_url_title" comment="Settings Titles string: Fallback server URL">Fallback server URL</string>
+    <string name="settings_fallback_url_hint" comment="Settings Titles string: https://fallback.example.com">https://fallback.example.com</string>
+    <string name="settings_scrobbling_subtitle" comment="Settings Titles string: Send playback history and Now Playing to your Subsonic server">Send playback history and Now Playing to your Subsonic server</string>
+    <string name="settings_sleep_timer_subtitle" comment="Settings Titles string: Stop music automatically after time or queue">Stop music automatically after time or queue</string>
+    <string name="setting_display_header" comment="Settings option in Appearance Settings">Display Settings</string>
+    <string name="setting_language" comment="Settings option in Appearance Settings">Language</string>
+    <string name="setting_language_subtitle" comment="Settings description / explanation subtitle">Application interface language</string>
+    <string name="setting_font" comment="Settings option in Appearance Settings">Font</string>
+    <string name="setting_theme" comment="Settings option in Appearance Settings">Theme</string>
+    <string name="setting_theme_subtitle" comment="Settings description / explanation subtitle">Theme appearance mode (System, Dark, Light)</string>
+    <string name="setting_dynamic_theme" comment="Settings option in Appearance Settings">Dynamic Theme</string>
+    <string name="setting_dynamic_theme_subtitle" comment="Settings description / explanation subtitle">Match colors to current artwork or device wallpaper</string>
+    <string name="setting_dynamic_color_source" comment="Settings option in Appearance Settings">Dynamic Color Source</string>
+    <string name="setting_dynamic_color_source_subtitle" comment="Settings description / explanation subtitle">Source used for dynamic color extraction</string>
+    <string name="setting_app_ambient_gradient" comment="Settings option in Appearance Settings">Ambient background gradient</string>
+    <string name="setting_app_ambient_gradient_subtitle" comment="Settings description / explanation subtitle">Display top-left color gradient on main pages</string>
+    <string name="setting_feedback_header" comment="Settings option in Appearance Settings">Feedback</string>
+    <string name="setting_haptic_feedback" comment="Settings option in Appearance Settings">Haptic feedback</string>
+    <string name="setting_haptic_feedback_subtitle" comment="Settings description / explanation subtitle">Subtle vibrations on key actions and touches</string>
+    <string name="setting_player_style" comment="Settings option in Player Settings">Player Page Style</string>
+    <string name="setting_player_style_subtitle" comment="Settings description / explanation subtitle">Layout presentation for the full-screen now playing page</string>
+    <string name="setting_seekbar_style" comment="Settings option in Player Settings">Seek Bar Style</string>
+    <string name="setting_seekbar_style_subtitle" comment="Settings description / explanation subtitle">Visual appearance and animation of the progress bar</string>
+    <string name="setting_miniplayer_header" comment="Settings option in Player Settings">Mini Player</string>
+    <string name="setting_miniplayer_style" comment="Settings option in Player Settings">Mini Player Style</string>
+    <string name="setting_miniplayer_style_subtitle" comment="Settings description / explanation subtitle">Visual design for the persistent bottom mini player bar</string>
+    <string name="setting_miniplayer_placement" comment="Settings option in Player Settings">Mini Player Placement</string>
+    <string name="setting_miniplayer_placement_subtitle" comment="Settings description / explanation subtitle">Positioning of the mini player relative to navigation bar</string>
+    <string name="setting_tint_miniplayer" comment="Settings option in Player Settings">Tint miniplayer</string>
+    <string name="setting_cover_art_header" comment="Settings option in Cover Art Settings">Cover Art</string>
+    <string name="setting_animated_covers" comment="Settings option in Cover Art Settings">Animated Album Covers</string>
+    <string name="setting_animated_covers_subtitle" comment="Settings description / explanation subtitle">Display motion canvas video for supported tracks</string>
+    <string name="setting_cover_art_resolution" comment="Settings option in Cover Art Settings">Cover Art Resolution</string>
+    <string name="setting_cover_art_resolution_subtitle" comment="Settings description / explanation subtitle">Image resolution for album and playlist artwork</string>
+    <string name="setting_lyrics_header" comment="Settings option in Lyrics Settings">Lyrics</string>
+    <string name="setting_lyrics_style" comment="Settings option in Lyrics Settings">Lyrics page style</string>
+    <string name="setting_lyrics_style_subtitle" comment="Settings description / explanation subtitle">Visual style and animations for synced lyrics</string>
+    <string name="setting_lyrics_provider" comment="Settings option in Lyrics Settings">Song Lyrics Provider</string>
+    <string name="setting_lyrics_source_header" comment="Settings option in Lyrics Settings">Lyrics Source</string>
+    <string name="setting_lyrics_source_both" comment="Settings option in Lyrics Settings">Online + Server</string>
+    <string name="setting_lyrics_source_server" comment="Settings option in Lyrics Settings">Server</string>
+    <string name="setting_lyrics_source_disabled" comment="Settings option in Lyrics Settings">No lyrics</string>
+    <string name="setting_online_lyrics_inactive_notice" comment="Settings option in Lyrics Settings">Disabled because lyrics source does not use online providers</string>
+    <string name="setting_blur_inactive_lyrics" comment="Settings option in Lyrics Settings">Lyrics blur effect</string>
+    <string name="setting_blur_inactive_lyrics_subtitle" comment="Settings description / explanation subtitle">Apply depth of field blur focused on the active lyric</string>
+    <string name="setting_keep_screen_on_lyrics" comment="Settings option in Lyrics Settings">Keep Screen Awake</string>
+    <string name="setting_keep_screen_on_lyrics_subtitle" comment="Settings description / explanation subtitle">Prevent the screen from turning off while viewing lyrics</string>
+    <string name="setting_external_links_header" comment="Settings option in External Links Settings">External Links</string>
+    <string name="setting_show_external_links" comment="Settings option in External Links Settings">Show External Links</string>
+    <string name="setting_show_external_links_subtitle" comment="Settings description / explanation subtitle">Display links to external metadata services in action sheets</string>
+    <string name="setting_show_lastfm_links" comment="Settings option in External Links Settings">Show Last.fm links</string>
+    <string name="setting_show_lastfm_links_subtitle" comment="Settings description / explanation subtitle">Quick access to track and album pages on Last.fm</string>
+    <string name="setting_show_musicbrainz_links" comment="Settings option in External Links Settings">Show MusicBrainz links</string>
+    <string name="setting_show_musicbrainz_links_subtitle" comment="Settings description / explanation subtitle">Quick access to releases and recordings on MusicBrainz</string>
+    <string name="setting_prefetch_header" comment="Settings option in Prefetch Settings">Queue Prefetching</string>
+    <string name="setting_prefetch_upcoming" comment="Settings option in Prefetch Settings">Prefetch upcoming tracks</string>
+    <string name="setting_prefetch_upcoming_subtitle" comment="Settings description / explanation subtitle">Seamlessly buffer upcoming songs in queue for instant playback</string>
+    <string name="setting_prefetch_track_count" comment="Settings option in Prefetch Settings">Tracks to prefetch</string>
+    <string name="setting_prefetch_track_count_subtitle" comment="Settings description / explanation subtitle">Number of upcoming songs in queue to cache ahead</string>
+    <string name="setting_prefetch_only_on_wifi" comment="Settings option in Prefetch Settings">Prefetch on Wi-Fi only</string>
+    <string name="setting_prefetch_only_on_wifi_subtitle" comment="Settings description / explanation subtitle">Prevent mobile data consumption for queue prefetch</string>
+    <string name="prefetch_count_format" comment="Formatted string with dynamic placeholders">%d tracks</string>
+    <string name="prefetch_count_single" comment="Prefetch Settings string: 1 track">1 track</string>
+    <string name="setting_streaming_quality_header" comment="Settings option in Playback Settings">Streaming Quality</string>
+    <string name="setting_wifi_quality" comment="Settings option in Playback Settings">Wi-Fi Streaming Quality</string>
+    <string name="setting_cellular_quality" comment="Settings option in Playback Settings">Cellular Streaming Quality</string>
+    <string name="setting_transcoding_format" comment="Settings option in Playback Settings">Transcoding Format</string>
+    <string name="setting_auto_next" comment="Settings option in Playback Settings">Auto Next</string>
+    <string name="setting_auto_next_subtitle" comment="Settings description / explanation subtitle">Automatically play the next track in the queue</string>
+    <string name="setting_pause_on_disconnect" comment="Settings option in Playback Settings">Pause on Disconnect</string>
+    <string name="setting_pause_on_disconnect_subtitle" comment="Settings description / explanation subtitle">Pause playback when headphones or bluetooth disconnect</string>
+    <string name="setting_auto_resume" comment="Settings option in Playback Settings">Auto Resume</string>
+    <string name="setting_auto_resume_subtitle" comment="Settings description / explanation subtitle">Automatically resume playback after phone calls or audio interruptions</string>
+    <string name="setting_offline_mode" comment="Settings option in Downloads &amp; Storage Settings">Offline Mode</string>
+    <string name="setting_download_quality" comment="Settings option in Downloads &amp; Storage Settings">Download Quality</string>
+    <string name="setting_download_quality_subtitle" comment="Settings description / explanation subtitle">Bitrate used when downloading songs for offline playback</string>
+    <string name="setting_download_codec" comment="Settings option in Downloads &amp; Storage Settings">Download Codec</string>
+    <string name="setting_download_codec_subtitle" comment="Settings description / explanation subtitle">Audio format for downloaded tracks</string>
+    <string name="setting_wifi_only_downloads" comment="Settings option in Downloads &amp; Storage Settings">Wi-Fi Only Downloads</string>
+    <string name="setting_wifi_only_downloads_subtitle" comment="Settings description / explanation subtitle">Only download music when connected to Wi-Fi</string>
+    <string name="setting_storage_maintenance_header" comment="Settings option in Downloads &amp; Storage Settings">Storage Maintenance</string>
+    <string name="setting_clear_downloads" comment="Settings option in Downloads &amp; Storage Settings">Delete All Offline Downloads</string>
+    <string name="setting_clear_downloads_subtitle" comment="Settings description / explanation subtitle">Removes all offline tracks and albums from local storage</string>
+    <string name="setting_connected_server_header" comment="Settings option in Network Settings">Connected Server</string>
+    <string name="setting_fallback_url" comment="Settings option in Network Settings">Fallback server URL</string>
+    <string name="setting_synchronization_header" comment="Settings option in Network Settings">Synchronization</string>
+    <string name="setting_last_full_sync" comment="Settings option in Network Settings">Last Full Sync</string>
+    <string name="setting_sync_never" comment="Settings option in Network Settings">Never</string>
+    <string name="setting_sync_library" comment="Settings option in Network Settings">Sync Library</string>
+    <string name="setting_sync_library_subtitle" comment="Settings description / explanation subtitle">Perform a full library sync pull immediately</string>
+    <string name="setting_disconnect_server" comment="Settings option in Network Settings">Disconnect Server</string>
+    <string name="setting_scrobbling_header" comment="Settings option in Scrobbling Settings">Scrobbling</string>
+    <string name="setting_subsonic_scrobble" comment="Settings option in Scrobbling Settings">Subsonic Scrobbling</string>
+    <string name="setting_scrobble_threshold" comment="Settings option in Scrobbling Settings">Scrobble Point</string>
+    <string name="setting_scrobble_threshold_subtitle" comment="Settings description / explanation subtitle">Percentage of track played to record scrobble and history</string>
+    <string name="setting_terms" comment="Settings option in About Settings">Terms of service</string>
+    <string name="setting_privacy" comment="Settings option in About Settings">Privacy policy</string>
+    <string name="setting_source_code" comment="Settings option in About Settings">Source code</string>
+    <string name="setting_version" comment="Settings option in About Settings">Version</string>
+    <string name="login_header" comment="Server login / authentication screen string">Subsonic</string>
+    <string name="login_subtitle" comment="Server login / authentication screen string">Connect to your music server</string>
+    <string name="login_server_url" comment="Server login / authentication screen string">Server URL</string>
+    <string name="login_fallback_server_url" comment="Server login / authentication screen string">Fallback Server URL (Optional)</string>
+    <string name="login_username" comment="Server login / authentication screen string">Username</string>
+    <string name="login_password" comment="Server login / authentication screen string">Password</string>
+    <string name="login_connect" comment="Server login / authentication screen string">Connect</string>
+    <string name="login_clear" comment="Server login / authentication screen string">Clear</string>
+    <string name="login_hide_password" comment="Server login / authentication screen string">Hide password</string>
+    <string name="login_show_password" comment="Server login / authentication screen string">Show password</string>
+    <string name="login_nearby_permission_required" comment="Server login / authentication screen string">Nearby devices permission is required for local HTTP connections</string>
+    <string name="login_open_settings" comment="Server login / authentication screen string">Open App Settings</string>
+    <string name="status_offline" comment="Auth &amp; Connection string: OFFLINE">OFFLINE</string>
+    <string name="settings_checking_updates" comment="Settings Screen Additions string: Checking for updates…">Checking for updates…</string>
+    <string name="settings_checking_releases" comment="Settings Screen Additions string: Checking for new releases…">Checking for new releases…</string>
+    <string name="update_available_toast" comment="Formatted string with dynamic placeholders">Update available: %1$s</string>
+    <string name="update_action" comment="Settings Screen Additions string: Update">Update</string>
+    <string name="update_up_to_date" comment="Formatted string with dynamic placeholders">Uta is up to date (v%1$s)</string>
+    <string name="update_error" comment="Formatted string with dynamic placeholders">Could not check for updates: %1$s</string>
+    <string name="setting_layout_style_header" comment="Settings option in Settings Screen Additions">Layout &amp; Style</string>
+    <string name="setting_player_style_lyrics_disabled" comment="Settings option in Settings Screen Additions">Lyrics view unavailable when lyrics are disabled</string>
+    <string name="setting_tint_miniplayer_enabled_desc" comment="Settings description / explanation subtitle">Apply dynamic accent color to the miniplayer background</string>
+    <string name="setting_downloads_prefs_header" comment="Settings option in Settings Screen Additions">Offline &amp; Download Preferences</string>
+    <string name="setting_offline_mode_active_desc" comment="Settings description / explanation subtitle">Browse only downloaded and cached content</string>
+    <string name="setting_offline_mode_inactive_desc" comment="Settings description / explanation subtitle">Currently connected to server</string>
+    <string name="setting_clear_downloads_dialog_title" comment="Settings section title">Delete All Offline Downloads</string>
+    <string name="setting_clear_downloads_dialog_msg" comment="Settings option in Settings Screen Additions">Are you sure you want to permanently delete all downloaded songs and offline albums? This cannot be undone.</string>
+    <string name="setting_clear_downloads_confirm" comment="Settings option in Settings Screen Additions">Delete All</string>
+    <string name="storage_used_by_uta" comment="Storage maintenance / disk usage indicator">Used by Uta</string>
+    <string name="storage_downloaded_music" comment="Storage maintenance / disk usage indicator">Downloaded Music</string>
+    <string name="storage_tracks_offline_format" comment="Storage maintenance / disk usage indicator">%1$d tracks offline</string>
+    <string name="storage_other" comment="Storage maintenance / disk usage indicator">Other</string>
+    <string name="storage_other_hint" comment="Storage maintenance / disk usage indicator">Other apps &amp; system</string>
+    <string name="storage_free_space" comment="Available disk storage space remaining on device (not zero cost)">Free Space</string>
+    <string name="storage_free_space_hint" comment="Storage maintenance / disk usage indicator">Available storage</string>
+    <string name="setting_disconnect_server_confirm_msg" comment="Settings option in Settings Screen Additions">Are you sure you want to log out? Local catalog cache and credentials will be removed.</string>
+    <string name="toast_fallback_url_updated" comment="Toast notification message">Fallback URL updated</string>
+    <string name="settings_fallback_url_help" comment="Settings Screen Additions string: Specify an alternate URL for your server (e.g. local LAN IP or remote domain).">Specify an alternate URL for your server (e.g. local LAN IP or remote domain).</string>
+    <string name="settings_server_status_format" comment="Formatted string with dynamic placeholders">User: %1$s • Status: %2$s</string>
+    <string name="status_connected" comment="Settings Screen Additions string: Connected">Connected</string>
+    <string name="settings_fallback_url_not_configured" comment="Settings Screen Additions string: Not configured (tap to set LAN/Remote fallback)">Not configured (tap to set LAN/Remote fallback)</string>
+    <string name="sync_error_format" comment="Library synchronization status">Sync failed: %1$s</string>
+    <string name="pull_refresh_hold_hint" comment="Settings Screen Additions string: Hold for full sync…">Hold for full sync…</string>
+    <string name="pull_refresh_release_full_sync" comment="Settings Screen Additions string: Release for full library sync">Release for full library sync</string>
+    <string name="full_sync_completed" comment="Settings Screen Additions string: Full library sync complete">Full library sync complete</string>
+    <string name="sync_stage_connecting" comment="Library synchronization status">Connecting to server…</string>
+    <string name="sync_stage_playlists" comment="Library synchronization status">Syncing playlists…</string>
+    <string name="sync_stage_albums" comment="Library synchronization status">Syncing albums…</string>
+    <string name="sync_stage_albums_count" comment="Library synchronization status">Syncing albums (%1$d)…</string>
+    <string name="sync_stage_artists" comment="Library synchronization status">Syncing artists…</string>
+    <string name="sync_stage_genres" comment="Library synchronization status">Syncing genres…</string>
+    <string name="settings_no_server_connected" comment="Settings Screen Additions string: No server connected">No server connected</string>
+    <string name="settings_no_server_connected_desc" comment="Settings Screen Additions string: Log in to connect to a Subsonic music server">Log in to connect to a Subsonic music server</string>
+    <string name="content_desc_back" comment="Settings Screen Additions string: Back">Back</string>
+    <string name="cd_back" comment="Settings Screen Additions string: Back">Back</string>
+    <string name="cd_logout" comment="Settings Screen Additions string: Log Out">Log Out</string>
+    <string name="album_tracks_count" comment="Formatted string with dynamic placeholders">%1$d Tracks</string>
+    <string name="album_search_tracks_cd" comment="Accessibility description for album search tracks">Search tracks</string>
+    <string name="playlist_search_tracks_cd" comment="Accessibility description for playlist search tracks">Search tracks</string>
+    <string name="playlist_new" comment="Settings Screen Additions string: New Playlist">New Playlist</string>
+    <string name="playlists_empty_title" comment="Settings Screen Additions string: No playlists">No playlists</string>
+    <string name="playlist_name_placeholder" comment="Settings Screen Additions string: Playlist name">Playlist name</string>
+    <string name="album_unknown_album" comment="Settings Screen Additions string: Unknown Album">Unknown Album</string>
 </resources>
